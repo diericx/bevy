@@ -25,6 +25,10 @@ But the client only requests sections it knows about from a metadata file (`.mpd
 
 ## Option 2. Transcoding with custom HTTP Range implementation
 
-Currently we are using the default Go HTTP Range function which just serves a file using implementations of functions the html5 player expects. It makes some assumptions about the file which don't match our use case.
+Currently we are using the [default Go HTTP Range function `ServeContent`](https://golang.org/pkg/net/http/#ServeContent) which just serves a file using implementations of functions the html5 player expects. It makes some assumptions about the file which don't match our use case.
 
 If we reimplement this protocol, we might be able to transcode live without having to do much fluff like dealing with metadata files and what not... we just need to fully understand HTTP Range requests.
+
+I think it might be this easy...
+
+The first thing this implementation does is [checks how large the file in the readseeker is by seeking to the end](https://github.com/golang/go/blob/ba9e10889976025ee1d027db6b1cad383ec56de8/src/net/http/fs.go#L157) and then making assumptions on that... which works when using raw files as we can see in the working version in this repo. What we need to do is add a step which checks how large the file downloading is, and then calculates the size the transcoded file will be. Then all operations should request correct byte sections and we can intercept requests and transcode as they serve... hacky!
