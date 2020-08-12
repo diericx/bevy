@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class=''>
+  <head>
+    <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/video.js/6.4.0/video-js.css'>
+  </head>
+  <body>
+    <video id="vid1" controls class="video-js vjs-default-skin vjs-big-play-centered" width="640" height="360" preload="auto">
+      <source src="http://localhost:8080" type='video/mp4'>
+    </video>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/video.js/6.4.0/video.js'></script>
+    <script>
+      var Plugin = videojs.getPlugin('plugin');
+      
+       /**
+       *  Instead of byte-ranges for seeking, we use time-ranges.
+       *  This way we can pass it directly to ffmpeg to transcode the media from the specified time.
+       *  Byte-ranges (Accept-Ranges: bytes) should be disabled on the server for media beign transcoded to prevent the browser to try to use them.
+       */
+      var TimeRangesSeeking = videojs.extend(Plugin, {
+      
+        constructor: function(player, options) {
+          Plugin.call(this, player, options);
+          
+          player.ready(function(){
+            console.log('player', player);
+            
+            var baseSrc = player.src();
+      
+            var seekBar = player.controlBar.progressControl.seekBar;
+            seekBar._timeOffset = 0;
+            seekBar._seekTime = null;
+
+            
+            /*var _seekBarHandleMouseDown = seekBar.handleMouseDown;
+            seekBar.handleMouseDown = function(event) {
+              _seekBarHandleMouseDown(event);
+              this._seekTime = null;
+            }
+            seekBar.handleMouseDown.bind(seekBar);*/
+            
+            // Handle mouse move, to request new time based content from server
+            var _seekBarHandleMouseMove = seekBar.handleMouseMove;
+            seekBar.handleMouseMove = function(event) {
+              let newTime = this.calculateDistance(event) * this.player_.duration();
+      
+              // Don't let video end while scrubbing.
+              if (newTime === this.player_.duration()) {
+                newTime = newTime - 0.1;
+              }
+
+              this._seekTime = newTime;
+              this._timeOffset = this._seekTime;
+            }
+            _seekBarHandleMouseMove.bind(seekBar);
+            seekBar.handleMouseMove.bind(seekBar);
+
+            var _seekBarHandleMouseUp = seekBar.handleMouseUp;
+            seekBar.handleMouseUp = function(event) {
+              _seekBarHandleMouseUp.bind(seekBar)(event);
+
+              if(this._seekTime === null) {
+                return;
+              }
+
+              console.log('set new src', baseSrc+'?time='+this._seekTime);
+              this._timeOffset = this._seekTime;
+              player.src({type: 'video/mp4', src: baseSrc+'?time='+this._seekTime});
+              player.play();
+
+              this._seekTime = null;
+            }
+            _seekBarHandleMouseUp.bind(seekBar);
+            seekBar.handleMouseUp.bind(seekBar);
+            
+            // Get current time, add time offset
+            var _seekBarGetCurrentTime_ = seekBar.getCurrentTime_;
+            seekBar.getCurrentTime_ = function() {
+              console.log("Get currnet time {")
+              console.log(this.player_.scrubbing())
+              console.log(this.player_.getCache().currentTime)
+              console.log(this.player_.currentTime() );
+              console.log((this._timeOffset || 0))
+              console.log(((this.player_.scrubbing()) ?
+                this.player_.getCache().currentTime :
+                this.player_.currentTime()) + (this._timeOffset || 0))
+              return ((this.player_.scrubbing()) ?
+                this.player_.getCache().currentTime :
+                this.player_.currentTime()) + (this._timeOffset || 0);
+            }
+            _seekBarGetCurrentTime_.bind(seekBar);
+            seekBar.getCurrentTime_.bind(seekBar);
+          });
+      
+          /*player.on("timeupdate", function(event) {
+            //console.log('timeupdate', player.currentTime());
+          });
+          
+          player.on("seeking", function(event) {
+            console.log('seeking', player.currentTime());
+          });
+      
+          player.on("seeked", function(event) {
+            console.log('seeked', player.currentTime());
+          });
+      
+          player.on('playing', function() {
+            videojs.log('playback began!');
+          });*/
+        }
+      });
+      
+      videojs.registerPlugin('timeRangesSeeking', TimeRangesSeeking);
+
+      /**
+       *  Call the server with ?metadata to get meta from ffprobe for the currently played media.
+       *  This way we can set the duration of the media, even if it's beign transcoded.
+       */
+      var DurationFromServer = videojs.extend(Plugin, {
+      
+        constructor: function(player, options) {
+          Plugin.call(this, player, options);
+
+          var plugin = this;
+
+          this._cachedDurations = {};
+          
+          player.ready(function(){  
+            plugin.setPlayerDurationFromServer(player);
+            
+            player.on('durationchange', function(event) {
+              plugin.setPlayerDurationFromServer(player);
+            });
+          });
+        },
+
+        getUrlWithoutTime: function(url) {
+          return url.split('?time=')[0];
+        },
+
+        getCachedDuration: function(url) {
+          var urlWithoutTime = this.getUrlWithoutTime(url);
+          if(urlWithoutTime in this._cachedDurations) {
+            return this._cachedDurations[urlWithoutTime];
+          }
+          return null;
+        },
+
+        setCachedDuration: function(url, duration) {
+          var urlWithoutTime = this.getUrlWithoutTime(url);
+          this._cachedDurations[urlWithoutTime] = duration;
+          return this._cachedDurations[urlWithoutTime];
+        },
+
+        setPlayerDurationFromServer: function(player) {
+          this.getDuration(player.src()).then(function(duration) {
+            if(player.duration() !== duration) {
+              player.duration(duration);
+            }
+          });
+        },
+        
+        getDuration: function(url) {
+          var duration = this.getCachedDuration(url);
+          if(duration !== null) {
+            return Promise.resolve(duration);
+          }
+
+          var plugin = this;
+
+          return fetch(url+'?metadata')
+          .then((resp) => resp.json())
+          .then(function(metadata) {
+            return plugin.setCachedDuration(url, metadata.format.duration);
+          });
+        }
+      });
+      
+      videojs.registerPlugin('durationFromServer', DurationFromServer);
+      
+      if (document.getElementById("vid1")) {
+        videojs("vid1", {
+          plugins: {
+            timeRangesSeeking: {},
+            durationFromServer: {}
+          }
+        }).ready(function() {
+          
+        });
+      }
+    </script>
+  </body>
+</html>
