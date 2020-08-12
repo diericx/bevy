@@ -1,16 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os/exec"
-	"encoding/json"
 	"strconv"
-	"math"
+	"syscall"
 	"time"
 	// "os"
-
 	// "github.com/anacrolix/torrent"
 )
 
@@ -18,7 +18,7 @@ type Format struct {
 	Duration int `json:"duration"`
 }
 type Metadata struct {
-    Format Format `json:"format"`
+	Format Format `json:"format"`
 }
 
 func fmtDuration(d time.Duration) string {
@@ -33,9 +33,9 @@ func fmtDuration(d time.Duration) string {
 
 func fileHandler(w http.ResponseWriter, r *http.Request) {
 	_, ok := r.URL.Query()["metadata"]
-    if ok {
+	if ok {
 		// TODO: get real metadata
-		metadata := Metadata {
+		metadata := Metadata{
 			Format: Format{
 				Duration: 633,
 			},
@@ -49,11 +49,12 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
+	w.Header().Set("Transfer-Encoding", "chunked") // Maybe?
 	ffmpegArgs := []string{"-i", "http://localhost:3000", "-f", "matroska", "-c:v", "libx264", "-b", "300k", "-preset", "fast", "-tune", "zerolatency"}
 
 	timeArgs, ok := r.URL.Query()["time"]
-    if ok {
+	if ok {
 		var timeFloat float64
 		timeFloat, err := strconv.ParseFloat(timeArgs[0], 64)
 		if err != nil {
@@ -61,21 +62,33 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		var timeInt int = int(math.Round(timeFloat))
 		timeDuration := time.Second * time.Duration(timeInt)
-		timeString := fmtDuration(timeDuration) 
+		timeString := fmtDuration(timeDuration)
 		ffmpegArgs = append(ffmpegArgs, "-ss", timeString)
 	}
 	ffmpegArgs = append(ffmpegArgs, "-")
-	
+
 	cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
-	defer func() {
-		// TODO: Why doesn't it ever close?
-		println("Closing ffmpeg...")
+	cmdFF.Stdout = w
+	cmdFF.Start()
+	// defer func() {
+	// 	// TODO: Why doesn't it ever close?
+	// 	println("Request closed. Ending FFMPEG process...")
+	// 	cmdFF.Process.Kill()
+	// }()
+
+	go func() {
+		<-r.Context().Done()
 		cmdFF.Process.Kill()
+		println("Client Disconnected... Ending process.")
 	}()
 
-	cmdFF.Stdout = w
-    if err := cmdFF.Run(); err != nil {
-        log.Fatal(err)
+	// Async execute function
+	if err := cmdFF.Wait(); err != nil {
+		status := cmdFF.ProcessState.Sys().(syscall.WaitStatus)
+		exitStatus := status.ExitStatus()
+		signaled := status.Signaled()
+		signal := status.Signal()
+		log.Println(err, exitStatus, signaled, signal)
 	}
 }
 
