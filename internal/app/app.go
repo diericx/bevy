@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/xml"
 	"io"
 )
 
@@ -39,6 +40,24 @@ type Torrent struct {
 
 type ReleaseManagerConfig struct {
 	Indexers []Indexer `yaml:"indexers"`
+}
+
+type Rss struct {
+	XMLName  xml.Name  `xml:"rss"`
+	Channels []Channel `xml:"channel"`
+}
+type Channel struct {
+	XMLName xml.Name `xml:"channel"`
+	Title   string   `xml:"title"`
+	Items   []Item   `xml:"item"`
+}
+type Item struct {
+	XMLName xml.Name `xml:"item"`
+	Title   string   `xml:"title"`
+	Size    int64    `xml:"size"`
+	Grabs   int      `xml:"grabs"`
+	Link    string   `xml:"link"`
+	// TODO: Torznab attributes??
 }
 
 // ReleaseManager a list of torrents for a certain movie/show

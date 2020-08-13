@@ -32,3 +32,8 @@ If we reimplement this protocol, we might be able to transcode live without havi
 I think it might be this easy...
 
 The first thing this implementation does is [checks how large the file in the readseeker is by seeking to the end](https://github.com/golang/go/blob/ba9e10889976025ee1d027db6b1cad383ec56de8/src/net/http/fs.go#L157) and then making assumptions on that... which works when using raw files as we can see in the working version in this repo. What we need to do is add a step which checks how large the file downloading is, and then calculates the size the transcoded file will be. Then all operations should request correct byte sections and we can intercept requests by implementing our own io.readseeker and transcode as they come from the download readseeker then serve... hacky!
+
+# Notes
+
+Exaple query using Jackett
+`192.168.1.71:9117/api/v2.0/indexers/torrentleech/results/torznab/api?apikey=0x7ym4k6c4nghc6nh6qi3s2pdyicxj19&t=movie&imdbid=tt0317705&cat=2040`
