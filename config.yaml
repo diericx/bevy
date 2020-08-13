@@ -1,0 +1,13 @@
+indexers:
+    - name: TorrentLeech
+      url: http://192.168.1.71:9117/api/v2.0/indexers/torrentleech/results/torznab/
+      apiKey: 0x7ym4k6c4nghc6nh6qi3s2pdyicxj19
+      categories:
+          - 5000
+          - 5020
+          - 5030
+          - 5040
+          - 5070
+          - 5070
+          - 5080
+          - 100027
