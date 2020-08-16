@@ -6,6 +6,7 @@ import (
 
 	"github.com/diericx/iceetime/internal/app"
 	releases "github.com/diericx/iceetime/internal/pkg/releaseManager"
+	"github.com/diericx/iceetime/internal/pkg/storm"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 )
@@ -13,7 +14,10 @@ import (
 func main() {
 	config := app.Config{}
 
-	db, err := storm.Open("iceetime.db")
+	db, err := storm.NewReleaseDAO("iceetime.db")
+	if err != nil {
+		panic(err)
+	}
 	defer db.Close()
 
 	// Open release manager config file

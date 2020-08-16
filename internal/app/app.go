@@ -24,8 +24,8 @@ func (e Error) Error() string {
 }
 
 type Quality struct {
-	Index         int
-	RegexPatterns []string
+	Name  string `yaml:"name"`
+	Regex string `yaml:"regex"`
 }
 type BasicAuth struct {
 	Username string `yaml:"username"`
@@ -58,17 +58,19 @@ type Torrent struct {
 }
 
 type Config struct {
-	Indexers []Indexer `yaml:"indexers"`
+	Indexers  []Indexer `yaml:"indexers"`
+	Qualities []Quality `yaml:"quality"`
 }
 
 type ReleaseDAO interface {
 	Save(Release)
+	GetByImdbIDAndMinQuality(imdbID string, minQuality Quality)
 }
 
 // ReleaseManager a list of torrents for a certain movie/show
 type ReleaseManager interface {
-	Get(imdbID string, minQuality Quality) (*Release, *Error)
-	Add(imdbID string, minQuality Quality) (*Release, *Error)
+	GetByImdbIDAndQuality(imdbID string, minQuality Quality) (*Release, *Error)
+	AddFromTorznabQuery(imdbID string, minQuality Quality) (*Release, *Error)
 }
 
 // Torrents manages torrents

@@ -13,15 +13,18 @@ type Rss struct {
 	XMLName  xml.Name  `xml:"rss"`
 	Channels []Channel `xml:"channel"`
 }
+
 type Channel struct {
 	XMLName xml.Name `xml:"channel"`
 	Title   string   `xml:"title"`
 	Items   []Item   `xml:"item"`
 }
+
 type TorznabAttr struct {
 	Key   string `xml:"name,attr"`
 	Value int    `xml:"value,attr"`
 }
+
 type Item struct {
 	XMLName        xml.Name       `xml:"item"`
 	Title          string         `xml:"title"`
@@ -42,7 +45,7 @@ func NewReleaseManager(Indexers []app.Indexer) (*rmanager, *app.Error) {
 	}, nil
 }
 
-func (r *rmanager) Get(imdbID string, minQuality app.Quality) (*app.Release, *app.Error) {
+func (r *rmanager) AddReleaseFromTorznabQuery(imdbID string, minQuality app.Quality) (*app.Release, *app.Error) {
 	torznabQueries, err := r.torznabQuery("test", []string{})
 	// TODO: Return release saved locally or null
 	return &app.Release{}, nil
