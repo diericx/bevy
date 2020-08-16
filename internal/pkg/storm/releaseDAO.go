@@ -19,6 +19,10 @@ func NewReleaseDAO(path string) (dao *ReleaseDAO, err error) {
 	}, err
 }
 
+func (dao *ReleaseDAO) Close() {
+	dao.db.Close()
+}
+
 // Save writes a release object to disk
 func (dao *ReleaseDAO) Save(Release app.Release) error {
 	return dao.db.Save(Release)

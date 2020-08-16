@@ -41,7 +41,7 @@ type Indexer struct {
 
 type Release struct {
 	ID          int    `storm:"id,increment"` // primary key with auto increment
-	TorrentID   int    `storm:"unique"`       // Don't want to double down on torrents!
+	TorrentHash string `storm:"unique"`       // Don't want to double down on torrents!
 	TorrentName string // Store this here to easily infer quality
 	ImdbID      string `storm:"index"`
 	CreatedAt   time.Time
@@ -59,7 +59,7 @@ type Torrent struct {
 
 type Config struct {
 	Indexers  []Indexer `yaml:"indexers"`
-	Qualities []Quality `yaml:"quality"`
+	Qualities []Quality `yaml:"qualities"`
 }
 
 type ReleaseDAO interface {

@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/diericx/iceetime/internal/app"
@@ -36,30 +37,36 @@ type Item struct {
 }
 
 type rmanager struct {
-	Indexers []app.Indexer
+	Qualities []app.Quality
+	Indexers  []app.Indexer
 }
 
-func NewReleaseManager(Indexers []app.Indexer) (*rmanager, *app.Error) {
+func NewReleaseManager(indexers []app.Indexer, qualities []app.Quality) (*rmanager, *app.Error) {
 	return &rmanager{
-		Indexers: Indexers,
+		Indexers:  indexers,
+		Qualities: qualities,
 	}, nil
 }
 
-func (r *rmanager) AddReleaseFromTorznabQuery(imdbID string, minQuality app.Quality) (*app.Release, *app.Error) {
-	torznabQueries, err := r.torznabQuery("test", []string{})
+func (r *rmanager) GetByImdbIDAndQuality(imdbID string, minQuality int) (*app.Release, *app.Error) {
 	// TODO: Return release saved locally or null
 	return &app.Release{}, nil
 }
 
-func (r *rmanager) Add(imdbID string, minQuality app.Quality) (*app.Release, *app.Error) {
+func (r *rmanager) AddFromTorznabQuery(imdbID string, minQuality int) (*app.Release, *app.Error) {
+	releases, err := r.torznabQuery("movie", imdbID, r.Qualities[minQuality].Regex, "2040")
+	if err != nil {
+		return nil, app.NewError(err, 500, "Error querying torznab")
+	}
+	log.Printf("%+v", releases)
 	// TODO: Query Jackett for releases
 	// TODO: Find best release
 	// TODO: Save and return release
 	return &app.Release{}, nil
 }
 
-func (r *rmanager) torznabQuery(search string, categories []string) ([]app.Release, *app.Error) {
-	releases := []app.Release{}
+func (r *rmanager) torznabQuery(t string, imdbID string, search string, categories string) (*Rss, *app.Error) {
+	var torznabResp Rss
 
 	for _, indexer := range r.Indexers {
 		client := &http.Client{}
@@ -70,9 +77,9 @@ func (r *rmanager) torznabQuery(search string, categories []string) ([]app.Relea
 		}
 		q := req.URL.Query()
 		q.Add("apikey", indexer.APIKey)
-		q.Add("t", "movie")
-		q.Add("imdbid", "tt0317705")
-		q.Add("cat", "2040")
+		q.Add("t", t)
+		q.Add("imdbid", imdbID)
+		q.Add("cat", categories)
 		req.URL.RawQuery = q.Encode()
 
 		resp, err := client.Do(req)
@@ -85,7 +92,6 @@ func (r *rmanager) torznabQuery(search string, categories []string) ([]app.Relea
 			return nil, app.NewError(err, 500, fmt.Sprintf("Error parsing response body from indexer %s", indexer.Name))
 		}
 
-		var torznabResp Rss
 		xml.Unmarshal(body, &torznabResp)
 
 		// Convert torznab attr array to map
@@ -99,10 +105,7 @@ func (r *rmanager) torznabQuery(search string, categories []string) ([]app.Relea
 				}
 				channel.Items[i] = item
 			}
-			releases = append(releases, app.Release{})
 		}
-
-		queryCollection = append(queryCollection, torznabResp)
 	}
-	return queryCollection, nil
+	return &torznabResp, nil
 }

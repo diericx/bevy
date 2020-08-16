@@ -14,11 +14,11 @@ import (
 func main() {
 	config := app.Config{}
 
-	db, err := storm.NewReleaseDAO("iceetime.db")
+	releaseDAO, err := storm.NewReleaseDAO("iceetime.db")
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer releaseDAO.Close()
 
 	// Open release manager config file
 	file, err := os.Open("./config.yaml")
@@ -35,16 +35,17 @@ func main() {
 		panic(err)
 	}
 
-	log.Println(config.Indexers)
+	log.Println(config.Qualities)
 
-	releases, _ := releases.NewReleaseManager(config.Indexers) // TODO: handle this error
+	releases, _ := releases.NewReleaseManager(config.Indexers, config.Qualities) // TODO: handle this error
 
 	r := gin.Default()
 	r.GET("/find/movie/imdb_id/:imdbID", func(c *gin.Context) {
 		imdbID := c.Param("imdbID")
-		foundReleases, _ := releases.Get(imdbID, app.Quality{}) // TODO: manage this error
+		releases.AddFromTorznabQuery(imdbID, 0)
+		// foundReleases, _ := releases.Get(imdbID, app.Quality{}) // TODO: manage this error
 		c.JSON(200, gin.H{
-			"releases": foundReleases,
+			"releases": "asdf",
 		})
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
