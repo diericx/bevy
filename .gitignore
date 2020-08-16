@@ -1,2 +1,7 @@
 .vscode
 *.mp4
+config.yaml
+*.torrent
+*.mkv
+*.bolt.db
+*.DS_Store

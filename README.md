@@ -37,3 +37,9 @@ The first thing this implementation does is [checks how large the file in the re
 
 Exaple query using Jackett
 `192.168.1.71:9117/api/v2.0/indexers/torrentleech/results/torznab/api?apikey=0x7ym4k6c4nghc6nh6qi3s2pdyicxj19&t=movie&imdbid=tt0317705&cat=2040`
+
+Note: On stupud ass mac run this
+```
+export CPATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/"
+export CGO_ENABLED=1; export CC=gcc;
+```

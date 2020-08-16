@@ -1,16 +1,21 @@
 package main
 
 import (
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/pkg/releaseManager"
-	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v2"
 	"log"
 	"os"
+
+	"github.com/diericx/iceetime/internal/app"
+	releases "github.com/diericx/iceetime/internal/pkg/releaseManager"
+	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
-	releaseManagerConfig := app.ReleaseManagerConfig{}
+	config := app.Config{}
+
+	db, err := storm.Open("iceetime.db")
+	defer db.Close()
+
 	// Open release manager config file
 	file, err := os.Open("./config.yaml")
 	if err != nil {
@@ -21,14 +26,14 @@ func main() {
 	// Init new YAML decode
 	d := yaml.NewDecoder(file)
 	// Start YAML decoding from file
-	if err := d.Decode(&releaseManagerConfig); err != nil {
+	if err := d.Decode(&config); err != nil {
 		log.Println("Invalid config foudn in config.yaml: ", err)
 		panic(err)
 	}
 
-	log.Println(releaseManagerConfig)
+	log.Println(config.Indexers)
 
-	releases, _ := releases.NewReleaseManager() // TODO: handle this error
+	releases, _ := releases.NewReleaseManager(config.Indexers) // TODO: handle this error
 
 	r := gin.Default()
 	r.GET("/find/movie/imdb_id/:imdbID", func(c *gin.Context) {
