@@ -1,25 +1,20 @@
 package main
 
 import (
+	"github.com/diericx/iceetime/internal/pkg/tmdb"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/diericx/iceetime/internal/app"
-	releases "github.com/diericx/iceetime/internal/pkg/releaseManager"
 	"github.com/diericx/iceetime/internal/pkg/storm"
+	"github.com/diericx/iceetime/internal/pkg/torznab"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 )
 
 func main() {
 	config := app.Config{}
-
-	releaseDAO, err := storm.NewReleaseDAO("iceetime.db")
-	if err != nil {
-		panic(err)
-	}
-	defer releaseDAO.Close()
-
 	// Open release manager config file
 	file, err := os.Open("./config.yaml")
 	if err != nil {
@@ -35,18 +30,81 @@ func main() {
 		panic(err)
 	}
 
-	log.Println(config.Qualities)
+	torrentDAO, err := storm.NewTorrentDAO("iceetime.db", config.Qualities)
+	if err != nil {
+		panic(err)
+	}
+	defer torrentDAO.Close()
 
-	releases, _ := releases.NewReleaseManager(config.Indexers, config.Qualities) // TODO: handle this error
+	mediaMetaManager := omdb.NewMediaMetaManager(config.Tmdb.ApiKey)
+	if err != nil {
+		panic(err)
+	}
+
+	torznabIQH, _ := torznab.NewIndexerQueryHandler(mediaMetaManager, config.Indexers, config.Qualities) // TODO: handle this error
 
 	r := gin.Default()
-	r.GET("/find/movie/imdb_id/:imdbID", func(c *gin.Context) {
-		imdbID := c.Param("imdbID")
-		releases.AddFromTorznabQuery(imdbID, 0)
+	r.GET("/find/movie", func(c *gin.Context) {
+		imdbID := c.Query("imdbID")
+		title := c.Query("title")
+		year := c.Query("year")
+		if imdbID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Missing imdb id",
+			})
+			return
+		}
+		if title == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Missing title",
+			})
+			return
+		}
+		if year == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Missing year",
+			})
+			return
+		}
+
+		// Attempt to get a torrent on disk
+		torrentOnDisk, err := torrentDAO.GetByImdbIDAndMinQuality(imdbID, 0)
+		if err != nil {
+			println(err.Error())
+			panic(err)
+		}
+
+		if torrentOnDisk != nil {
+			c.JSON(200, torrentOnDisk)
+			return
+		}
+
+		// Fetch torrent online
+		torrent, err := torznabIQH.QueryMovie(imdbID, title, year, 1)
+		if err != nil {
+			log.Println(err.Error())
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "We ran into an issue looking for that movie.",
+			})
+			return
+		}
+		if torrent == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "We ran into an issue looking for that movie.",
+			})
+		}
+
+		if torrent.MagnetLink != "" {
+
+		}
+
+		// Attempt to save first to catch any duplicate errors that will be caught by unique fields
+
+		// TODO: save torrent
+		// TODO: Add torrent to client
+
 		// foundReleases, _ := releases.Get(imdbID, app.Quality{}) // TODO: manage this error
-		c.JSON(200, gin.H{
-			"releases": "asdf",
-		})
+		c.JSON(200, torrent)
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

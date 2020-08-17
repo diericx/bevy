@@ -3,5 +3,5 @@
 config.yaml
 *.torrent
 *.mkv
-*.bolt.db
+*.db
 *.DS_Store

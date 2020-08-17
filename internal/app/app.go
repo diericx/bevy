@@ -2,6 +2,7 @@ package app
 
 import (
 	"io"
+	"log"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type Error struct {
 }
 
 func NewError(origionalError error, code int, message string) *Error {
+	log.Printf("%s\n%s", message, origionalError)
 	return &Error{
 		OrigionalError: origionalError,
 		Code:           code,
@@ -23,54 +25,78 @@ func (e Error) Error() string {
 	return e.Message
 }
 
-type Quality struct {
-	Name  string `yaml:"name"`
-	Regex string `yaml:"regex"`
+type MediaMeta struct {
+	Title       string `json:"title"`
+	ReleaseDate string `json:"release_date"`
 }
+
+type Quality struct {
+	Name    string `yaml:"name"`
+	Regex   string `yaml:"regex"`
+	MinSize int64  `yaml:"minSize"`
+	MaxSize int64  `yaml:"maxSize"`
+}
+
 type BasicAuth struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
-type Indexer struct {
-	Name       string     `yaml:"name"`
-	URL        string     `yaml:"url"`
-	BasicAuth  *BasicAuth `yaml:"basicAuth"`
-	APIKey     string     `yaml:"apiKey"`
-	Categories []string   `yaml:"categories"`
-}
 
-type Release struct {
-	ID          int    `storm:"id,increment"` // primary key with auto increment
-	TorrentHash string `storm:"unique"`       // Don't want to double down on torrents!
-	TorrentName string // Store this here to easily infer quality
-	ImdbID      string `storm:"index"`
-	CreatedAt   time.Time
+type Indexer struct {
+	Name                 string     `yaml:"name"`
+	URL                  string     `yaml:"url"`
+	BasicAuth            *BasicAuth `yaml:"basicAuth"`
+	SupportsImdbIDSearch bool       `yaml:"supportsImdbIDSearch"`
+	APIKey               string     `yaml:"apiKey"`
+	Categories           string     `yaml:"categories"`
 }
 
 // Torrent metadata for a certain torrent
 type Torrent struct {
-	ID      string `storm:"id,increment"`
-	Name    string // Note: Quality is inferred from this
-	Size    int64
-	Grabs   int
-	Link    string `storm:"unique"`
-	Tracker string
+	ID          string `storm:"id,increment" json:"id"`
+	Type        string // Movie, Episode, Season, Season Pack, etc.
+	ImdbID      string `storm:"unique" json:"imdbID"`
+	Title       string `json:"title"` // Note: Quality is inferred from this
+	Size        int64  `json:"size"`
+	InfoHash    string `storm:"unique" json:"infoHash"`
+	Grabs       int    `json:"grabs"`
+	MagnetLink  string
+	FileLink    string
+	Seeders     int `json:"seeders"` // Note: subject to change
+	Tracker     string
+	MinRatio    float32
+	MinSeedTime int
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type Tmdb struct {
+	ApiKey string `yaml:"apiKey"`
 }
 
 type Config struct {
 	Indexers  []Indexer `yaml:"indexers"`
 	Qualities []Quality `yaml:"qualities"`
+	Tmdb      Tmdb      `yaml:"tmdb"`
 }
 
-type ReleaseDAO interface {
-	Save(Release)
-	GetByImdbIDAndMinQuality(imdbID string, minQuality Quality)
+type TorrentDAO interface {
+	Save(Torrent)
+	GetByImdbIDAndMinQuality(imdbID string, minQuality int)
+	GetByImdbIDAndInfoHash(imdbID string, infoHash string)
 }
 
-// ReleaseManager a list of torrents for a certain movie/show
-type ReleaseManager interface {
-	GetByImdbIDAndQuality(imdbID string, minQuality Quality) (*Release, *Error)
-	AddFromTorznabQuery(imdbID string, minQuality Quality) (*Release, *Error)
+type TorrentClient interface {
+	Add(t Torrent) (hash string, err error)
+	GetInfoHash(t Torrent) (string, error)
+}
+
+// IndexerQueryHandler given inputs will handle querying indexers for torrents
+type IndexerQueryHandler interface {
+	QueryMovie(imdbID string, title string, year string, minQuality Quality) (*Torrent, *Error)
+}
+
+type MediaMetaManager interface {
+	GetByImdbID(imdbID string) (*MediaMeta, error)
 }
 
 // Torrents manages torrents
