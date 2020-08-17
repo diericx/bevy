@@ -53,7 +53,7 @@ type Indexer struct {
 
 // Torrent metadata for a certain torrent
 type Torrent struct {
-	ID          string `storm:"id,increment" json:"id"`
+	ID          int    `storm:"id,increment" json:"id"`
 	Type        string // Movie, Episode, Season, Season Pack, etc.
 	ImdbID      string `storm:"unique" json:"imdbID"`
 	Title       string `json:"title"` // Note: Quality is inferred from this
@@ -86,8 +86,9 @@ type TorrentDAO interface {
 }
 
 type TorrentClient interface {
-	Add(t Torrent) (hash string, err error)
-	GetInfoHash(t Torrent) (string, error)
+	AddFromMagnet(magnet string) (hash string, err error)
+	AddFromFileURL(fileURL string, name string) (hash string, err error)
+	RemoveByHash(hash string) error
 }
 
 // IndexerQueryHandler given inputs will handle querying indexers for torrents

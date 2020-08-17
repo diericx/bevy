@@ -26,7 +26,7 @@ func (dao *TorrentDAO) Close() {
 }
 
 // Save writes a release object to disk
-func (dao *TorrentDAO) Save(t app.Torrent) error {
+func (dao *TorrentDAO) Save(t *app.Torrent) error {
 	t.CreatedAt = time.Now()
 	return dao.db.Save(t)
 }

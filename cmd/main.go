@@ -8,6 +8,7 @@ import (
 
 	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/pkg/storm"
+	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/diericx/iceetime/internal/pkg/torznab"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
@@ -35,6 +36,12 @@ func main() {
 		panic(err)
 	}
 	defer torrentDAO.Close()
+
+	torrentClient, err := torrent.NewTorrentClient("~/downloads", "~/downloads")
+	if err != nil {
+		panic(err)
+	}
+	defer torrentClient.Close()
 
 	mediaMetaManager := omdb.NewMediaMetaManager(config.Tmdb.ApiKey)
 	if err != nil {
@@ -70,7 +77,6 @@ func main() {
 		// Attempt to get a torrent on disk
 		torrentOnDisk, err := torrentDAO.GetByImdbIDAndMinQuality(imdbID, 0)
 		if err != nil {
-			println(err.Error())
 			panic(err)
 		}
 
@@ -80,9 +86,9 @@ func main() {
 		}
 
 		// Fetch torrent online
-		torrent, err := torznabIQH.QueryMovie(imdbID, title, year, 1)
-		if err != nil {
-			log.Println(err.Error())
+		torrent, terr := torznabIQH.QueryMovie(imdbID, title, year, 1)
+		if terr != nil {
+			log.Println(terr.Error())
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "We ran into an issue looking for that movie.",
 			})
@@ -92,16 +98,43 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "We ran into an issue looking for that movie.",
 			})
+			return
 		}
 
+		// Add to client to get hash
 		if torrent.MagnetLink != "" {
-
+			hash, err := torrentClient.AddFromMagnet(torrent.MagnetLink)
+			if err != nil {
+				log.Println(err)
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": "We ran into an issue adding the torrent magnet for that movie.",
+				})
+				return
+			}
+			torrent.InfoHash = hash
+		} else if torrent.FileLink != "" {
+			hash, err := torrentClient.AddFromFileURL(torrent.FileLink, torrent.Title)
+			if err != nil {
+				log.Println(err)
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": "We ran into an issue adding the torrent file for that movie.",
+				})
+				return
+			}
+			torrent.InfoHash = hash
 		}
 
-		// Attempt to save first to catch any duplicate errors that will be caught by unique fields
-
-		// TODO: save torrent
-		// TODO: Add torrent to client
+		if err := torrentDAO.Save(torrent); err != nil {
+			log.Println(err)
+			err := torrentClient.RemoveByHash(torrent.InfoHash)
+			if err != nil {
+				log.Println("BRUTAL: Could not remove torrent after attempting an add. This is super bad!")
+			}
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "We ran into an issue saving the torrent file for that movie.",
+			})
+			return
+		}
 
 		// foundReleases, _ := releases.Get(imdbID, app.Quality{}) // TODO: manage this error
 		c.JSON(200, torrent)
