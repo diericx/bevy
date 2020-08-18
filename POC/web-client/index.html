@@ -167,7 +167,7 @@
 
           var plugin = this;
 
-          return fetch(url+'?metadata')
+          return fetch(url+'/metadata')
           .then((resp) => resp.json())
           .then(function(metadata) {
             return plugin.setCachedDuration(url, metadata.format.duration);

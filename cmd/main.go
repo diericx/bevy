@@ -159,42 +159,6 @@ func main() {
 
 		streamURL := fmt.Sprintf("%s/%v", "http://127.0.0.1:8080/stream/torrent", id)
 
-		// Metadat path
-		_, ok := r.URL.Query()["metadata"]
-		if ok {
-			out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", streamURL).Output()
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Error fetching metadata",
-				})
-				return
-			}
-			durString := string(out)
-			durString = durString[:len(durString)-1]
-
-			dur, err := strconv.ParseFloat(durString, 32)
-			if err != nil {
-				log.Println(err)
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Error parsing metadata",
-				})
-				return
-			}
-			// TODO: get real metadata
-			metadata := Metadata{
-				Format: Format{
-					Duration: int(dur),
-				},
-			}
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusOK)
-			if err := json.NewEncoder(w).Encode(metadata); err != nil {
-				panic(err)
-			}
-			return
-		}
-
 		// Stream path
 		torrent, err := torrentDAO.GetByID(int(id))
 		if err != nil {
@@ -211,16 +175,7 @@ func main() {
 		}
 
 		w.Header().Set("Transfer-Encoding", "chunked") // Maybe?
-		ffmpegArgs := []string{
-			"-i", streamURL,
-			"-f", "mp4",
-			"-c:v", "libx264",
-			"-b", "300k",
-			"-preset", "fast",
-			"-tune", "zerolatency",
-			"-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
-		}
-
+		ffmpegArgs := []string{}
 		timeArgs, ok := r.URL.Query()["time"]
 		if ok {
 			var timeFloat float64
@@ -233,6 +188,19 @@ func main() {
 			timeString := fmtDuration(timeDuration)
 			ffmpegArgs = append(ffmpegArgs, "-ss", timeString)
 		}
+		ffmpegArgs = append(ffmpegArgs, []string{
+			"-i", streamURL,
+			"-f", "ismv",
+			"-c:v", "libx264",
+			// "-c:a", "copy",
+			"-b", "2000k",
+			"-vf", "scale=1280x720",
+			"-threads", "0",
+			"-preset", "veryfast",
+			"-tune", "zerolatency",
+			// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
+		}...)
+
 		ffmpegArgs = append(ffmpegArgs, "-")
 		log.Println(ffmpegArgs)
 
@@ -261,6 +229,53 @@ func main() {
 			log.Println(err, exitStatus, signaled, signal)
 		}
 	})
+
+	r.GET("/stream/torrent/:id/transcode/metadata", func(c *gin.Context) {
+		w := c.Writer
+
+		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid ID",
+			})
+			return
+		}
+
+		streamURL := fmt.Sprintf("%s/%v", "http://127.0.0.1:8080/stream/torrent", id)
+
+		out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", streamURL).Output()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error fetching metadata",
+			})
+			return
+		}
+		durString := string(out)
+		durString = durString[:len(durString)-1]
+
+		dur, err := strconv.ParseFloat(durString, 32)
+		if err != nil {
+			log.Println(err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error parsing metadata",
+			})
+			return
+		}
+		// TODO: get real metadata
+		metadata := Metadata{
+			Format: Format{
+				Duration: int(dur),
+			},
+		}
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(metadata); err != nil {
+			panic(err)
+		}
+		return
+	})
+
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
