@@ -29,15 +29,16 @@ type Metadata struct {
 
 func main() {
 	config := app.Config{}
+
 	// Open release manager config file
 	file, err := os.Open("./config.yaml")
 	if err != nil {
 		log.Panicf("Config file not found: config.yaml: %s", err)
 	}
 	defer file.Close()
-	// Init new YAML decode
+
+	// Decode config yaml
 	d := yaml.NewDecoder(file)
-	// Start YAML decoding from file
 	if err := d.Decode(&config); err != nil {
 		log.Panicf("Invalid yaml in config: %s", err)
 	}
@@ -68,6 +69,7 @@ func main() {
 		}
 	}
 
+	// Create main service
 	iceetimeService := app.IceetimeService{
 		TorrentDAO:          torrentDAO,
 		TorrentClient:       torrentClient,
