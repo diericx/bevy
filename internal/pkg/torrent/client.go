@@ -12,12 +12,10 @@ import (
 	"time"
 )
 
-const DefaultInfoTimeout time.Duration = 5 * time.Second
-
 type TorrentClient struct {
 	torrentFilePath string
 	dataPath        string
-	infoTimeout     int
+	infoTimeout     time.Duration
 	client          *torrent.Client
 }
 
@@ -32,7 +30,7 @@ func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int) 
 	return &TorrentClient{
 		torrentFilePath: torrentFilePath,
 		dataPath:        dataPath,
-		infoTimeout:     infoTimeout,
+		infoTimeout:     time.Second * time.Duration(infoTimeout),
 		client:          client,
 	}, nil
 }
@@ -110,7 +108,7 @@ func (c *TorrentClient) AddFromMagnet(magnet string) (string, error) {
 	}
 	select {
 	case <-t.GotInfo():
-	case <-time.After(DefaultInfoTimeout):
+	case <-time.After(c.infoTimeout):
 		return "", errors.New("info grab timed out")
 	}
 	// TODO: Start downloading?
@@ -126,7 +124,7 @@ func (c *TorrentClient) AddFromFile(filePath string) (string, error) {
 
 	select {
 	case <-t.GotInfo():
-	case <-time.After(DefaultInfoTimeout):
+	case <-time.After(c.infoTimeout):
 		return "", errors.New("info grab timed out")
 	}
 	// TODO: Start downloading?
@@ -185,7 +183,6 @@ func (c *TorrentClient) GetFiles(hashString string) ([]string, error) {
 		return nil, errors.New("Torrent not found")
 	}
 
-	<-t.GotInfo()
 	files := t.Files()
 	var filePaths []string
 	for _, file := range files {

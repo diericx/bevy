@@ -106,6 +106,7 @@ type TorrentClient interface {
 	AddFromMagnet(magnet string) (hash string, err error)
 	AddFromFile(filePath string) (hash string, err error)
 	AddFromURLUknownScheme(rawURL string) (hash string, err error)
+	AddFromInfoHash(infoHash string) error
 	GetFiles(hash string) (files []string, err error)
 	RemoveByHash(hash string) error
 }

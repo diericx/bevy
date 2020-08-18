@@ -39,7 +39,12 @@ func (s *IceetimeService) FindLocallyOrFetchMovie(imdbID string, title string, y
 
 	torrent, terr := s.getBestTorrentFromIndexerQuery(torrents, s.Qualities[minQualityIndex])
 	if torrent == nil {
-		return nil, NewError(nil, 404, NoValidTorrentsInQueryErr)
+		return nil, terr
+	}
+
+	err = torrentClient.AddFromInfoHash(torrent.InfoHash)
+	if terr != nil {
+		return nil, NewError(err, 500, "could not add torrent from hash")
 	}
 
 	// Save torrent to disk/cache
@@ -82,6 +87,7 @@ func (s *IceetimeService) getBestTorrentFromIndexerQuery(torrents []Torrent, q Q
 		// Attempt to find a valid file
 		index, terr := s.getValidFileInTorrent(t)
 		if terr != nil {
+			log.Printf("INFO: Passing on release %s because there was no valid file.", t.Title)
 			continue
 		}
 
@@ -91,8 +97,9 @@ func (s *IceetimeService) getBestTorrentFromIndexerQuery(torrents []Torrent, q Q
 		score += float64(t.Seeders) / 10
 
 		if score > bestScore {
+			copyT := t // Why does this object need to be copied?? So weird..
 			bestScore = score
-			bestTorrent = &t
+			bestTorrent = &copyT
 		}
 	}
 
@@ -103,7 +110,7 @@ func (s *IceetimeService) getValidFileInTorrent(t Torrent) (int, error) {
 	// Get correct file
 	files, err := s.TorrentClient.GetFiles(t.InfoHash)
 	if err != nil {
-		return 0, NewError(err, 500, "unable to add torrent")
+		return 0, NewError(err, 500, "unable to get files for torrent")
 	}
 
 	for i, file := range files {

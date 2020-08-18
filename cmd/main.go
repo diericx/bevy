@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/diericx/iceetime/internal/app"
@@ -14,6 +19,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 )
+
+type Format struct {
+	Duration int `json:"duration"`
+}
+type Metadata struct {
+	Format Format `json:"format"`
+}
 
 func main() {
 	config := app.Config{}
@@ -132,5 +144,132 @@ func main() {
 
 		http.ServeContent(c.Writer, c.Request, torrent.Title, time.Time{}, reader)
 	})
+
+	r.GET("/stream/torrent/:id/transcode", func(c *gin.Context) {
+		w := c.Writer
+		r := c.Request
+
+		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid ID",
+			})
+			return
+		}
+
+		streamURL := fmt.Sprintf("%s/%v", "http://127.0.0.1:8080/stream/torrent", id)
+
+		// Metadat path
+		_, ok := r.URL.Query()["metadata"]
+		if ok {
+			out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", streamURL).Output()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Error fetching metadata",
+				})
+				return
+			}
+			durString := string(out)
+			durString = durString[:len(durString)-1]
+
+			dur, err := strconv.ParseFloat(durString, 32)
+			if err != nil {
+				log.Println(err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Error parsing metadata",
+				})
+				return
+			}
+			// TODO: get real metadata
+			metadata := Metadata{
+				Format: Format{
+					Duration: int(dur),
+				},
+			}
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(http.StatusOK)
+			if err := json.NewEncoder(w).Encode(metadata); err != nil {
+				panic(err)
+			}
+			return
+		}
+
+		// Stream path
+		torrent, err := torrentDAO.GetByID(int(id))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error searching for your torrent",
+			})
+			return
+		}
+		if torrent == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Torrent not found on disk",
+			})
+			return
+		}
+
+		w.Header().Set("Transfer-Encoding", "chunked") // Maybe?
+		ffmpegArgs := []string{
+			"-i", streamURL,
+			"-f", "mp4",
+			"-c:v", "libx264",
+			"-b", "300k",
+			"-preset", "fast",
+			"-tune", "zerolatency",
+			"-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
+		}
+
+		timeArgs, ok := r.URL.Query()["time"]
+		if ok {
+			var timeFloat float64
+			timeFloat, err := strconv.ParseFloat(timeArgs[0], 64)
+			if err != nil {
+				timeFloat = 0
+			}
+			var timeInt int = int(math.Round(timeFloat))
+			timeDuration := time.Second * time.Duration(timeInt)
+			timeString := fmtDuration(timeDuration)
+			ffmpegArgs = append(ffmpegArgs, "-ss", timeString)
+		}
+		ffmpegArgs = append(ffmpegArgs, "-")
+		log.Println(ffmpegArgs)
+
+		cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
+		cmdFF.Stdout = w
+		cmdFF.Start()
+		log.Println("Started transcode...")
+		// defer func() {
+		// 	// TODO: Why doesn't it ever close?
+		// 	println("Request closed. Ending FFMPEG process...")
+		// 	cmdFF.Process.Kill()
+		// }()
+
+		go func() {
+			<-r.Context().Done()
+			cmdFF.Process.Kill()
+			println("Client Disconnected... Ending process.")
+		}()
+
+		// Async execute function
+		if err := cmdFF.Wait(); err != nil {
+			status := cmdFF.ProcessState.Sys().(syscall.WaitStatus)
+			exitStatus := status.ExitStatus()
+			signaled := status.Signaled()
+			signal := status.Signal()
+			log.Println(err, exitStatus, signaled, signal)
+		}
+	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
+
+func fmtDuration(d time.Duration) string {
+	d = d.Round(time.Minute)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	d -= h * time.Minute
+	s := m / time.Second
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }

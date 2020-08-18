@@ -51,7 +51,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 
 	// w.WriteHeader(http.StatusOK)
 	w.Header().Set("Transfer-Encoding", "chunked") // Maybe?
-	ffmpegArgs := []string{"-i", "http://localhost:3000", "-f", "matroska", "-c:v", "libx264", "-b", "300k", "-preset", "fast", "-tune", "zerolatency"}
+	ffmpegArgs := []string{"-i", "http://localhost:3000", "-f", "mp4", "-c:v", "libx264", "-b", "300k", "-preset", "fast", "-tune", "zerolatency", "-movflags", "frag_keyframe+empty_moov"}
 
 	timeArgs, ok := r.URL.Query()["time"]
 	if ok {
