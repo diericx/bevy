@@ -1,7 +1,6 @@
 package app
 
 import (
-	"io"
 	"log"
 	"time"
 )
@@ -60,8 +59,7 @@ type Torrent struct {
 	Size        int64  `json:"size"`
 	InfoHash    string `storm:"unique" json:"infoHash"`
 	Grabs       int    `json:"grabs"`
-	MagnetLink  string
-	FileLink    string
+	Link        string
 	Seeders     int `json:"seeders"` // Note: subject to change
 	Tracker     string
 	MinRatio    float32
@@ -83,6 +81,7 @@ type TorrentDAO interface {
 	Save(Torrent)
 	GetByImdbIDAndMinQuality(imdbID string, minQuality int)
 	GetByImdbIDAndInfoHash(imdbID string, infoHash string)
+	GetByID(id int)
 }
 
 type TorrentClient interface {
@@ -98,13 +97,6 @@ type IndexerQueryHandler interface {
 
 type MediaMetaManager interface {
 	GetByImdbID(imdbID string) (*MediaMeta, error)
-}
-
-// Torrents manages torrents
-type Torrents interface {
-	AddByURI(uri string) (ID string, Error *Error)
-	Get(ID string) Torrent
-	GetReadseeker(ID string) io.ReadSeeker
 }
 
 type Transcoder interface{}

@@ -36,7 +36,7 @@ func (dao *TorrentDAO) GetByImdbIDAndMinQuality(imdbID string, minQuality int) (
 	orQualityMatchers := []q.Matcher{}
 	for i := minQuality; i < len(dao.Qualities); i++ {
 		quality := dao.Qualities[i]
-		orQualityMatchers = append(orQualityMatchers, q.Re("TorrentName", quality.Regex))
+		orQualityMatchers = append(orQualityMatchers, q.Re("Title", quality.Regex))
 	}
 
 	query := dao.db.Select(
@@ -57,4 +57,40 @@ func (dao *TorrentDAO) GetByImdbIDAndMinQuality(imdbID string, minQuality int) (
 	}
 
 	return &torrent, err
+}
+
+func (dao *TorrentDAO) GetByInfoHash(infoHash string) (*app.Torrent, error) {
+	var torrent app.Torrent
+	err := dao.db.One("InfoHash", infoHash, &torrent)
+	if err != nil {
+		if err == storm.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &torrent, nil
+}
+
+func (dao *TorrentDAO) GetByID(id int) (*app.Torrent, error) {
+	var torrent app.Torrent
+	err := dao.db.One("ID", id, &torrent)
+	if err != nil {
+		if err == storm.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &torrent, nil
+}
+
+func (dao *TorrentDAO) All() ([]app.Torrent, error) {
+	var torrents []app.Torrent
+	err := dao.db.All(&torrents)
+	if err != nil {
+		if err == storm.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return torrents, nil
 }

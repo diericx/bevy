@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/pkg/storm"
@@ -31,7 +33,7 @@ func main() {
 		panic(err)
 	}
 
-	torrentDAO, err := storm.NewTorrentDAO("iceetime.db", config.Qualities)
+	torrentDAO, err := storm.NewTorrentDAO("iceetime-torrents.db", config.Qualities)
 	if err != nil {
 		panic(err)
 	}
@@ -49,6 +51,18 @@ func main() {
 	}
 
 	torznabIQH, _ := torznab.NewIndexerQueryHandler(mediaMetaManager, config.Indexers, config.Qualities) // TODO: handle this error
+
+	// Add all torrents from disk
+	allTorrents, err := torrentDAO.All()
+	if err != nil {
+		panic(err)
+	}
+	for _, t := range allTorrents {
+		err := torrentClient.AddFromInfoHash(t.InfoHash)
+		if err != nil {
+			log.Panicf("Error adding torrent from state on disk \nTitle: %s\nError: %s", t.Title, err)
+		}
+	}
 
 	r := gin.Default()
 	r.GET("/find/movie", func(c *gin.Context) {
@@ -81,6 +95,7 @@ func main() {
 		}
 
 		if torrentOnDisk != nil {
+			log.Println("[Torrent search cache hit]")
 			c.JSON(200, torrentOnDisk)
 			return
 		}
@@ -89,55 +104,78 @@ func main() {
 		torrent, terr := torznabIQH.QueryMovie(imdbID, title, year, 1)
 		if terr != nil {
 			log.Println(terr.Error())
-			c.JSON(http.StatusNotFound, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "We ran into an issue looking for that movie.",
 			})
 			return
 		}
 		if torrent == nil {
-			c.JSON(http.StatusNotFound, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "We ran into an issue looking for that movie.",
 			})
 			return
 		}
 
 		// Add to client to get hash
-		if torrent.MagnetLink != "" {
-			hash, err := torrentClient.AddFromMagnet(torrent.MagnetLink)
-			if err != nil {
-				log.Println(err)
-				c.JSON(http.StatusNotFound, gin.H{
-					"error": "We ran into an issue adding the torrent magnet for that movie.",
-				})
-				return
-			}
-			torrent.InfoHash = hash
-		} else if torrent.FileLink != "" {
-			hash, err := torrentClient.AddFromFileURL(torrent.FileLink, torrent.Title)
-			if err != nil {
-				log.Println(err)
-				c.JSON(http.StatusNotFound, gin.H{
-					"error": "We ran into an issue adding the torrent file for that movie.",
-				})
-				return
-			}
-			torrent.InfoHash = hash
+		hash, err := torrentClient.AddFromURLUknownScheme(torrent.Link)
+		if err != nil {
+			log.Println(err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "We ran into an issue adding the torrent magnet for that movie.",
+			})
+			return
 		}
+		torrent.InfoHash = hash
 
+		// Save torrent to disk/cache
 		if err := torrentDAO.Save(torrent); err != nil {
 			log.Println(err)
 			err := torrentClient.RemoveByHash(torrent.InfoHash)
 			if err != nil {
 				log.Println("BRUTAL: Could not remove torrent after attempting an add. This is super bad!")
 			}
-			c.JSON(http.StatusNotFound, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "We ran into an issue saving the torrent file for that movie.",
 			})
 			return
 		}
 
-		// foundReleases, _ := releases.Get(imdbID, app.Quality{}) // TODO: manage this error
 		c.JSON(200, torrent)
+	})
+
+	r.GET("/stream/torrent/:id", func(c *gin.Context) {
+		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid ID",
+			})
+		}
+
+		torrent, err := torrentDAO.GetByID(int(id))
+		if err != nil {
+			log.Println(err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error searching for your torrent",
+			})
+			return
+		}
+		if torrent == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Torrent not found on disk",
+			})
+			return
+		}
+
+		reader, err := torrentClient.GetReader(torrent.InfoHash)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Torrent not found in client",
+			})
+			return
+		}
+		defer reader.Close()
+
+		http.ServeContent(c.Writer, c.Request, torrent.Title, time.Time{}, reader)
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

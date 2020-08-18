@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/diericx/iceetime/internal/app"
 )
@@ -82,28 +81,20 @@ func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year str
 		}
 	}
 
-	torrent := app.Torrent{
-		ImdbID:   imdbID,
-		Title:    bestRelease.Title,
-		Size:     bestRelease.Size,
-		FileLink: bestRelease.Link,
+	log.Printf("Best: %+v, %+v", bestScore, bestRelease)
+
+	return &app.Torrent{
+		ImdbID: imdbID,
+		Title:  bestRelease.Title,
+		Size:   bestRelease.Size,
+		Link:   bestRelease.Link,
 		// TODO: Handle assertion errors
 		InfoHash:    getStringFromMap(bestRelease.TorznabAttrMap, "infohash", ""),
 		Grabs:       getIntFromMap(bestRelease.TorznabAttrMap, "grabs", 0),
 		Seeders:     getIntFromMap(bestRelease.TorznabAttrMap, "seeders", 0),
 		MinRatio:    getFloat32FromMap(bestRelease.TorznabAttrMap, "minratio", 0),
 		MinSeedTime: getIntFromMap(bestRelease.TorznabAttrMap, "minseedtime", 0),
-	}
-
-	if strings.Contains(bestRelease.Link, "magnet:?") {
-		torrent.MagnetLink = bestRelease.Link
-	} else {
-		torrent.FileLink = bestRelease.Link
-	}
-
-	log.Printf("Best: %+v, %+v", bestScore, bestRelease)
-
-	return &torrent, nil
+	}, nil
 }
 
 func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, *app.Error) {
