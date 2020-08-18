@@ -44,10 +44,11 @@ type MediaMeta struct {
 }
 
 type Quality struct {
-	Name    string `yaml:"name"`
-	Regex   string `yaml:"regex"`
-	MinSize int64  `yaml:"minSize"`
-	MaxSize int64  `yaml:"maxSize"`
+	Name       string `yaml:"name"`
+	Regex      string `yaml:"regex"`
+	MinSize    int64  `yaml:"minSize"`
+	MaxSize    int64  `yaml:"maxSize"`
+	Resolution string `yaml:"scale"`
 }
 
 type BasicAuth struct {
@@ -86,14 +87,24 @@ type Tmdb struct {
 	ApiKey string `yaml:"apiKey"`
 }
 
+type AVTranscodeConfig struct {
+	Format          string `yaml:"format"`
+	CompressionAlgo string `yaml:"compressionAlgo"`
+}
+type FFMPEGConfig struct {
+	Video AVTranscodeConfig `yaml:"format"`
+	Audio AVTranscodeConfig `yaml:"format"`
+}
+
 type Config struct {
-	Indexers           []Indexer `yaml:"indexers"`
-	Qualities          []Quality `yaml:"qualities"`
-	MinSeeders         int       `yaml:"minSeeders"`
-	TorrentInfoTimeout int       `yaml:"torrentInfoTimeout"`
-	TorrentFilePath    string    `yaml:"torrentFilePath"`
-	TorrentDataPath    string    `yaml:"torrentDataPath"`
-	Tmdb               Tmdb      `yaml:"tmdb"`
+	Indexers           []Indexer    `yaml:"indexers"`
+	Qualities          []Quality    `yaml:"qualities"`
+	MinSeeders         int          `yaml:"minSeeders"`
+	TorrentInfoTimeout int          `yaml:"torrentInfoTimeout"`
+	TorrentFilePath    string       `yaml:"torrentFilePath"`
+	TorrentDataPath    string       `yaml:"torrentDataPath"`
+	Tmdb               Tmdb         `yaml:"tmdb"`
+	FFMPEGConfig       FFMPEGConfig `yaml:"ffmpeg"`
 }
 
 type TorrentDAO interface {

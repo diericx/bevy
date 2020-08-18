@@ -174,46 +174,24 @@ func main() {
 			return
 		}
 
-		w.Header().Set("Transfer-Encoding", "chunked") // Maybe?
-		ffmpegArgs := []string{}
-		timeArgs, ok := r.URL.Query()["time"]
-		if ok {
-			var timeFloat float64
-			timeFloat, err := strconv.ParseFloat(timeArgs[0], 64)
-			if err != nil {
-				timeFloat = 0
-			}
-			var timeInt int = int(math.Round(timeFloat))
-			timeDuration := time.Second * time.Duration(timeInt)
-			timeString := fmtDuration(timeDuration)
-			ffmpegArgs = append(ffmpegArgs, "-ss", timeString)
+		// Format time arg
+		timeArg := c.Query("time")
+		var formattedTimeString string
+		timeFloat, err := strconv.ParseFloat(timeArg, 64)
+		if err != nil {
+			timeFloat = 0
 		}
-		ffmpegArgs = append(ffmpegArgs, []string{
-			"-i", streamURL,
-			"-f", "ismv",
-			"-c:v", "libx264",
-			// "-c:a", "copy",
-			"-b", "2000k",
-			"-vf", "scale=1280x720",
-			"-threads", "0",
-			"-preset", "veryfast",
-			"-tune", "zerolatency",
-			// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
-		}...)
+		timeInt := int(math.Round(timeFloat))
+		timeDuration := time.Second * time.Duration(timeInt)
+		formattedTimeString = fmtDuration(timeDuration)
 
-		ffmpegArgs = append(ffmpegArgs, "-")
-		log.Println(ffmpegArgs)
+		w.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
 
-		cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
+		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeString, config.Qualities[0].Resolution, config.FFMPEGConfig)
 		cmdFF.Stdout = w
 		cmdFF.Start()
-		log.Println("Started transcode...")
-		// defer func() {
-		// 	// TODO: Why doesn't it ever close?
-		// 	println("Request closed. Ending FFMPEG process...")
-		// 	cmdFF.Process.Kill()
-		// }()
 
+		// Start a goroutine to listen for the request being dropped and end transcode if needed
 		go func() {
 			<-r.Context().Done()
 			cmdFF.Process.Kill()
@@ -277,6 +255,28 @@ func main() {
 	})
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
+
+func newFFMPEGTranscodeCommand(input string, time string, resolution string, c app.FFMPEGConfig) *exec.Cmd {
+	// Note: -ss flag needs to come before -i in order to skip encoding the entire first section
+	ffmpegArgs := []string{
+		"-ss", time,
+		"-i", input,
+		"-f", c.Video.Format,
+		"-c:v", c.Video.CompressionAlgo,
+		"-c:a", c.Audio.CompressionAlgo,
+		"-b", "2000k",
+		"-vf", fmt.Sprintf("scale=%s", resolution),
+		"-threads", "0",
+		"-preset", "veryfast",
+		"-tune", "zerolatency",
+		// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
+	}
+
+	ffmpegArgs = append(ffmpegArgs, "-")
+
+	cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
+	return cmdFF
 }
 
 func fmtDuration(d time.Duration) string {
