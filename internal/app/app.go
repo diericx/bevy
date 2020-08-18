@@ -87,13 +87,14 @@ type Tmdb struct {
 	ApiKey string `yaml:"apiKey"`
 }
 
-type AVTranscodeConfig struct {
-	Format          string `yaml:"format"`
-	CompressionAlgo string `yaml:"compressionAlgo"`
-}
 type FFMPEGConfig struct {
-	Video AVTranscodeConfig `yaml:"format"`
-	Audio AVTranscodeConfig `yaml:"format"`
+	Video struct {
+		Format          string `yaml:"format"`
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"video"`
+	Audio struct {
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"audio"`
 }
 
 type Config struct {
