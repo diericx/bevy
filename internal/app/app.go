@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+func GetSupportedVideoFileFormats() []string {
+	return []string{".mkv", ".mp4"}
+}
+
+func GetBlacklistedFileNameContents() []string {
+	return []string{"sample"}
+}
+
 type Error struct {
 	OrigionalError error
 	Code           int
@@ -52,19 +60,20 @@ type Indexer struct {
 
 // Torrent metadata for a certain torrent
 type Torrent struct {
-	ID          int    `storm:"id,increment" json:"id"`
-	Type        string // Movie, Episode, Season, Season Pack, etc.
-	ImdbID      string `storm:"unique" json:"imdbID"`
-	Title       string `json:"title"` // Note: Quality is inferred from this
-	Size        int64  `json:"size"`
-	InfoHash    string `storm:"unique" json:"infoHash"`
-	Grabs       int    `json:"grabs"`
-	Link        string
-	Seeders     int `json:"seeders"` // Note: subject to change
-	Tracker     string
-	MinRatio    float32
-	MinSeedTime int
-	CreatedAt   time.Time `json:"createdAt"`
+	ID            int    `storm:"id,increment" json:"id"`
+	Type          string // Movie, Episode, Season, Season Pack, etc.
+	ImdbID        string `storm:"unique" json:"imdbID"`
+	Title         string `json:"title"` // Note: Quality is inferred from this
+	Size          int64  `json:"size"`
+	InfoHash      string `storm:"unique" json:"infoHash"`
+	Grabs         int    `json:"grabs"`
+	Link          string
+	Seeders       int `json:"seeders"` // Note: subject to change
+	MainFileIndex int
+	Tracker       string
+	MinRatio      float32
+	MinSeedTime   int
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type Tmdb struct {
@@ -87,6 +96,7 @@ type TorrentDAO interface {
 type TorrentClient interface {
 	AddFromMagnet(magnet string) (hash string, err error)
 	AddFromFileURL(fileURL string, name string) (hash string, err error)
+	GetFiles(hash string) (files []string, err error)
 	RemoveByHash(hash string) error
 }
 

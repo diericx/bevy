@@ -147,7 +147,7 @@ func (c *TorrentClient) RemoveByHash(hashString string) error {
 	return nil
 }
 
-func (c *TorrentClient) GetReader(hashString string) (torrent.Reader, error) {
+func (c *TorrentClient) GetReaderForFileInTorrent(hashString string, fileIndex int) (torrent.Reader, error) {
 	hash := metainfo.Hash{}
 	hash.FromHexString(hashString)
 
@@ -156,5 +156,27 @@ func (c *TorrentClient) GetReader(hashString string) (torrent.Reader, error) {
 		return nil, errors.New("Torrent not found")
 	}
 
-	return t.NewReader(), nil
+	<-t.GotInfo()
+	files := t.Files()
+
+	return files[fileIndex].NewReader(), nil
+}
+
+func (c *TorrentClient) GetFiles(hashString string) ([]string, error) {
+	hash := metainfo.Hash{}
+	hash.FromHexString(hashString)
+
+	t, ok := c.client.Torrent(hash)
+	if !ok {
+		return nil, errors.New("Torrent not found")
+	}
+
+	<-t.GotInfo()
+	files := t.Files()
+	var filePaths []string
+	for _, file := range files {
+		filePaths = append(filePaths, file.DisplayPath())
+	}
+
+	return filePaths, nil
 }

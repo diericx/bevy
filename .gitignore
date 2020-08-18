@@ -5,3 +5,4 @@ config.yaml
 *.mkv
 *.db
 *.DS_Store
+.downloads

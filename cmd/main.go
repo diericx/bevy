@@ -39,7 +39,7 @@ func main() {
 	}
 	defer torrentDAO.Close()
 
-	torrentClient, err := torrent.NewTorrentClient("~/downloads", "~/downloads")
+	torrentClient, err := torrent.NewTorrentClient("downloads", "downloads")
 	if err != nil {
 		panic(err)
 	}
@@ -127,6 +127,24 @@ func main() {
 		}
 		torrent.InfoHash = hash
 
+		// Get correct file
+		files, err := torrentClient.GetFiles(torrent.InfoHash)
+		if err != nil {
+			log.Println(err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "We ran into an issue fetching the files for that movie.",
+			})
+			return
+		}
+		log.Println("Files: ", files)
+		for i, file := range files {
+			log.Println(file, app.StringContainsAnyOf(file, app.GetSupportedVideoFileFormats()))
+			if app.StringEndsInAny(file, app.GetSupportedVideoFileFormats()) && !app.StringContainsAnyOf(file, app.GetBlacklistedFileNameContents()) {
+				torrent.MainFileIndex = i
+				break
+			}
+		}
+
 		// Save torrent to disk/cache
 		if err := torrentDAO.Save(torrent); err != nil {
 			log.Println(err)
@@ -166,7 +184,7 @@ func main() {
 			return
 		}
 
-		reader, err := torrentClient.GetReader(torrent.InfoHash)
+		reader, err := torrentClient.GetReaderForFileInTorrent(torrent.InfoHash, torrent.MainFileIndex)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "Torrent not found in client",
