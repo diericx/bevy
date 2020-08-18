@@ -9,15 +9,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
+
+const DefaultInfoTimeout time.Duration = 5 * time.Second
 
 type TorrentClient struct {
 	torrentFilePath string
 	dataPath        string
+	infoTimeout     int
 	client          *torrent.Client
 }
 
-func NewTorrentClient(torrentFilePath string, dataPath string) (*TorrentClient, error) {
+func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int) (*TorrentClient, error) {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = dataPath
 	client, err := torrent.NewClient(config)
@@ -28,6 +32,7 @@ func NewTorrentClient(torrentFilePath string, dataPath string) (*TorrentClient, 
 	return &TorrentClient{
 		torrentFilePath: torrentFilePath,
 		dataPath:        dataPath,
+		infoTimeout:     infoTimeout,
 		client:          client,
 	}, nil
 }
@@ -103,7 +108,11 @@ func (c *TorrentClient) AddFromMagnet(magnet string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	<-t.GotInfo()
+	select {
+	case <-t.GotInfo():
+	case <-time.After(DefaultInfoTimeout):
+		return "", errors.New("info grab timed out")
+	}
 	// TODO: Start downloading?
 	hash := t.InfoHash()
 	return hash.HexString(), nil
@@ -114,7 +123,12 @@ func (c *TorrentClient) AddFromFile(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	<-t.GotInfo()
+
+	select {
+	case <-t.GotInfo():
+	case <-time.After(DefaultInfoTimeout):
+		return "", errors.New("info grab timed out")
+	}
 	// TODO: Start downloading?
 	hash := t.InfoHash()
 	return hash.HexString(), nil

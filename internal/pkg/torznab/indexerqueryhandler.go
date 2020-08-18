@@ -37,64 +37,45 @@ type Item struct {
 }
 
 type indexerQueryHandler struct {
-	MediaMetaManager app.MediaMetaManager
-	Qualities        []app.Quality
-	Indexers         []app.Indexer
+	Qualities []app.Quality
+	Indexers  []app.Indexer
 }
 
 // NewIndexerQueryHandler instantiates a new IndexerQueryHandler object that implements torznab queries/indexers
-func NewIndexerQueryHandler(mediaMetaManager app.MediaMetaManager, indexers []app.Indexer, qualities []app.Quality) (*indexerQueryHandler, *app.Error) {
+func NewIndexerQueryHandler(indexers []app.Indexer, qualities []app.Quality) (*indexerQueryHandler, *app.Error) {
 	return &indexerQueryHandler{
-		MediaMetaManager: mediaMetaManager,
-		Indexers:         indexers,
-		Qualities:        qualities,
+		Indexers:  indexers,
+		Qualities: qualities,
 	}, nil
 }
 
-func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) (*app.Torrent, *app.Error) {
-	quality := iqh.Qualities[minQuality] // TODO: Go through each quality attempting to get releases instead of just the min
-
+func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, *app.Error) {
 	torznabResponses, err := iqh.torznabQuery(imdbID, fmt.Sprintf("%s %s %s", title, year, iqh.Qualities[minQuality].Regex))
 	if err != nil {
 		return nil, err
 	}
 
-	bestScore := 0.0
-	var bestRelease Item
+	torrents := []app.Torrent{}
 	for _, resp := range torznabResponses {
 		for _, channel := range resp.Channels {
 			for _, item := range channel.Items {
-				score := 0.0
-				if item.Size < quality.MinSize || item.Size > quality.MaxSize {
-					log.Printf("Passing on release %s because size %v is not correct.", item.Title, item.Size)
-					continue
-				}
-
-				// TODO: Can we just cast to float? probably...
-				score += float64(item.TorznabAttrMap["seeders"].(int)) / 10
-
-				if score > bestScore {
-					bestScore = score
-					bestRelease = item
-				}
+				torrents = append(torrents, app.Torrent{
+					ImdbID: imdbID,
+					Title:  item.Title,
+					Size:   item.Size,
+					Link:   item.Link,
+					// TODO: Handle assertion errors
+					InfoHash:    getStringFromMap(item.TorznabAttrMap, "infohash", ""),
+					Grabs:       getIntFromMap(item.TorznabAttrMap, "grabs", 0),
+					Seeders:     getIntFromMap(item.TorznabAttrMap, "seeders", 0),
+					MinRatio:    getFloat32FromMap(item.TorznabAttrMap, "minratio", 0),
+					MinSeedTime: getIntFromMap(item.TorznabAttrMap, "minseedtime", 0),
+				})
 			}
 		}
 	}
 
-	log.Printf("Best: %+v, %+v", bestScore, bestRelease)
-
-	return &app.Torrent{
-		ImdbID: imdbID,
-		Title:  bestRelease.Title,
-		Size:   bestRelease.Size,
-		Link:   bestRelease.Link,
-		// TODO: Handle assertion errors
-		InfoHash:    getStringFromMap(bestRelease.TorznabAttrMap, "infohash", ""),
-		Grabs:       getIntFromMap(bestRelease.TorznabAttrMap, "grabs", 0),
-		Seeders:     getIntFromMap(bestRelease.TorznabAttrMap, "seeders", 0),
-		MinRatio:    getFloat32FromMap(bestRelease.TorznabAttrMap, "minratio", 0),
-		MinSeedTime: getIntFromMap(bestRelease.TorznabAttrMap, "minseedtime", 0),
-	}, nil
+	return torrents, nil
 }
 
 func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, *app.Error) {
@@ -121,7 +102,6 @@ func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rs
 
 		q.Add("cat", indexer.Categories) //TODO: Make a difference between tv and movies
 		req.URL.RawQuery = q.Encode()
-		log.Printf("CURL: %s", req.URL)
 
 		resp, err := client.Do(req)
 		if err != nil {
@@ -133,7 +113,6 @@ func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rs
 			return nil, app.NewError(err, 500, fmt.Sprintf("Error parsing response body from indexer %s", indexer.Name))
 		}
 
-		// log.Println(string(body))
 		if resp.StatusCode != 200 {
 			return nil, app.NewError(nil, 500, fmt.Sprintf("Error making query to indexer. Body of request: %s", string(body)))
 		}
