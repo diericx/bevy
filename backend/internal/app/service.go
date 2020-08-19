@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"sync"
 )
 
 type IceetimeService struct {
@@ -61,47 +62,60 @@ func (s *IceetimeService) FindLocallyOrFetchMovie(imdbID string, title string, y
 
 // getBestTorrentFromIndexerQuery goes through each torrent, adds it to the client, and get's metadata to make an educated
 // decision on each torrent. It always removes the torrents after it is done so they need to be added afterwards.
+// TODO: Refactor this!
 func (s *IceetimeService) getBestTorrentFromIndexerQuery(torrents []Torrent, q Quality) (*Torrent, *Error) {
 	bestScore := 0.0
 	var bestTorrent *Torrent = nil
+	mux := &sync.Mutex{}
+	var wg sync.WaitGroup
+
 	for _, t := range torrents {
-		score := 0.0
-		if t.Size < q.MinSize || t.Size > q.MaxSize {
-			log.Printf("INFO: Passing on release %s because size %v is not correct.", t.Title, t.Size)
-			continue
-		}
-		if t.Seeders < s.MinSeeders {
-			log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", t.Title, t.Seeders, s.MinSeeders)
-			continue
-		}
+		wg.Add(1)
+		go func(t Torrent) {
+			defer wg.Done()
+			score := 0.0
+			if t.Size < q.MinSize || t.Size > q.MaxSize {
+				log.Printf("INFO: Passing on release %s because size %v is not correct.", t.Title, t.Size)
+				return
+			}
+			if t.Seeders < s.MinSeeders {
+				log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", t.Title, t.Seeders, s.MinSeeders)
+				return
+			}
 
-		// Add to client to get hash
-		hash, err := s.TorrentClient.AddFromURLUknownScheme(t.Link, t.LinkAuth)
-		defer s.TorrentClient.RemoveByHash(hash)
-		if err != nil {
-			log.Printf("WARNING: could not add torrent magnet for %s\n Err: %s", t.Title, err)
-			continue
-		}
-		t.InfoHash = hash
+			// Add to client to get hash
+			hash, err := s.TorrentClient.AddFromURLUknownScheme(t.Link, t.LinkAuth)
+			defer s.TorrentClient.RemoveByHash(hash)
+			if err != nil {
+				log.Printf("WARNING: could not add torrent magnet for %s\n Err: %s", t.Title, err)
+				return
+			}
+			t.InfoHash = hash
 
-		// Attempt to find a valid file
-		index, terr := s.getValidFileInTorrent(t)
-		if terr != nil {
-			log.Printf("INFO: Passing on release %s because there was no valid file.", t.Title)
-			continue
-		}
+			// Attempt to find a valid file
+			index, terr := s.getValidFileInTorrent(t)
+			if terr != nil {
+				log.Printf("INFO: Passing on release %s because there was no valid file.", t.Title)
+				return
+			}
 
-		// TODO: Do better logic here to find "main" file
-		t.MainFileIndex = index
+			// TODO: Do better logic here to find "main" file
+			t.MainFileIndex = index
 
-		score += float64(t.Seeders) / 10
+			score += float64(t.Seeders) / 10
 
-		if score > bestScore {
-			copyT := t // Why does this object need to be copied?? So weird..
-			bestScore = score
-			bestTorrent = &copyT
-		}
+			if score > bestScore {
+				copyT := t // Why does this object need to be copied?? So weird..
+				mux.Lock()
+				bestScore = score
+				bestTorrent = &copyT
+				mux.Unlock()
+			}
+
+		}(t)
 	}
+
+	wg.Wait()
 
 	return bestTorrent, nil
 }
