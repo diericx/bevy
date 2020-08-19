@@ -1,6 +1,7 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
 import Button from 'react-bootstrap/Button'
+import VideoPlayer from '../components/VideoPlayer';
 
 export default class MyComponent extends React.Component {
     constructor(props) {
@@ -10,7 +11,7 @@ export default class MyComponent extends React.Component {
         torrent: null,
       };
     }
-  
+
     componentDidMount() {
       let { location: { state: { movie } } } = this.props;
       if (!movie.externalIDs) {
@@ -63,6 +64,7 @@ export default class MyComponent extends React.Component {
   
     render() {
       const { error, isLoaded, movie, torrent } = this.state;
+
       if (error) {
         return <div>Error: {error.message}</div>;
       } else if (!isLoaded) {
@@ -76,10 +78,23 @@ export default class MyComponent extends React.Component {
         ) 
       }
 
+      const videoJsOptions = {
+        autoplay: true,
+        controls: true,
+        plugins: {
+          timeRangesSeeking: {},
+          durationFromServer: {},
+        },
+        sources: [{
+          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode`,
+          type: 'video/mp4'
+        }]
+      }
+
       return (
-        <ul>
-          Movie!
-        </ul>
+        <div>
+          <VideoPlayer {...videoJsOptions} />
+        </div>
       );
     }
 }

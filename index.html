@@ -22,8 +22,6 @@
           Plugin.call(this, player, options);
           
           player.ready(function(){
-            console.log('player', player);
-            
             var baseSrc = player.src();
       
             var seekBar = player.controlBar.progressControl.seekBar;
@@ -62,7 +60,6 @@
                 return;
               }
 
-              console.log('set new src', baseSrc+'?time='+this._seekTime);
               this._timeOffset = this._seekTime;
               player.src({type: 'video/mp4', src: baseSrc+'?time='+this._seekTime});
               player.play();
@@ -75,14 +72,6 @@
             // Get current time, add time offset
             var _seekBarGetCurrentTime_ = seekBar.getCurrentTime_;
             seekBar.getCurrentTime_ = function() {
-              console.log("Get currnet time {")
-              console.log(this.player_.scrubbing())
-              console.log(this.player_.getCache().currentTime)
-              console.log(this.player_.currentTime() );
-              console.log((this._timeOffset || 0))
-              console.log(((this.player_.scrubbing()) ?
-                this.player_.getCache().currentTime :
-                this.player_.currentTime()) + (this._timeOffset || 0))
               return ((this.player_.scrubbing()) ?
                 this.player_.getCache().currentTime :
                 this.player_.currentTime()) + (this._timeOffset || 0);

@@ -5,6 +5,7 @@ import Movies from './pages/movies';
 import Movie from './pages/movie';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'video.js/dist/video-js.css';
 import {
   BrowserRouter as Router,
   Switch,
