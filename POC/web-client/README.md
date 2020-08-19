@@ -1,1 +1,0 @@
-Currently no web client is necessary. Just navigate to the page where the web server is hosting the file and it will automatically play.
