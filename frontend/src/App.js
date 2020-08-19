@@ -14,12 +14,6 @@ import {
 
 require('dotenv').config()
 
-const tmdbApiKey = process.env.TMDB_API_KEY;
-console.log(tmdbApiKey, process.env)
-// new webpack.DefinePlugin({
-//   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
-// })
-
 export default function App() {
   return (
     <Router>

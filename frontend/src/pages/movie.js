@@ -1,11 +1,13 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import Button from 'react-bootstrap/Button'
 
 export default class MyComponent extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
         movie: null,
+        torrent: null,
       };
     }
   
@@ -39,20 +41,45 @@ export default class MyComponent extends React.Component {
         });
       }
     }
+
+    findTorrent(imdbID, title, year) {
+      fetch(`http://localhost:8080/find/movie?imdbid=${imdbID}&title=${title}&year=${year}`)
+        .then(res => res.json())
+        .then(
+          (result) => {
+            this.setState({
+              isLoaded: true,
+              torrent: result 
+            });
+          },
+          (error) => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
+        )
+    }
   
     render() {
-      const { error, isLoaded, movie } = this.state;
-      console.log(movie)
+      const { error, isLoaded, movie, torrent } = this.state;
       if (error) {
         return <div>Error: {error.message}</div>;
       } else if (!isLoaded) {
         return <div>Loading...</div>;
-      } else {
-        return (
-          <ul>
-            Movie!
-          </ul>
-        );
       }
+
+      if (!torrent) {
+        let releaseDate = movie.release_date.split("-")[0]
+        return (
+          <Button variant="primary" onClick={() => this.findTorrent(movie.externalIDs.imdb_id, movie.title, releaseDate)}>Fetch Movie</Button>
+        ) 
+      }
+
+      return (
+        <ul>
+          Movie!
+        </ul>
+      );
     }
 }

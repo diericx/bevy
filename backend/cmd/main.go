@@ -15,6 +15,7 @@ import (
 	"github.com/diericx/iceetime/internal/pkg/storm"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/diericx/iceetime/internal/pkg/torznab"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 )
@@ -78,6 +79,14 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "PUT", "PATCH"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	r.GET("/find/movie", func(c *gin.Context) {
 		imdbID := c.Query("imdbid")
 		title := c.Query("title")
