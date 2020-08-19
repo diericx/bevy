@@ -114,31 +114,28 @@ func main() {
 	})
 
 	r.GET("/stream/torrent/:id", func(c *gin.Context) {
-		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+		idString := c.Param("id")
+		torrentID, err := app.ParseTorrentIdFromString(idString)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid ID",
-			})
-		}
-
-		torrent, err := torrentDAO.GetByID(int(id))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Error searching for your torrent",
-			})
-			return
-		}
-		if torrent == nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Torrent not found on disk",
+			c.JSON(err.Code, gin.H{
+				"error": err.Message,
 			})
 			return
 		}
 
-		reader, err := torrentClient.GetReaderForFileInTorrent(torrent.InfoHash, torrent.MainFileIndex)
+		err = nil
+		torrent, err := iceetimeService.GetTorrentByID(torrentID)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Torrent not found in client",
+			c.JSON(err.Code, gin.H{
+				"error": err.Message,
+			})
+			return
+		}
+
+		reader, err := iceetimeService.GetFileReaderForFileInTorrent(torrent, torrent.MainFileIndex)
+		if err != nil {
+			c.JSON(err.Code, gin.H{
+				"error": err.Message,
 			})
 			return
 		}

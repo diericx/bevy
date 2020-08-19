@@ -2,7 +2,10 @@ package app
 
 import (
 	"log"
+	"net/http"
 	"sync"
+
+	"github.com/anacrolix/torrent"
 )
 
 type IceetimeService struct {
@@ -58,6 +61,27 @@ func (s *IceetimeService) FindLocallyOrFetchMovie(imdbID string, title string, y
 	}
 
 	return torrent, nil
+}
+
+func (s *IceetimeService) GetTorrentByID(id int) (*Torrent, *Error) {
+	torrent, err := s.TorrentDAO.GetByID(int(id))
+	if err != nil {
+		return nil, NewError(err, http.StatusInternalServerError, LocalDBQueryErr)
+	}
+	if torrent == nil {
+		return nil, NewError(err, http.StatusNotFound, TorrentByIDNotFoundErr)
+	}
+
+	return torrent, nil
+}
+
+func (s *IceetimeService) GetFileReaderForFileInTorrent(t *Torrent, fileIndex int) (torrent.Reader, *Error) {
+	reader, err := s.TorrentClient.GetReaderForFileInTorrent(t.InfoHash, fileIndex)
+	if err != nil {
+		return nil, NewError(err, http.StatusInternalServerError, TorrentFileReaderErr)
+	}
+
+	return reader, nil
 }
 
 // getBestTorrentFromIndexerQuery goes through each torrent, adds it to the client, and get's metadata to make an educated

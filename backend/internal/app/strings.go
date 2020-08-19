@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -20,4 +22,12 @@ func StringEndsInAny(s string, suffixes []string) bool {
 		}
 	}
 	return false
+}
+
+func ParseTorrentIdFromString(id string) (int, *Error) {
+	idInt64, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return 0, NewError(err, http.StatusBadRequest, InvalidIDErr)
+	}
+	return int(idInt64), nil
 }

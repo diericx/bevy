@@ -3,11 +3,16 @@ package app
 import (
 	"log"
 	"time"
+
+	"github.com/anacrolix/torrent"
 )
 
 const InvalidTorrentErr string = "invalid torrent"
+const InvalidIDErr string = "invalid id"
 const IndexerQueryNoResultsErr string = "indexer query gave no results"
 const NoValidTorrentsInQueryErr string = "no valid release found from query"
+const TorrentByIDNotFoundErr string = "no torrent by that id was found"
+const TorrentFileReaderErr string = "unable to get file reader for torrent"
 const LocalDBQueryErr string = "unable to query local db"
 const LocalDBSaveErr string = "unable to save to local db"
 
@@ -121,6 +126,7 @@ type TorrentClient interface {
 	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (hash string, err error)
 	AddFromInfoHash(infoHash string) error
 	GetFiles(hash string) (files []string, err error)
+	GetReaderForFileInTorrent(hashString string, fileIndex int) (torrent.Reader, error)
 	RemoveByHash(hash string) error
 }
 

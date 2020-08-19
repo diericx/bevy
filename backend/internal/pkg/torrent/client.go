@@ -88,25 +88,6 @@ func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAut
 	return c.AddFromFile(tempFilePath)
 }
 
-func downloadFileFromResponse(resp *http.Response, filePath string) error {
-	// Get the data
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("couldn't reach file server with code: %v", resp.StatusCode)
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
 func (c *TorrentClient) AddFromMagnet(magnet string) (string, error) {
 	t, err := c.client.AddMagnet(magnet)
 	if err != nil {
@@ -196,4 +177,23 @@ func (c *TorrentClient) GetFiles(hashString string) ([]string, error) {
 	}
 
 	return filePaths, nil
+}
+
+func downloadFileFromResponse(resp *http.Response, filePath string) error {
+	// Get the data
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("couldn't reach file server with code: %v", resp.StatusCode)
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
