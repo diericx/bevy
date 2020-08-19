@@ -39,7 +39,7 @@ func (s *IceetimeService) FindLocallyOrFetchMovie(imdbID string, title string, y
 
 	torrent, terr := s.getBestTorrentFromIndexerQuery(torrents, s.Qualities[minQualityIndex])
 	if torrent == nil {
-		return nil, terr
+		return nil, NewError(nil, 404, IndexerQueryNoResultsErr)
 	}
 
 	err = torrentClient.AddFromInfoHash(torrent.InfoHash)
@@ -71,12 +71,12 @@ func (s *IceetimeService) getBestTorrentFromIndexerQuery(torrents []Torrent, q Q
 			continue
 		}
 		if t.Seeders < s.MinSeeders {
-			log.Printf("INFO: Passing on release %s because seeders %v is not correct.", t.Title, t.Seeders)
+			log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", t.Title, t.Seeders, s.MinSeeders)
 			continue
 		}
 
 		// Add to client to get hash
-		hash, err := s.TorrentClient.AddFromURLUknownScheme(t.Link)
+		hash, err := s.TorrentClient.AddFromURLUknownScheme(t.Link, t.LinkAuth)
 		defer s.TorrentClient.RemoveByHash(hash)
 		if err != nil {
 			log.Printf("WARNING: could not add torrent magnet for %s\n Err: %s", t.Title, err)

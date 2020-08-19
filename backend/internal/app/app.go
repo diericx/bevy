@@ -75,7 +75,8 @@ type Torrent struct {
 	InfoHash      string `storm:"unique" json:"infoHash"`
 	Grabs         int    `json:"grabs"`
 	Link          string
-	Seeders       int `json:"seeders"` // Note: subject to change
+	LinkAuth      *BasicAuth // TODO: Encrypt or don't store this?
+	Seeders       int        `json:"seeders"` // Note: subject to change
 	MainFileIndex int
 	Tracker       string
 	MinRatio      float32
@@ -117,7 +118,7 @@ type TorrentDAO interface {
 type TorrentClient interface {
 	AddFromMagnet(magnet string) (hash string, err error)
 	AddFromFile(filePath string) (hash string, err error)
-	AddFromURLUknownScheme(rawURL string) (hash string, err error)
+	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (hash string, err error)
 	AddFromInfoHash(infoHash string) error
 	GetFiles(hash string) (files []string, err error)
 	RemoveByHash(hash string) error

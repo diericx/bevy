@@ -80,7 +80,7 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/find/movie", func(c *gin.Context) {
-		imdbID := c.Query("imdbID")
+		imdbID := c.Query("imdbid")
 		title := c.Query("title")
 		year := c.Query("year")
 		if imdbID == "" {

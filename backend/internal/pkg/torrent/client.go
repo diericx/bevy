@@ -3,13 +3,16 @@ package torrent
 import (
 	"errors"
 	"fmt"
-	"github.com/anacrolix/torrent"
-	"github.com/anacrolix/torrent/metainfo"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/diericx/iceetime/internal/app"
+
+	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/metainfo"
 )
 
 type TorrentClient struct {
@@ -41,7 +44,7 @@ func (c *TorrentClient) Close() {
 
 // AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
 // file or recursicely follow a redirect
-func (c *TorrentClient) AddFromURLUknownScheme(rawURL string) (hash string, err error) {
+func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth) (hash string, err error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return "", err
@@ -55,6 +58,9 @@ func (c *TorrentClient) AddFromURLUknownScheme(rawURL string) (hash string, err 
 	if err != nil {
 		panic(err)
 	}
+	if auth != nil {
+		req.SetBasicAuth(auth.Username, auth.Password)
+	}
 	client := new(http.Client)
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("Redirect")
@@ -67,7 +73,7 @@ func (c *TorrentClient) AddFromURLUknownScheme(rawURL string) (hash string, err 
 			if err != nil {
 				return "", err
 			}
-			return c.AddFromURLUknownScheme(url.String())
+			return c.AddFromURLUknownScheme(url.String(), auth)
 		}
 		return "", err
 	}

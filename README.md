@@ -43,3 +43,8 @@ Note: On stupud ass mac run this
 export CPATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/"
 export CGO_ENABLED=1; export CC=gcc;
 ```
+
+Disable annoying cgo warnings on mac
+```
+export CGO_CPPFLAGS="-Wno-nullability-completeness"
+```

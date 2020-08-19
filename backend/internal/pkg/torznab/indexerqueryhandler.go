@@ -10,7 +10,8 @@ import (
 )
 
 type Rss struct {
-	XMLName  xml.Name  `xml:"rss"`
+	XMLName  xml.Name `xml:"rss"`
+	indexer  app.Indexer
 	Channels []Channel `xml:"channel"`
 }
 
@@ -59,10 +60,11 @@ func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year str
 		for _, channel := range resp.Channels {
 			for _, item := range channel.Items {
 				torrents = append(torrents, app.Torrent{
-					ImdbID: imdbID,
-					Title:  item.Title,
-					Size:   item.Size,
-					Link:   item.Link,
+					ImdbID:   imdbID,
+					Title:    item.Title,
+					Size:     item.Size,
+					Link:     item.Link,
+					LinkAuth: resp.indexer.BasicAuth,
 					// TODO: Handle assertion errors
 					InfoHash:    getStringFromMap(item.TorznabAttrMap, "infohash", ""),
 					Grabs:       getIntFromMap(item.TorznabAttrMap, "grabs", 0),
@@ -82,6 +84,8 @@ func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rs
 
 	for _, indexer := range iqh.Indexers {
 		var torznabResp Rss
+		torznabResp.indexer = indexer
+
 		client := &http.Client{}
 
 		req, err := http.NewRequest("GET", indexer.URL, nil)
