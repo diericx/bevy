@@ -204,9 +204,13 @@ func main() {
 		if err := cmdFF.Wait(); err != nil {
 			status := cmdFF.ProcessState.Sys().(syscall.WaitStatus)
 			exitStatus := status.ExitStatus()
-			signaled := status.Signaled()
-			signal := status.Signal()
-			log.Println(err, exitStatus, signaled, signal)
+			if exitStatus != 0 {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Transcoding failed",
+				})
+				return
+
+			}
 		}
 	})
 
@@ -274,6 +278,8 @@ func newFFMPEGTranscodeCommand(input string, time string, resolution string, c a
 		"-tune", "zerolatency",
 		// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
 	}
+
+	log.Printf("%+v", ffmpegArgs)
 
 	ffmpegArgs = append(ffmpegArgs, "-")
 

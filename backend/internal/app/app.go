@@ -48,7 +48,7 @@ type Quality struct {
 	Regex      string `yaml:"regex"`
 	MinSize    int64  `yaml:"minSize"`
 	MaxSize    int64  `yaml:"maxSize"`
-	Resolution string `yaml:"scale"`
+	Resolution string `yaml:"resolution"`
 }
 
 type BasicAuth struct {

@@ -22,7 +22,7 @@ qualities:
 ffmpeg:
   video:
     compressionAlgo: libx264
-    format: mp4
+    format: ismv 
   audio:
     compressionAlgo: copy
 
