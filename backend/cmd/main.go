@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -148,18 +147,21 @@ func main() {
 		w := c.Writer
 		r := c.Request
 
-		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+		id := c.Param("id")
+		timeArg := c.Query("time")
+
+		torrentID, err := app.ParseTorrentIdFromString(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid ID",
+			c.JSON(err.Code, gin.H{
+				"error": err.Message,
 			})
 			return
 		}
 
-		streamURL := fmt.Sprintf("%s/%v", "http://127.0.0.1:8080/stream/torrent", id)
+		streamURL := fmt.Sprintf("%s/%v", "http://127.0.0.1:8080/stream/torrent", torrentID)
 
 		// Stream path
-		torrent, err := torrentDAO.GetByID(int(id))
+		torrent, err := iceetimeService.GetTorrentByID(torrentID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Error searching for your torrent",
@@ -174,19 +176,11 @@ func main() {
 		}
 
 		// Format time arg
-		timeArg := c.Query("time")
-		var formattedTimeString string
-		timeFloat, err := strconv.ParseFloat(timeArg, 64)
-		if err != nil {
-			timeFloat = 0
-		}
-		timeInt := int(math.Round(timeFloat))
-		timeDuration := time.Second * time.Duration(timeInt)
-		formattedTimeString = fmtDuration(timeDuration)
+		formattedTimeStr := app.FormatTimeString(timeArg)
 
 		w.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
 
-		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeString, config.Qualities[0].Resolution, config.FFMPEGConfig)
+		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, config.Qualities[0].Resolution, config.FFMPEGConfig)
 		cmdFF.Stdout = w
 		cmdFF.Start()
 
@@ -282,14 +276,4 @@ func newFFMPEGTranscodeCommand(input string, time string, resolution string, c a
 
 	cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
 	return cmdFF
-}
-
-func fmtDuration(d time.Duration) string {
-	d = d.Round(time.Minute)
-	h := d / time.Hour
-	d -= h * time.Hour
-	m := d / time.Minute
-	d -= h * time.Minute
-	s := m / time.Second
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
