@@ -1,5 +1,6 @@
 import React from 'react';
 import videojs from 'video.js';
+import languageSwitch from '../../videojsPlugins/language-switch';
 
 const Plugin = videojs.getPlugin('plugin');
 
@@ -13,6 +14,19 @@ export default class VideoPlayer extends React.Component {
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
       console.log('onPlayerReady', this)
     });
+    this.player.languageSwitch({
+      languages: [
+      {
+        name: 'English',
+        sources: this.props.sources
+      },
+      {
+        name: 'Portuguese',
+        sources: this.props.sources
+        
+      }
+    ]
+    })
     // player.timeRangesSeeking();
   }
 
@@ -147,12 +161,12 @@ class DurationFromServer extends Plugin {
     });
   }
 
-  getUrlWithoutTime(url) {
-    return url.split('?time=')[0];
+  getUrlWithoutParams(url) {
+    return url.split('?')[0];
   }
 
   getCachedDuration(url) {
-    var urlWithoutTime = this.getUrlWithoutTime(url);
+    var urlWithoutTime = this.getUrlWithoutParams(url);
     if(urlWithoutTime in this._cachedDurations) {
       return this._cachedDurations[urlWithoutTime];
     }
@@ -160,7 +174,7 @@ class DurationFromServer extends Plugin {
   }
 
   setCachedDuration(url, duration) {
-    var urlWithoutTime = this.getUrlWithoutTime(url);
+    var urlWithoutTime = this.getUrlWithoutParams(url);
     this._cachedDurations[urlWithoutTime] = duration;
     return this._cachedDurations[urlWithoutTime];
   }
@@ -179,11 +193,13 @@ class DurationFromServer extends Plugin {
       return Promise.resolve(duration);
     }
 
+    var urlWithoutParams = this.getUrlWithoutParams(url);
+
     var plugin = this;
 
     console.log("Get duration...")
 
-    return fetch(url+'/metadata')
+    return fetch(urlWithoutParams+'/metadata')
     .then((resp) => resp.json())
     .then(function(metadata) {
       return plugin.setCachedDuration(url, metadata.format.duration);

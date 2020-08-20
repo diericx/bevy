@@ -85,11 +85,23 @@ export default class MyComponent extends React.Component {
         plugins: {
           timeRangesSeeking: {},
           durationFromServer: {},
+          videoJsResolutionSwitcher: {
+            default: 'high',
+            dynamicLabel: true,
+          }
         },
-        sources: [{
-          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode`,
-          type: 'video/mp4'
-        }]
+        sources: [
+          {
+            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?resolution=1080p`,
+            type: 'video/mp4',
+            label: '720p',
+          },
+          {
+            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode`,
+            type: 'video/mp4',
+            label: '1080p',
+          }
+        ]
       }
 
       return (

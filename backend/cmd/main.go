@@ -190,7 +190,7 @@ func main() {
 
 		w.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
 
-		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, config.Qualities[0].Resolution, config.FFMPEGConfig)
+		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, config.Qualities[0].Resolution, config.FFMPEGConfig, 0, 0)
 		cmdFF.Stdout = w
 		cmdFF.Start()
 

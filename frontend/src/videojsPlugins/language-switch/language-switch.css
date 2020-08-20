@@ -1,0 +1,7 @@
+/**
+ * videojs-language-switch
+ * @version 1.2.0
+ * @copyright 2018 Adam Oliver <mail@adamoliver.net>
+ * @license MIT
+ */
+.vjs-language-switch .vjs-icon-placeholder{font-family:'VideoJS';font-weight:normal;font-style:normal}.vjs-language-switch .vjs-icon-placeholder:before{content:"\F110"}

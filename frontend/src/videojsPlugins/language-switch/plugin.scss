@@ -1,0 +1,12 @@
+.vjs-language-switch {
+    .vjs-icon-placeholder {
+        font-family: 'VideoJS';
+        font-weight: normal;
+        font-style: normal;
+
+        &:before {
+            content: "\F110";
+        }
+    }
+}
+
