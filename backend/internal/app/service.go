@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/anacrolix/torrent"
@@ -106,6 +107,10 @@ func (s *IceetimeService) getBestTorrentFromIndexerQuery(torrents []Torrent, q Q
 				log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", t.Title, t.Seeders, s.MinSeeders)
 				return
 			}
+			if StringContainsAnyOf(strings.ToLower(t.Title), GetBlacklistedTorrentNameContents()) {
+				log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", t.Title, GetBlacklistedTorrentNameContents())
+				return
+			}
 
 			// Add to client to get hash
 			hash, err := s.TorrentClient.AddFromURLUknownScheme(t.Link, t.LinkAuth)
@@ -152,7 +157,7 @@ func (s *IceetimeService) getValidFileInTorrent(t Torrent) (int, error) {
 	}
 
 	for i, file := range files {
-		if StringEndsInAny(file, GetSupportedVideoFileFormats()) && !StringContainsAnyOf(file, GetBlacklistedFileNameContents()) {
+		if StringEndsInAny(strings.ToLower(file), GetSupportedVideoFileFormats()) && !StringContainsAnyOf(strings.ToLower(file), GetBlacklistedFileNameContents()) {
 			return i, nil
 		}
 	}

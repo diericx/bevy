@@ -24,6 +24,11 @@ func GetBlacklistedFileNameContents() []string {
 	return []string{"sample"}
 }
 
+// TODO: These languages are only blacklisted because it's hard to support
+func GetBlacklistedTorrentNameContents() []string {
+	return []string{"fre", "french", "ita", "italian"}
+}
+
 type Error struct {
 	OrigionalError error
 	Code           int
