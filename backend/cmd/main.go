@@ -33,7 +33,8 @@ func main() {
 	// Open release manager config file
 	file, err := os.Open("./config.yaml")
 	if err != nil {
-		log.Panicf("Config file not found: config.yaml: %s", err)
+		log.Println("Config file not found: config.yaml")
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -263,19 +264,20 @@ func main() {
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-func newFFMPEGTranscodeCommand(input string, time string, resolution string, c app.FFMPEGConfig) *exec.Cmd {
+func newFFMPEGTranscodeCommand(input string, time string, resolution string, c app.FFMPEGConfig, audioStream int, videoStream int) *exec.Cmd {
 	// Note: -ss flag needs to come before -i in order to skip encoding the entire first section
 	ffmpegArgs := []string{
 		"-ss", time,
 		"-i", input,
 		"-f", c.Video.Format,
 		"-c:v", c.Video.CompressionAlgo,
-		"-c:a", c.Audio.CompressionAlgo,
 		"-b", "2000k",
 		"-vf", fmt.Sprintf("scale=%s", resolution),
 		"-threads", "0",
 		"-preset", "veryfast",
 		"-tune", "zerolatency",
+		"-map", fmt.Sprintf("0:v:%v", videoStream),
+		"-map", fmt.Sprintf("0:a:%v", audioStream),
 		// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
 	}
 

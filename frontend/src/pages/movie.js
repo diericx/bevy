@@ -81,6 +81,7 @@ export default class MyComponent extends React.Component {
       const videoJsOptions = {
         autoplay: true,
         controls: true,
+        width: 720,
         plugins: {
           timeRangesSeeking: {},
           durationFromServer: {},
