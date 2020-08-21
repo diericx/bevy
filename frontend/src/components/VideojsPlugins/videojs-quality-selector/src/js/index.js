@@ -45,16 +45,7 @@ module.exports = function(videojs) {
          if (player._qualitySelectorSafeSeek) {
             player._qualitySelectorSafeSeek.onQualitySelectionChange();
          }
-
-         let newSources = this.currentSources().map((src) => {
-            let url = new URL(src.src)
-            var search_params = url.searchParams;
-            search_params.set("time", time);
-            url.search = search_params.toString();
-            src.src = url.toString();
-            return src;
-         })
-         player.src(newSources);
+         player.src(sources);
 
          player.ready(function() {
             if (!player._qualitySelectorSafeSeek || player._qualitySelectorSafeSeek.hasFinished()) {

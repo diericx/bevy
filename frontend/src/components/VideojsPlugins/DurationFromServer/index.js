@@ -38,8 +38,6 @@ export default class DurationFromServer extends Plugin {
 
   setPlayerDurationFromServer(player) {
     this.getDuration(player.src()).then(function(duration) {
-      console.log("Got duration: ", duration)
-      // console.log(player.duration.toString());
       if(player.duration() !== duration) {
         player.duration(duration);
       }
