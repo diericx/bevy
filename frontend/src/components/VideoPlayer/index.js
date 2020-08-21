@@ -2,6 +2,7 @@ import React from 'react';
 import videojs from 'video.js';
 import TimeRangesSeeking from '../VideojsPlugins/TimeRangesSeeking';
 import DurationFromServer from '../VideojsPlugins/DurationFromServer';
+require('../VideojsPlugins/videojs-quality-selector/src/js')(videojs);
 
 export default class VideoPlayer extends React.Component {
   componentDidMount() {
@@ -12,8 +13,51 @@ export default class VideoPlayer extends React.Component {
     // instantiate Video.js
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
       console.log('onPlayerReady', this)
+      // this.on('qualityRequested', function(event, newSource) {
+      //   this.selectedSrc = {}
+      //   console.log("Quality requested", event, newSource)
+      //   var seekBar = this.controlBar.progressControl.seekBar;
+      //   var time = seekBar._timeOffset + this.currentTime();
+      //   console.log(seekBar._timeOffset, this.currentTime(), time);
+      //   let newSources = this.currentSources().map((src) => {
+      //     let url = new URL(src.src)
+      //     var search_params = url.searchParams;
+      //     search_params.set("time", time);
+      //     url.search = search_params.toString();
+      //     src.src = url.toString();
+      //     return src;
+      //   })
+      //   console.log("New sources: ", newSources)
+      //   // this.src(newSources)
+      // })
+      // this.on('qualitySelected', function() {
+      //   console.log('quality selected event start')
+      //   // this.src(newSources);
+
+      //   // this.src(
+      //       // this.currentSources().map((src) => {
+      //       //     let url = new URL(src.src)
+      //       //     var search_params = url.searchParams;
+      //       //     search_params.set("time", this._seekTime);
+      //       //     url.search = search_params.toString();
+      //       //     src.src = url.toString();
+      //       //     return src;
+      //       // })
+      //   // );
+      //   // this._timeOffset = this._seekTime;
+
+      //   // this.play();
+
+      //   // this._seekTime = null;
+      // })
+      this.on('timeupdate', function () {
+        console.log(JSON.stringify(this.currentSources()));
+        console.log(this.currentTime())
+      })
+      this.controlBar.addChild('QualitySelector');
     });
-    // player.timeRangesSeeking();
+
+
   }
 
   // destroy player on unmount

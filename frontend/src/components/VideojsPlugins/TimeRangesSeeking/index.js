@@ -34,18 +34,24 @@ export default class TimeRangesSeeking extends Plugin {
 
         if(this._seekTime === null) {
           return;
-        }
+        } 
 
-        let url = new URL(baseSrc);
-        var search_params = url.searchParams;
-        search_params.set("time", this._seekTime);
-        url.search = search_params.toString();
-
-        console.log('set new src', url.toString());
+        player.src(
+            player.currentSources().map((src) => {
+                let url = new URL(src.src)
+                var search_params = url.searchParams;
+                search_params.set("time", this._seekTime);
+                url.search = search_params.toString();
+                src.src = url.toString();
+                return src;
+            })
+        );
+        console.log("offest: ", this._timeOffset, this._seekTime)
 
         this._timeOffset = this._seekTime;
-        player.src({type: 'video/mp4', src: url.toString()});
+
         player.play();
+        player.currentTime(seekBar.getCurrentTime_())
 
         this._seekTime = null;
       }

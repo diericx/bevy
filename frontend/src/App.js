@@ -6,9 +6,7 @@ import Movie from './pages/movie';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'video.js/dist/video-js.css';
-import 'videojs-resolution-switcher';
-import 'videojs-resolution-switcher/lib/videojs-resolution-switcher.css';
-
+import '@silvermine/videojs-quality-selector/dist/css/quality-selector.css';
 import {
   BrowserRouter as Router,
   Switch,
