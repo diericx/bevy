@@ -1,7 +1,7 @@
 import videojs from 'video.js';
 const Plugin = videojs.getPlugin('plugin');
 
-export default class DurationFromServer extends Plugin { 
+export default class DurationFromServer extends Plugin {
   static _cachedDurations = {};
 
   constructor(player, options) {
@@ -9,12 +9,18 @@ export default class DurationFromServer extends Plugin {
 
     var plugin = this;
 
-    player.ready(function(){  
-      plugin.setPlayerDurationFromServer(player);
-      
-      player.on('durationchange', function(event) {
-        plugin.setPlayerDurationFromServer(player);
-      });
+    player.ready(() => {
+      this.getDuration(player.src()).then(function(duration) {
+        // Set duration once with default duration function to dispatch event
+        player.duration(duration);
+        // Override duration to just return this value from now on
+        player.duration = function(seconds) {
+          if (seconds === undefined) {
+            // return NaN if the duration is not known
+            return this.cache_.duration !== undefined ? this.cache_.duration : NaN;
+          }
+        }
+      })
     });
   }
 
@@ -32,12 +38,14 @@ export default class DurationFromServer extends Plugin {
 
   setPlayerDurationFromServer(player) {
     this.getDuration(player.src()).then(function(duration) {
+      console.log("Got duration: ", duration)
+      // console.log(player.duration.toString());
       if(player.duration() !== duration) {
         player.duration(duration);
       }
     });
   }
-  
+
   getDuration(urlString) {
     let url = new URL(urlString);
     var duration = this.getCachedDuration(url);
