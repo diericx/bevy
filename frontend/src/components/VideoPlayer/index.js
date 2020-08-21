@@ -12,6 +12,24 @@ export default class VideoPlayer extends React.Component {
 
     // instantiate Video.js
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
+      this.currentTime = function(seconds) {
+        var seekBar = this.controlBar.progressControl.seekBar;
+        if (typeof seconds !== 'undefined') {
+            if (seconds < 0) {
+                seconds = 0;
+            }
+
+            this.techCall_('setCurrentTime', seconds);
+            return;
+        } // cache last currentTime and return. default to 0 seconds
+        //
+        // Caching the currentTime is meant to prevent a massive amount of reads on the tech's
+        // currentTime when scrubbing, but may not provide much performance benefit afterall.
+        // Should be tested. Also something has to read the actual current time or the cache will
+        // never get updated.
+        this.cache_.currentTime = this.techGet_('currentTime') + seekBar._timeOffset || seekBar._timeOffset;
+        return this.cache_.currentTime;
+    }
       console.log('onPlayerReady', this)
       // this.on('qualityRequested', function(event, newSource) {
       //   this.selectedSrc = {}
@@ -50,10 +68,10 @@ export default class VideoPlayer extends React.Component {
 
       //   // this._seekTime = null;
       // })
-      this.on('timeupdate', function () {
-        console.log(JSON.stringify(this.currentSources()));
-        console.log(this.currentTime())
-      })
+      // this.on('timeupdate', function () {
+      //   console.log(JSON.stringify(this.currentSources()));
+      //   console.log(this.currentTime())
+      // })
       this.controlBar.addChild('QualitySelector');
     });
 
@@ -72,7 +90,7 @@ export default class VideoPlayer extends React.Component {
   // see https://github.com/videojs/video.js/pull/3856
   render() {
     return (
-      <div>	
+      <div>
         <div data-vjs-player>
           <video ref={ node => this.videoNode = node } className="video-js"></video>
         </div>

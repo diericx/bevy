@@ -22,12 +22,12 @@ module.exports = function(videojs) {
              selectedSource;
 
          // var time = seekBar._timeOffset + currentTime;
-         // seekBar._timeOffset = time
+         seekBar._timeOffset = currentTime
 
-         var time = currentTime   
+         var time = currentTime
          // Clear out any previously selected sources (see: #11)
          _.each(sources, function(source) {
-            //   console.log(seekBar._timeOffset, this.currentTime(), time);
+            // TODO: reemove this or thee one below
             let url = new URL(source.src)
             var search_params = url.searchParams;
             search_params.set("time", time);
@@ -54,12 +54,10 @@ module.exports = function(videojs) {
             src.src = url.toString();
             return src;
          })
-         console.log(newSources);
          player.src(newSources);
 
          player.ready(function() {
             if (!player._qualitySelectorSafeSeek || player._qualitySelectorSafeSeek.hasFinished()) {
-               console.log("seeking...")
                // Either we don't have a pending seek action or the one that we have is no
                // longer applicable. This block must be within a `player.ready` callback
                // because the call to `player.src` above is asynchronous, and so not
