@@ -82,7 +82,7 @@ jackett:
       - TZ=America/Los_Angeles
     volumes:
       - jackett:/config
-      - /mnt/media/deluge/downloads/completed:/downloads
+      - /downloads:/downloads
     ports:
       - 9117:9117
     restart: unless-stopped
