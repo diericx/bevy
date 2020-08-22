@@ -4,12 +4,15 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 
 const styles = {
   movieCard: {
-    paddingTop: "1em",
-    paddingBottom: "1em",
+    width: "15rem",
+    boxShadow: "0px 0px 10px gray",
+    border: "none",
+    marginTop: "1em",
+    marginBottom: "1em",
   }
 };
 
@@ -52,6 +55,20 @@ export default class MyComponent extends React.Component {
       } else {
         return (
           <Container>
+            <Row>
+              <Col sm={12}>
+                <h1>Search</h1>
+                <hr></hr>
+              </Col>
+              <Col>
+              <Form>
+                <Form.Group controlId="formMovieSearch">
+                  <Form.Control type="search" placeholder="Enter search" />
+                </Form.Group>
+              </Form>
+              </Col>
+            </Row>
+
             <Row className="justify-content-center">
               <Col sm={12}>
                 <h1>Popular</h1>
@@ -59,22 +76,21 @@ export default class MyComponent extends React.Component {
               </Col>
 
               {resp.results.map(item => (
-                <Link
-                  to={{
-                    pathname: "/movie",
-                    state: { movie: item}
-                  }}
-                  style={styles.movieCard}
-                >
-                  <Col>
-                    <Card style={{ width: '15rem' }}>
+                <Col>
+                  <Card style={styles.movieCard}>
+                    <Link
+                      to={{
+                        pathname: "/movie",
+                        state: { movie: item}
+                      }}
+                    >
                       <Card.Img variant="top" src={`https://image.tmdb.org/t/p/w500${item.poster_path}`} />
-                      <Card.Body>
-                        <Card.Title>{item.title} {item.vote_average}</Card.Title>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                </Link>
+                    </Link>
+                    <Card.Body>
+                      <Card.Title>{item.title} {item.vote_average}</Card.Title>
+                    </Card.Body>
+                  </Card>
+                </Col>
               ))}
             </Row>
           </Container>
