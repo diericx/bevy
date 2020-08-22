@@ -28,10 +28,22 @@ type Metadata struct {
 }
 
 func main() {
+	configLocation := os.Getenv("CONFIG_FILE")
+	dbLocation := os.Getenv("TORRENT_DB_FILE")
+
+	if configLocation == "" {
+		log.Println("No config file")
+		os.Exit(1)
+	}
+	if dbLocation == "" {
+		log.Println("No db file location specified")
+		os.Exit(1)
+	}
+
 	config := app.Config{}
 
 	// Open release manager config file
-	file, err := os.Open("./config.yaml")
+	file, err := os.Open(configLocation)
 	if err != nil {
 		log.Println("Config file not found: config.yaml")
 		os.Exit(1)
@@ -44,7 +56,7 @@ func main() {
 		log.Panicf("Invalid yaml in config: %s", err)
 	}
 
-	torrentDAO, err := storm.NewTorrentDAO("iceetime-torrents.db", config.Qualities)
+	torrentDAO, err := storm.NewTorrentDAO(dbLocation, config.Qualities)
 	if err != nil {
 		panic(err)
 	}

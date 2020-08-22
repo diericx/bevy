@@ -6,6 +6,28 @@ Iceetime aims to be a fully featured torrent client while also acting as a media
 
 If you are still confused about why this project was started, check out the motivation section.
 
+## Dependencies
+- [Jackett](https://github.com/Jackett/Jackett)
+- [ffmpeg](https://ffmpeg.org/)
+
+## Docker
+
+Build the image
+```
+cd backend
+make docker
+```
+
+Run
+```
+docker run -v $(pwd)/config.yaml:/etc/config.yaml \
+-v $(pwd)/dbs:/dbs \
+-e CONFIG_FILE=/etc/config.yaml \
+-e TORRENT_DB_FILE=/dbs/torrent.db \
+-it iceetime/backend
+```
+
+
 ## Torrent client
 Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (which helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
 
