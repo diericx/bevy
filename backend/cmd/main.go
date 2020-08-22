@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/pkg/ffmpeg"
 	"github.com/diericx/iceetime/internal/pkg/storm"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/diericx/iceetime/internal/pkg/torznab"
@@ -208,7 +209,7 @@ func main() {
 		w.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
 
 		// TODO: Change these tracks from 0 default to query values
-		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, resolution, maxBitrate, config.FFMPEGConfig, 0, 0)
+		cmdFF := ffmpeg.NewTranscodeCommand(streamURL, formattedTimeStr, resolution, maxBitrate, config.FFMPEGConfig, 0, 0)
 		cmdFF.Stdout = w
 		cmdFF.Start()
 
@@ -280,29 +281,4 @@ func main() {
 	})
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-}
-
-func newFFMPEGTranscodeCommand(input string, time string, resolution string, maxBitrate string, c app.FFMPEGConfig, audioStream int, videoStream int) *exec.Cmd {
-	// Note: -ss flag needs to come before -i in order to skip encoding the entire first section
-	ffmpegArgs := []string{
-		"-ss", time,
-		"-i", input,
-		"-f", c.Video.Format,
-		"-c:v", c.Video.CompressionAlgo,
-		"-maxrate", maxBitrate,
-		"-vf", fmt.Sprintf("scale=%s", resolution),
-		"-threads", "0",
-		"-preset", "veryfast",
-		"-tune", "zerolatency",
-		"-map", fmt.Sprintf("0:v:%v", videoStream),
-		"-map", fmt.Sprintf("0:a:%v", audioStream),
-		// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
-	}
-
-	log.Printf("%+v", ffmpegArgs)
-
-	ffmpegArgs = append(ffmpegArgs, "-")
-
-	cmdFF := exec.Command("ffmpeg", ffmpegArgs...)
-	return cmdFF
 }
