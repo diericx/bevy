@@ -20,6 +20,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const defaultResolution = "iw:ih"
+const defaultMaxBitrate = "50M"
+
 type Format struct {
 	Duration int `json:"duration"`
 }
@@ -45,7 +48,7 @@ func main() {
 	// Open release manager config file
 	file, err := os.Open(configLocation)
 	if err != nil {
-		log.Println("Config file not found: config.yaml")
+		log.Println("Config file not found: ", configLocation)
 		os.Exit(1)
 	}
 	defer file.Close()
@@ -171,6 +174,8 @@ func main() {
 
 		id := c.Param("id")
 		timeArg := c.Query("time")
+		resolution := c.DefaultQuery("res", defaultResolution)
+		maxBitrate := c.DefaultQuery("max_bitrate", defaultMaxBitrate)
 
 		torrentID, err := app.ParseTorrentIdFromString(id)
 		if err != nil {
@@ -203,7 +208,7 @@ func main() {
 		w.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
 
 		// TODO: Change these tracks from 0 default to query values
-		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, config.Qualities[0].Resolution, config.FFMPEGConfig, 0, 0)
+		cmdFF := newFFMPEGTranscodeCommand(streamURL, formattedTimeStr, resolution, maxBitrate, config.FFMPEGConfig, 0, 0)
 		cmdFF.Stdout = w
 		cmdFF.Start()
 
@@ -277,14 +282,14 @@ func main() {
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-func newFFMPEGTranscodeCommand(input string, time string, resolution string, c app.FFMPEGConfig, audioStream int, videoStream int) *exec.Cmd {
+func newFFMPEGTranscodeCommand(input string, time string, resolution string, maxBitrate string, c app.FFMPEGConfig, audioStream int, videoStream int) *exec.Cmd {
 	// Note: -ss flag needs to come before -i in order to skip encoding the entire first section
 	ffmpegArgs := []string{
 		"-ss", time,
 		"-i", input,
 		"-f", c.Video.Format,
 		"-c:v", c.Video.CompressionAlgo,
-		"-b", "2000k",
+		"-maxrate", maxBitrate,
 		"-vf", fmt.Sprintf("scale=%s", resolution),
 		"-threads", "0",
 		"-preset", "veryfast",

@@ -29,7 +29,7 @@ Features:
 Iceetime also includes a layer on top of the raw files that aims to make your files as available as possible.
 
 Features:
-- [ ] Transcode to different preset qualities
+- [x] Transcode to different resolutions and bitrates
 - [ ] Provide detailed metadata about files including all video/audio/subtitle tracks
 - [ ] Transcode to different file formats
 - [ ] Add subtitles during transcode

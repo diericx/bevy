@@ -50,7 +50,7 @@ export default class MyComponent extends React.Component {
           (result) => {
             this.setState({
               isLoaded: true,
-              torrent: result 
+              torrent: result
             });
           },
           (error) => {
@@ -61,7 +61,7 @@ export default class MyComponent extends React.Component {
           }
         )
     }
-  
+
     render() {
       const { error, isLoaded, movie, torrent } = this.state;
 
@@ -75,7 +75,7 @@ export default class MyComponent extends React.Component {
         let releaseDate = movie.release_date.split("-")[0]
         return (
           <Button variant="primary" onClick={() => this.findTorrent(movie.externalIDs.imdb_id, movie.title, releaseDate)}>Fetch Movie</Button>
-        ) 
+        )
       }
 
       const videoJsOptions = {
@@ -90,13 +90,23 @@ export default class MyComponent extends React.Component {
           {
             src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode`,
             type: 'video/mp4',
-            label: '720p',
+            label: 'Original',
             selected: true,
           },
           {
-            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?resolution=1080p`,
+            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:1080&max_bitrate=2M`,
             type: 'video/mp4',
             label: '1080p',
+          },
+          {
+            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:720&max_bitrate=1M`,
+            type: 'video/mp4',
+            label: '720p',
+          },
+          {
+            src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:480&max_bitrate=1M`,
+            type: 'video/mp4',
+            label: '480p',
           }
         ]
       }
