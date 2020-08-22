@@ -7,7 +7,7 @@ Iceetime aims to be a fully featured torrent client while also acting as a media
 If you are still confused about why this project was started, check out the motivation section.
 
 ## Torrent client
-Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (whichs helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
+Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (which helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
 
 Features:
 - [x] Serves raw files via HTTP range requests which downloads pieces when they are needed
@@ -21,7 +21,7 @@ Features:
 - [ ] Download all pieces of a torrent when no one is streaming
 - [ ] Web interface for managing torrents
 
-## Media Player (real time transcoder)
+## Media Player (realtime transcoder)
 Iceetime also includes a layer on top of the raw files that aims to make your files as available as possible.
 
 Features:
@@ -32,7 +32,7 @@ Features:
 - [ ] Serve subtitle track so the client can decide if it wants to render them
 
 ## Web Client
-The web client is fairly independent from the backend and aims to make it easy to select movies and then provide the backend the info it needs to go find a torrent for that movie.
+The web client is fairly independent of the backend and aims to make it easy to select movies and then provide the backend the info it needs to go find a torrent for that movie.
 
 Features:
 - [x] Use TMDB api to get info on media
@@ -50,7 +50,7 @@ Remember that this isn't meant to bash their appliction! These are two completel
 ### 1. Hard to seed
 PT has very little emphasis on seeding. You seed while you watch, but stops seeding when you close the app. This means there's no way you could use a private tracker, and in general you're just being a leech!
 
-### 2. You need to run a VPN
+### 2. You need a VPN on all devices
 Because each of the apps are actively torrenting, you end up needing to have a VPN on all of your devices you want to watch on. I don't usually like to have a VPN active on all my devices at all times and think it's a bit annoying to keep switching them on and off when I want to watch some shows.
 
 ### 3. Bad file availability
