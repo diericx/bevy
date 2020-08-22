@@ -22,9 +22,11 @@ type TorrentClient struct {
 	client          *torrent.Client
 }
 
-func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int) (*TorrentClient, error) {
+func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int) (*TorrentClient, error) {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = dataPath
+	config.EstablishedConnsPerTorrent = establishedConnsPerTorrent
+	config.HalfOpenConnsPerTorrent = halfOpenConnsPerTorrent
 	client, err := torrent.NewClient(config)
 	if err != nil {
 		return nil, err

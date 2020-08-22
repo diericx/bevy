@@ -50,7 +50,7 @@ func main() {
 	}
 	defer torrentDAO.Close()
 
-	torrentClient, err := torrent.NewTorrentClient(config.TorrentFilePath, config.TorrentDataPath, config.TorrentInfoTimeout)
+	torrentClient, err := torrent.NewTorrentClient(config.TorrentFilePath, config.TorrentDataPath, config.TorrentInfoTimeout, config.TorrentEstablishedConnsPerTorrent, config.TorrentHalfOpenConnsPerTorrent)
 	if err != nil {
 		panic(err)
 	}

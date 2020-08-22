@@ -67,4 +67,7 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+*.env
+.idea
+
+backend/dist
