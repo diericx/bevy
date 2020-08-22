@@ -10,24 +10,6 @@ If you are still confused about why this project was started, check out the moti
 - [Jackett](https://github.com/Jackett/Jackett)
 - [ffmpeg](https://ffmpeg.org/)
 
-## Docker
-
-Build the image
-```
-cd backend
-make docker
-```
-
-Run
-```
-docker run -v $(pwd)/config.yaml:/etc/config.yaml \
--v $(pwd)/dbs:/dbs \
--e CONFIG_FILE=/etc/config.yaml \
--e TORRENT_DB_FILE=/dbs/torrent.db \
--it iceetime/backend
-```
-
-
 ## Torrent client
 Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (which helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
 
@@ -62,6 +44,65 @@ Features:
 - [x] Stream movies
 - [ ] Option to select transcode quality
 - [ ] Page for movies with status about files on disk
+
+# Docker Deployment
+
+Building
+```
+pushd backend && make docker && popd
+pushd frontend && make docker && popd
+```
+
+Running
+```
+docker run -it \
+-v $(pwd)/config.yaml:/etc/config.yaml \
+-v $(pwd)/dbs:/dbs \
+-e CONFIG_FILE=/etc/config.yaml \
+-e TORRENT_DB_FILE=/dbs/torrent.db \
+-p 8080:8080
+iceetime/backend
+
+docker run -it \
+-e REACT_APP_TMDB_API_KEY=/etc/config.yaml \
+-e REACT_APP_TMDB_API_KEY=<your-api-key> \
+-p 3000:3000 \
+iceetime/frontend
+```
+
+Docker Compose
+
+```
+jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - jackett:/config
+      - /mnt/media/deluge/downloads/completed:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+
+iceetimeBackend:
+    image: iceetime/backend
+    container_name: iceetime-backend
+    environment:
+        - CONFIG_FILE=/etc/config.yaml
+        - TORRENT_DB_FILE=/dbs/torrent.db
+    volumes:
+        - /mnt/iceetime/dbs:/dbs
+        - /mnt/downloads:/downloads
+
+iceetimeFrontend:
+    image: iceetime/frontend
+    container_name: iceetime-frontend
+    environment:
+        - REACT_APP_TMDB_API_KEY=<your-api-key>
+```
 
 # Motivation for this project (issues with Popcorntime)
 
