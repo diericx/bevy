@@ -1,50 +1,57 @@
-# iceetime
+# Iceetime
 
-Iceetime is a self hosted, isolated alternative to Popcorntime that aims to follow torrent ethos and be private tracker friendly. 
+Iceetime is a self hosted alternative to Popcorntime that aims to improve file availability and increase control over the files being downloaded.
 
-You host an instance of iceetime on your server, and can then stream content from it to any device. 
-The server is the only device that needs a VPN as it's the only one torrenting. 
+Iceetime aims to be a fully featured torrent client while also acting as a media player that transcodes media files in real time (rather than downloading different versions).
 
-## Current state of the project
+If you are still confused about why this project was started, check out the motivation section.
 
-This project can currently download a torrent sequentially and serve that stream to a browser via Gos built in servecontent function.
+## Torrent client
+Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (whichs helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
 
-It is missing:
-- Torrent indexing (searching for torrents by quality)
-- Transcoding
+Features:
+- [x] Serves raw files via HTTP range requests which downloads pieces when they are needed
+- [x] Add torrents via info hash
+- [x] Add torrents via magnet url
+- [x] Add torrents via file on disk
+- [x] Find Movie files/torrents via Torznab queries
+- [ ] Endpoint to check if a movie exists on disk already
+- [ ] Find TV Shows/Episode files/torrents via Torznab queries
+- [ ] Endpoint to check if a tv show or episode exists on disk already
+- [ ] Download all pieces of a torrent when no one is streaming
+- [ ] Web interface for managing torrents
 
-I think indexing can either be solved by simply using Sonarr/Radarr although I really don't like using those programs... shitty UI/UX that should be configs so I can actually see whats happening. Not very developer friendly.
+## Media Player (real time transcoder)
+Iceetime also includes a layer on top of the raw files that aims to make your files as available as possible.
 
-## Option 1. Transcoding solved with MPEG DASH
+Features:
+- [ ] Transcode to different preset qualities
+- [ ] Provide detailed metadata about files including all video/audio/subtitle tracks
+- [ ] Transcode to different file formats
+- [ ] Add subtitles during transcode
+- [ ] Serve subtitle track so the client can decide if it wants to render them
 
-It's possible to solve the transcoding problem by implementing MPEG DASH. Essentially the process would look like this:
+## Web Client
+The web client is fairly independent from the backend and aims to make it easy to select movies and then provide the backend the info it needs to go find a torrent for that movie.
 
-Client requests section 1 -> server starts downloading that section -> server starts encoding that section -> server serves transcoded section to client
+Features:
+- [x] Use TMDB api to get info on media
+- [x] Request movies to be fetched
+- [x] Stream movies
+- [ ] Option to select transcode quality
+- [ ] Page for movies with status about files on disk
 
-But the client only requests sections it knows about from a metadata file (`.mpd` file) that is generated when you convert a media file to DASH format. We would need to either generate these manually to spoof it or find some other way to solve this problem.
+# Motivation for this project (issues with Popcorntime)
 
-## Option 2. Transcoding with custom HTTP Range implementation
+Popcorntime is awesome for torrent usability, but has a few problems that make it a bit hard to use (for me). I think the easiest way to understand the motivation behind this project is to look at the problems I have with Popcorntime.
 
-Currently we are using the [default Go HTTP Range function `ServeContent`](https://golang.org/pkg/net/http/#ServeContent) which just serves a file using implementations of functions the html5 player expects. It makes some assumptions about the file which don't match our use case.
+Remember that this isn't meant to bash their appliction! These are two completely different projects that tackle the problem of torrent streaming in totally different ways.
 
-If we reimplement this protocol, we might be able to transcode live without having to do much fluff like dealing with metadata files and what not... we just need to fully understand HTTP Range requests.
+### 1. Hard to seed
+PT has very little emphasis on seeding. You seed while you watch, but stops seeding when you close the app. This means there's no way you could use a private tracker, and in general you're just being a leech!
 
-I think it might be this easy...
+### 2. You need to run a VPN
+Because each of the apps are actively torrenting, you end up needing to have a VPN on all of your devices you want to watch on. I don't usually like to have a VPN active on all my devices at all times and think it's a bit annoying to keep switching them on and off when I want to watch some shows.
 
-The first thing this implementation does is [checks how large the file in the readseeker is by seeking to the end](https://github.com/golang/go/blob/ba9e10889976025ee1d027db6b1cad383ec56de8/src/net/http/fs.go#L157) and then making assumptions on that... which works when using raw files as we can see in the working version in this repo. What we need to do is add a step which checks how large the file downloading is, and then calculates the size the transcoded file will be. Then all operations should request correct byte sections and we can intercept requests by implementing our own io.readseeker and transcode as they come from the download readseeker then serve... hacky!
-
-# Notes
-
-Exaple query using Jackett
-`192.168.1.71:9117/api/v2.0/indexers/torrentleech/results/torznab/api?apikey=0x7ym4k6c4nghc6nh6qi3s2pdyicxj19&t=movie&imdbid=tt0317705&cat=2040`
-
-Note: On stupud ass mac run this
-```
-export CPATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/"
-export CGO_ENABLED=1; export CC=gcc;
-```
-
-Disable annoying cgo warnings on mac
-```
-export CGO_CPPFLAGS="-Wno-nullability-completeness"
-```
+### 3. Bad file availability
+A smaller issue I noticed is that PTs solution to poor internet connectivity is to select a lower quality torrent rather than adjust the file you are downloading.
