@@ -10,9 +10,9 @@ export default class MyComponent extends React.Component {
         resp: null,
       };
     }
-  
+
     componentDidMount() {
-      let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
+      let tmdbAPIKey = window._env_.REACT_APP_TMDB_API_KEY;
       fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${tmdbAPIKey}`)
         .then(res => res.json())
         .then(
@@ -30,7 +30,7 @@ export default class MyComponent extends React.Component {
           }
         )
     }
-  
+
     render() {
       const { error, isLoaded, resp, selectedMovie } = this.state;
       if (error) {

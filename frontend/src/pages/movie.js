@@ -15,7 +15,7 @@ export default class MyComponent extends React.Component {
     componentDidMount() {
       let { location: { state: { movie } } } = this.props;
       if (!movie.externalIDs) {
-        let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
+        let tmdbAPIKey = window._env_.REACT_APP_TMDB_API_KEY;
         fetch(`https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${tmdbAPIKey}`)
           .then(res => res.json())
           .then(
@@ -50,7 +50,7 @@ export default class MyComponent extends React.Component {
           (result) => {
             this.setState({
               isLoaded: true,
-              torrent: result 
+              torrent: result
             });
           },
           (error) => {
@@ -61,7 +61,7 @@ export default class MyComponent extends React.Component {
           }
         )
     }
-  
+
     render() {
       const { error, isLoaded, movie, torrent } = this.state;
 
@@ -75,7 +75,7 @@ export default class MyComponent extends React.Component {
         let releaseDate = movie.release_date.split("-")[0]
         return (
           <Button variant="primary" onClick={() => this.findTorrent(movie.externalIDs.imdb_id, movie.title, releaseDate)}>Fetch Movie</Button>
-        ) 
+        )
       }
 
       const videoJsOptions = {

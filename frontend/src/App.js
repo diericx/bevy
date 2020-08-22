@@ -17,7 +17,7 @@ import {
 require('dotenv').config()
 
 // Validate env vars
-let tmdbApiKey = process.env.REACT_APP_TMDB_API_KEY;
+let tmdbApiKey = window._env_.REACT_APP_TMDB_API_KEY;
 if (!tmdbApiKey) {
   throw new Error("Missing required env var: REACT_APP_TMDB_API_KEY");
 }
@@ -27,6 +27,7 @@ export default function App() {
     <Router>
       <div>
         <Navbar />
+        <p>API_URL: {window._env_.REACT_APP_TMDB_API_KEY}</p>
 
         {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
