@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/anacrolix/torrent"
@@ -15,6 +16,9 @@ const TorrentByIDNotFoundErr string = "no torrent by that id was found"
 const TorrentFileReaderErr string = "unable to get file reader for torrent"
 const LocalDBQueryErr string = "unable to query local db"
 const LocalDBSaveErr string = "unable to save to local db"
+
+const DefaultResolution = "iw:ih"
+const DefaultMaxBitrate = "50M"
 
 func GetSupportedVideoFileFormats() []string {
 	return []string{".mkv", ".mp4"}
@@ -142,4 +146,6 @@ type IndexerQueryHandler interface {
 	QueryMovie(imdbID string, title string, year string, minQuality int) ([]Torrent, *Error)
 }
 
-type Transcoder interface{}
+type Transcoder interface {
+	NewTranscodeCommand(input string, time string, resolution string, maxBitrate string, audioStream int, videoStream int) *exec.Cmd
+}

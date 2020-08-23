@@ -8,14 +8,18 @@ import (
 	"github.com/diericx/iceetime/internal/app"
 )
 
+type Transcoder struct {
+	Config app.FFMPEGConfig
+}
+
 // NewTranscodeCommand returns a new command to transcode media with given constraints
-func NewTranscodeCommand(input string, time string, resolution string, maxBitrate string, c app.FFMPEGConfig, audioStream int, videoStream int) *exec.Cmd {
+func (t Transcoder) NewTranscodeCommand(input string, time string, resolution string, maxBitrate string, audioStream int, videoStream int) *exec.Cmd {
 	// Note: -ss flag needs to come before -i in order to skip encoding the entire first section
 	ffmpegArgs := []string{
 		"-ss", time,
 		"-i", input,
-		"-f", c.Video.Format,
-		"-c:v", c.Video.CompressionAlgo,
+		"-f", t.Config.Video.Format,
+		"-c:v", t.Config.Video.CompressionAlgo,
 		"-maxrate", maxBitrate,
 		"-vf", fmt.Sprintf("scale=%s", resolution),
 		"-threads", "0",

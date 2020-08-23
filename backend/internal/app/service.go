@@ -13,6 +13,7 @@ type IceetimeService struct {
 	TorrentDAO          TorrentDAO
 	TorrentClient       TorrentClient
 	IndexerQueryHandler IndexerQueryHandler
+	Transcoder          Transcoder
 	Qualities           []Quality
 	MinSeeders          int
 }
