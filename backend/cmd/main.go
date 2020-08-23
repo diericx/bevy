@@ -70,7 +70,7 @@ func main() {
 	}
 
 	ffmpegTranscoder := ffmpeg.Transcoder{
-		Config: config.FFMPEGConfig,
+		Config: config.TranscoderConfig,
 	}
 
 	// Create main service

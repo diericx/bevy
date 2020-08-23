@@ -9,7 +9,7 @@ import (
 )
 
 type Transcoder struct {
-	Config app.FFMPEGConfig
+	Config app.TranscoderConfig
 }
 
 // NewTranscodeCommand returns a new command to transcode media with given constraints

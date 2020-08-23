@@ -1,9 +1,9 @@
 indexers:
-  - name: 1337x 
+  - name: 1337x
     url: https://<jackett-url>/api/v2.0/indexers/1337x/results/torznab/
     # basicAuth:
-    #   username:  
-    #   password: 
+    #   username:
+    #   password:
     apiKey: <api-key>
     categories: 5000,5020,5030,5040,5070,5070,5080,100027
 
@@ -13,22 +13,22 @@ qualities:
     minSize: 5e8
     maxSize: 1e10
     resolution: 1280x720
-  - name: 1080p 
-    regex: "1080" 
+  - name: 1080p
+    regex: "1080"
     minSize: 5e8
     maxSize: 1e10
-    resolution: 1920x1080 
+    resolution: 1920x1080
 
-ffmpeg:
+transcoder:
   video:
     compressionAlgo: libx264
-    format: ismv 
+    format: ismv
   audio:
     compressionAlgo: copy
 
 tmdb:
-  apiKey: <api-key> 
- 
+  apiKey: <api-key>
+
 minSeeders: 2
 torrentInfoTimeout: 15
 torrentFilePath: downloads

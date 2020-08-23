@@ -102,7 +102,7 @@ type Tmdb struct {
 	ApiKey string `yaml:"apiKey"`
 }
 
-type FFMPEGConfig struct {
+type TranscoderConfig struct {
 	Video struct {
 		Format          string `yaml:"format"`
 		CompressionAlgo string `yaml:"compressionAlgo"`
@@ -113,16 +113,16 @@ type FFMPEGConfig struct {
 }
 
 type Config struct {
-	Indexers                          []Indexer    `yaml:"indexers"`
-	Qualities                         []Quality    `yaml:"qualities"`
-	MinSeeders                        int          `yaml:"minSeeders"`
-	TorrentInfoTimeout                int          `yaml:"torrentInfoTimeout"`
-	TorrentFilePath                   string       `yaml:"torrentFilePath"`
-	TorrentDataPath                   string       `yaml:"torrentDataPath"`
-	TorrentHalfOpenConnsPerTorrent    int          `yaml:"torrentHalfOpenConnsPerTorrent"`
-	TorrentEstablishedConnsPerTorrent int          `yaml:"torrentEstablishedConnsPerTorrent"`
-	Tmdb                              Tmdb         `yaml:"tmdb"`
-	FFMPEGConfig                      FFMPEGConfig `yaml:"ffmpeg"`
+	Indexers                          []Indexer        `yaml:"indexers"`
+	Qualities                         []Quality        `yaml:"qualities"`
+	MinSeeders                        int              `yaml:"minSeeders"`
+	TorrentInfoTimeout                int              `yaml:"torrentInfoTimeout"`
+	TorrentFilePath                   string           `yaml:"torrentFilePath"`
+	TorrentDataPath                   string           `yaml:"torrentDataPath"`
+	TorrentHalfOpenConnsPerTorrent    int              `yaml:"torrentHalfOpenConnsPerTorrent"`
+	TorrentEstablishedConnsPerTorrent int              `yaml:"torrentEstablishedConnsPerTorrent"`
+	Tmdb                              Tmdb             `yaml:"tmdb"`
+	TranscoderConfig                  TranscoderConfig `yaml:"transcoder"`
 }
 
 type TorrentDAO interface {
