@@ -35,17 +35,20 @@ func (s *IceetimeService) FindLocallyOrFetchMovie(imdbID string, title string, y
 	}
 
 	// Fetch torrent online
-	torrents, terr := iqh.QueryMovie(imdbID, title, year, 1)
-	if terr != nil {
-		return nil, terr
+	torrents, err := iqh.QueryMovie(imdbID, title, year, 1)
+	if err != nil {
+		return nil, NewError(err, 500, IndexerQueryErr)
 	}
 	if len(torrents) == 0 {
 		return nil, NewError(nil, 404, IndexerQueryNoResultsErr)
 	}
 
-	torrent, terr := s.getBestTorrentFromIndexerQueryAndAddToClient(torrents, s.Qualities[minQualityIndex])
+	torrent, err := s.getBestTorrentFromIndexerQueryAndAddToClient(torrents, s.Qualities[minQualityIndex])
+	if err != nil {
+		return nil, NewError(err, 500, IndexerQueryErr)
+	}
 	if torrent == nil {
-		return nil, NewError(nil, terr.Code, IndexerQueryNoResultsErr)
+		return nil, NewError(nil, 404, IndexerQueryNoResultsErr)
 	}
 
 	// Save torrent to disk/cache

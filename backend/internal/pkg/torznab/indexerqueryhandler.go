@@ -36,20 +36,20 @@ type Item struct {
 	TorznabAttrs   []TorznabAttr          `xml:"attr"` // Used for immediate parsing but map is more useful
 }
 
-type indexerQueryHandler struct {
+type IndexerQueryHandler struct {
 	Qualities []app.Quality
 	Indexers  []app.Indexer
 }
 
 // NewIndexerQueryHandler instantiates a new IndexerQueryHandler object that implements torznab queries/indexers
-func NewIndexerQueryHandler(indexers []app.Indexer, qualities []app.Quality) (*indexerQueryHandler, *app.Error) {
-	return &indexerQueryHandler{
+func NewIndexerQueryHandler(indexers []app.Indexer, qualities []app.Quality) (*IndexerQueryHandler, error) {
+	return &IndexerQueryHandler{
 		Indexers:  indexers,
 		Qualities: qualities,
 	}, nil
 }
 
-func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, *app.Error) {
+func (iqh *IndexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, error) {
 	torznabResponses, err := iqh.torznabQuery(imdbID, fmt.Sprintf("%s %s %s", title, year, iqh.Qualities[minQuality].Regex))
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (iqh *indexerQueryHandler) QueryMovie(imdbID string, title string, year str
 	return torrents, nil
 }
 
-func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, *app.Error) {
+func (iqh *IndexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, error) {
 	torznabResponses := []Rss{}
 
 	for _, indexer := range iqh.Indexers {
@@ -108,16 +108,16 @@ func (iqh *indexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rs
 
 		resp, err := client.Do(req)
 		if err != nil {
-			return nil, app.NewError(err, 500, fmt.Sprintf("Error querying indexer %s", indexer.Name))
+			return nil, err
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, app.NewError(err, 500, fmt.Sprintf("Error parsing response body from indexer %s", indexer.Name))
+			return nil, err
 		}
 
 		if resp.StatusCode != 200 {
-			return nil, app.NewError(nil, 500, fmt.Sprintf("Error making query to indexer. Body of request: %s", string(body)))
+			return nil, fmt.Errorf("%v: %s", resp.StatusCode, string(body))
 		}
 
 		xml.Unmarshal(body, &torznabResp)

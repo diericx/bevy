@@ -11,6 +11,7 @@ import (
 const InvalidTorrentErr string = "invalid torrent"
 const InvalidIDErr string = "invalid id"
 const IndexerQueryNoResultsErr string = "indexer query gave no results"
+const IndexerQueryErr string = "indexer could not fetch results"
 const NoValidTorrentsInQueryErr string = "no valid release found from query"
 const TorrentByIDNotFoundErr string = "no torrent by that id was found"
 const TorrentFileReaderErr string = "unable to get file reader for torrent"
@@ -143,7 +144,7 @@ type TorrentClient interface {
 
 // IndexerQueryHandler given inputs will handle querying indexers for torrents
 type IndexerQueryHandler interface {
-	QueryMovie(imdbID string, title string, year string, minQuality int) ([]Torrent, *Error)
+	QueryMovie(imdbID string, title string, year string, minQuality int) ([]Torrent, error)
 }
 
 type Transcoder interface {
