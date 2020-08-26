@@ -1,20 +1,16 @@
-import React from 'react';
-import logo from './logo.svg';
-import Navbar from './components/Navbar';
-import Movies from './pages/movies';
-import Movie from './pages/movie';
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'video.js/dist/video-js.css';
-import '@silvermine/videojs-quality-selector/dist/css/quality-selector.css';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
+import React from "react";
+import logo from "./logo.svg";
+import Navbar from "./components/Navbar";
+import Movies from "./pages/movies";
+import Search from "./pages/search";
+import Movie from "./pages/movie";
+import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "video.js/dist/video-js.css";
+import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
+import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
-require('dotenv').config()
+require("dotenv").config();
 
 // Validate env vars
 let tmdbApiKey = process.env.REACT_APP_TMDB_API_KEY;
@@ -31,8 +27,9 @@ export default function App() {
         {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
         <Switch>
-          <Route path="/movie" render={(props) => <Movie {...props}/>}/>
-          <Route path="/" render={(props) => <Movies {...props}/>}/>
+          <Route path="/movie" render={(props) => <Movie {...props} />} />
+          <Route path="/search" render={(props) => <Search {...props} />} />
+          <Route path="/" render={(props) => <Movies {...props} />} />
         </Switch>
       </div>
     </Router>

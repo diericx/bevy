@@ -6,6 +6,8 @@ Iceetime aims to be a fully featured torrent client while also acting as a media
 
 If you are still confused about why this project was started, check out the motivation section.
 
+![Alt Text](https://imgur.com/NMhIgsFf)
+
 ## Dependencies
 - [Jackett](https://github.com/Jackett/Jackett)
 - [ffmpeg](https://ffmpeg.org/)
