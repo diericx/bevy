@@ -1,10 +1,12 @@
 # Iceetime
 
-Iceetime is a self hosted alternative to Popcorntime that aims to improve file availability and increase control over the files being downloaded.
+Iceetime is a self hosted alternative to Popcorntime that aims to improve file availability and increase control over the files being downloaded. 
 
-Iceetime aims to be a fully featured torrent client while also acting as a media player that transcodes media files in real time (rather than downloading different versions).
+Files are fetched from indexers by hitting Jackett (no need to reinvent the wheel here) and sent ot the torrent client. Here they are served via HTTP and the client downloads file pieces as they are needed. A media player then transcodes media files in real time (rather than downloading different versions) for the web client. 
 
-If you are still confused about why this project was started, check out the motivation section.
+This means you can grab a single release at the highest quality/size you are willing, and transcode to meet your current internet speed wherever you are. No need for VPNs on your clients, all torrenting happens on your server/seedbox.
+
+If you are still confused about why this project was started, check out the motivation section at the bottom... but also, I just had some free time and wanted to see how far I could take it :)
 
 ![Demo](demo-gif.gif)
 
