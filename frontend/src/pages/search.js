@@ -69,6 +69,7 @@ export default class MyComponent extends React.Component {
 
     return (
       <Container>
+        <br />
         {resp.results.map((item) => (
           <Row className="movie-row">
             <Col>
