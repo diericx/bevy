@@ -24,7 +24,6 @@ type Metadata struct {
 
 type HTTPHandler struct {
 	IceetimeService app.IceetimeService
-	Logger          *log.Logger
 }
 
 func (h *HTTPHandler) Serve() {
@@ -194,7 +193,7 @@ func (h *HTTPHandler) Serve() {
 
 		dur, err := strconv.ParseFloat(durString, 32)
 		if err != nil {
-			h.Logger.Println(err)
+			log.Println(err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Error parsing metadata",
 			})
