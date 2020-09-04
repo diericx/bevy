@@ -4,43 +4,40 @@
     <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/video.js/6.4.0/video-js.css'>
   </head>
   <body>
-    <video id="vid1" controls class="video-js vjs-default-skin vjs-big-play-centered" width="640" height="360" preload="auto">
-      <source src="http://localhost:8080/stream/torrent/1/transcode" type='video/mp4'>
-    </video>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/video.js/6.4.0/video.js'></script>
     <script>
       var Plugin = videojs.getPlugin('plugin');
-      
+
        /**
        *  Instead of byte-ranges for seeking, we use time-ranges.
        *  This way we can pass it directly to ffmpeg to transcode the media from the specified time.
        *  Byte-ranges (Accept-Ranges: bytes) should be disabled on the server for media beign transcoded to prevent the browser to try to use them.
        */
       var TimeRangesSeeking = videojs.extend(Plugin, {
-      
+
         constructor: function(player, options) {
           Plugin.call(this, player, options);
-          
+
           player.ready(function(){
             var baseSrc = player.src();
-      
+
             var seekBar = player.controlBar.progressControl.seekBar;
             seekBar._timeOffset = 0;
             seekBar._seekTime = null;
 
-            
+
             /*var _seekBarHandleMouseDown = seekBar.handleMouseDown;
             seekBar.handleMouseDown = function(event) {
               _seekBarHandleMouseDown(event);
               this._seekTime = null;
             }
             seekBar.handleMouseDown.bind(seekBar);*/
-            
+
             // Handle mouse move, to request new time based content from server
             var _seekBarHandleMouseMove = seekBar.handleMouseMove;
             seekBar.handleMouseMove = function(event) {
               let newTime = this.calculateDistance(event) * this.player_.duration();
-      
+
               // Don't let video end while scrubbing.
               if (newTime === this.player_.duration()) {
                 newTime = newTime - 0.1;
@@ -68,7 +65,7 @@
             }
             _seekBarHandleMouseUp.bind(seekBar);
             seekBar.handleMouseUp.bind(seekBar);
-            
+
             // Get current time, add time offset
             var _seekBarGetCurrentTime_ = seekBar.getCurrentTime_;
             seekBar.getCurrentTime_ = function() {
@@ -79,25 +76,25 @@
             _seekBarGetCurrentTime_.bind(seekBar);
             seekBar.getCurrentTime_.bind(seekBar);
           });
-      
+
           /*player.on("timeupdate", function(event) {
             //console.log('timeupdate', player.currentTime());
           });
-          
+
           player.on("seeking", function(event) {
             console.log('seeking', player.currentTime());
           });
-      
+
           player.on("seeked", function(event) {
             console.log('seeked', player.currentTime());
           });
-      
+
           player.on('playing', function() {
             videojs.log('playback began!');
           });*/
         }
       });
-      
+
       videojs.registerPlugin('timeRangesSeeking', TimeRangesSeeking);
 
       /**
@@ -105,17 +102,17 @@
        *  This way we can set the duration of the media, even if it's beign transcoded.
        */
       var DurationFromServer = videojs.extend(Plugin, {
-      
+
         constructor: function(player, options) {
           Plugin.call(this, player, options);
 
           var plugin = this;
 
           this._cachedDurations = {};
-          
-          player.ready(function(){  
+
+          player.ready(function(){
             plugin.setPlayerDurationFromServer(player);
-            
+
             player.on('durationchange', function(event) {
               plugin.setPlayerDurationFromServer(player);
             });
@@ -147,7 +144,7 @@
             }
           });
         },
-        
+
         getDuration: function(url) {
           var duration = this.getCachedDuration(url);
           if(duration !== null) {
@@ -163,9 +160,9 @@
           });
         }
       });
-      
+
       videojs.registerPlugin('durationFromServer', DurationFromServer);
-      
+
       if (document.getElementById("vid1")) {
         videojs("vid1", {
           plugins: {
@@ -173,7 +170,7 @@
             durationFromServer: {}
           }
         }).ready(function() {
-          
+
         });
       }
     </script>

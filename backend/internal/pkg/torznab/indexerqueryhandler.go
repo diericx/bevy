@@ -92,6 +92,10 @@ func (iqh *IndexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rs
 		if indexer.BasicAuth != nil {
 			req.SetBasicAuth(indexer.BasicAuth.Username, indexer.BasicAuth.Password)
 		}
+		if err != nil {
+			return nil, err
+		}
+
 		q := req.URL.Query()
 		q.Add("apikey", indexer.APIKey)
 

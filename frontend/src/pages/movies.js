@@ -16,6 +16,8 @@ const styles = {
   },
 };
 
+let tmdbAPIKey = window._env_.REACT_APP_TMDB_API_KEY;
+
 export default class MyComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -46,7 +48,6 @@ export default class MyComponent extends React.Component {
   };
 
   componentDidMount() {
-    let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
     fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${tmdbAPIKey}`)
       .then((res) => res.json())
       .then(

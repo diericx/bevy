@@ -87,7 +87,7 @@ func (s *IceetimeService) GetFileReaderForFileInTorrent(t *Torrent, fileIndex in
 // getBestTorrentFromIndexerQueryAndAddToClient goes through each torrent, adds it to the client, and get's metadata to make an educated
 // decision on each torrent. It always removes the torrents after it is done so they need to be added afterwards.
 // TODO: Refactor this!
-func (s *IceetimeService) getBestTorrentFromIndexerQueryAndAddToClient(torrents []Torrent, q Quality) (*Torrent, *Error) {
+func (s *IceetimeService) getBestTorrentFromIndexerQueryAndAddToClient(torrents []Torrent, q Quality) (*Torrent, error) {
 	// sort torrents by seeders (to get most available torrents first)
 	sort.Slice(torrents, func(i, j int) bool {
 		return torrents[i].Seeders > torrents[j].Seeders

@@ -44,19 +44,22 @@ func (h *HTTPHandler) Serve() {
 		year := c.Query("year")
 		if imdbID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Missing imdb id",
+				"error":   true,
+				"message": "Missing imdb id",
 			})
 			return
 		}
 		if title == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Missing title",
+				"error":   true,
+				"message": "Missing title",
 			})
 			return
 		}
 		if year == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Missing year",
+				"error":   true,
+				"message": "Missing year",
 			})
 			return
 		}
@@ -64,7 +67,8 @@ func (h *HTTPHandler) Serve() {
 		torrent, err := iceetimeService.FindLocallyOrFetchMovie(imdbID, title, year, 1)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Message,
+				"error":   true,
+				"message": err.Message,
 			})
 			return
 		}
@@ -77,7 +81,8 @@ func (h *HTTPHandler) Serve() {
 		torrentID, err := app.ParseTorrentIdFromString(idString)
 		if err != nil {
 			c.JSON(err.Code, gin.H{
-				"error": err.Message,
+				"error":   true,
+				"message": err.Message,
 			})
 			return
 		}
@@ -86,7 +91,8 @@ func (h *HTTPHandler) Serve() {
 		torrent, err := iceetimeService.GetTorrentByID(torrentID)
 		if err != nil {
 			c.JSON(err.Code, gin.H{
-				"error": err.Message,
+				"error":   true,
+				"message": err.Message,
 			})
 			return
 		}
@@ -94,7 +100,8 @@ func (h *HTTPHandler) Serve() {
 		reader, err := iceetimeService.GetFileReaderForFileInTorrent(torrent, torrent.MainFileIndex)
 		if err != nil {
 			c.JSON(err.Code, gin.H{
-				"error": err.Message,
+				"error":   true,
+				"message": err.Message,
 			})
 			return
 		}
@@ -115,7 +122,8 @@ func (h *HTTPHandler) Serve() {
 		torrentID, err := app.ParseTorrentIdFromString(id)
 		if err != nil {
 			c.JSON(err.Code, gin.H{
-				"error": err.Message,
+				"error":   true,
+				"message": err.Message,
 			})
 			return
 		}
@@ -126,13 +134,15 @@ func (h *HTTPHandler) Serve() {
 		torrent, err := iceetimeService.GetTorrentByID(torrentID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Error searching for your torrent",
+				"error":   true,
+				"message": "Error searching for your torrent",
 			})
 			return
 		}
 		if torrent == nil {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Torrent not found on disk",
+				"error":   true,
+				"message": "Torrent not found on disk",
 			})
 			return
 		}
@@ -160,7 +170,8 @@ func (h *HTTPHandler) Serve() {
 			exitStatus := status.ExitStatus()
 			if exitStatus != 0 {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Transcoding failed",
+					"error":   true,
+					"message": "Transcoding failed",
 				})
 				return
 
@@ -174,7 +185,8 @@ func (h *HTTPHandler) Serve() {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 32)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid ID",
+				"error":   true,
+				"message": "Invalid ID",
 			})
 			return
 		}
@@ -184,7 +196,8 @@ func (h *HTTPHandler) Serve() {
 		out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", streamURL).Output()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Error fetching metadata",
+				"error":   true,
+				"message": "Error fetching metadata",
 			})
 			return
 		}
@@ -195,7 +208,8 @@ func (h *HTTPHandler) Serve() {
 		if err != nil {
 			log.Println(err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Error parsing metadata",
+				"error":   true,
+				"message": "Error parsing metadata",
 			})
 			return
 		}

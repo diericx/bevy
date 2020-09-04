@@ -7,6 +7,10 @@ import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
 import Col from "react-bootstrap/Col";
 import "./movie.css";
+
+
+let backendURL = window._env_.BACKEND_URL;
+
 export default class MyComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -56,11 +60,19 @@ export default class MyComponent extends React.Component {
 
   findTorrent(imdbID, title, year) {
     fetch(
-      `http://localhost:8080/find/movie?imdbid=${imdbID}&title=${title}&year=${year}`
+      `http://${backendURL}/find/movie?imdbid=${imdbID}&title=${title}&year=${year}`
     )
       .then((res) => res.json())
       .then(
         (result) => {
+          if (result && result.error) {
+            this.setState({
+              isTorrentLoading: false,
+              error: result,
+            });
+            return
+          }
+
           this.setState({
             isTorrentLoading: false,
             torrent: result,
@@ -124,23 +136,23 @@ export default class MyComponent extends React.Component {
       },
       sources: [
         {
-          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode`,
+          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode`,
           type: "video/mp4",
           label: "Original",
           selected: true,
         },
         {
-          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:1080&max_bitrate=2M`,
+          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:1080&max_bitrate=2M`,
           type: "video/mp4",
           label: "1080p",
         },
         {
-          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:720&max_bitrate=1M`,
+          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:720&max_bitrate=1M`,
           type: "video/mp4",
           label: "720p",
         },
         {
-          src: `http://localhost:8080/stream/torrent/${torrent.id}/transcode?res=-2:480&max_bitrate=1M`,
+          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:480&max_bitrate=1M`,
           type: "video/mp4",
           label: "480p",
         },
