@@ -1,12 +1,9 @@
 import React from "react";
-import { Redirect } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import VideoPlayer from "../components/VideoPlayer";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
-import Spinner from "react-bootstrap/Spinner";
 import Col from "react-bootstrap/Col";
 import "./movie.css";
+import TorrentStream from "../components/TorrentStream"
 
 
 let backendURL = window._env_.BACKEND_URL;
@@ -58,116 +55,8 @@ export default class MyComponent extends React.Component {
     }
   }
 
-  findTorrent(imdbID, title, year) {
-    fetch(
-      `http://${backendURL}/find/movie?imdbid=${imdbID}&title=${title}&year=${year}`
-    )
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result && result.error) {
-            this.setState({
-              isTorrentLoading: false,
-              error: result,
-            });
-            return
-          }
-
-          this.setState({
-            isTorrentLoading: false,
-            torrent: result,
-          });
-        },
-        (error) => {
-          this.setState({
-            isTorrentLoading: false,
-            error,
-          });
-        }
-      );
-  }
-
-  renderTorrentStreamingOptions() {
-    const { movie, torrent, isTorrentLoading } = this.state;
-    let releaseDate = movie.release_date.split("-")[0];
-
-    if (isTorrentLoading) {
-      return (
-        <Row
-          style={{ textAlign: "center" }}
-          className={"justify-content-center align-items-center"}
-        >
-          <Col sm={12}>
-            <p>Searching indexers for movie...</p>
-          </Col>
-          <Col sm={12}>
-            <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
-            </Spinner>
-          </Col>
-        </Row>
-      );
-    }
-    if (!torrent) {
-      return (
-        <Button
-          variant="primary"
-          onClick={() => {
-            this.findTorrent(
-              movie.externalIDs.imdb_id,
-              movie.title,
-              releaseDate
-            );
-            this.setState({ isTorrentLoading: true });
-          }}
-        >
-          Watch Movie
-        </Button>
-      );
-    }
-
-    const videoJsOptions = {
-      autoplay: true,
-      controls: true,
-      width: 720,
-      plugins: {
-        timeRangesSeeking: {},
-        durationFromServer: {},
-      },
-      sources: [
-        {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode`,
-          type: "video/mp4",
-          label: "Original",
-          selected: true,
-        },
-        {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:1080&max_bitrate=2M`,
-          type: "video/mp4",
-          label: "1080p",
-        },
-        {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:720&max_bitrate=1M`,
-          type: "video/mp4",
-          label: "720p",
-        },
-        {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:480&max_bitrate=1M`,
-          type: "video/mp4",
-          label: "480p",
-        },
-      ],
-    };
-
-    return (
-      <div>
-        <VideoPlayer {...videoJsOptions} />
-      </div>
-    );
-  }
-
   render() {
-    const { error, isLoaded, movie, torrent, isTorrentLoading } = this.state;
+    const { error, isLoaded, movie } = this.state;
 
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -205,7 +94,7 @@ export default class MyComponent extends React.Component {
         <br />
         <br />
         <Row className={"justify-content-center"}>
-          {this.renderTorrentStreamingOptions()}
+          <TorrentStream movie={movie} />
         </Row>
         <br />
         <br />
