@@ -29,20 +29,20 @@ export default class MyComponent extends React.Component {
         (result) => {
           if (result && result.error) {
             this.setState({
-              isTorrentLoading: false,
+              isLoading: false,
               error: result,
             });
             return
           }
 
           this.setState({
-            isTorrentLoading: false,
+            isLoading: false,
             torrent: result,
           });
         },
         (error) => {
           this.setState({
-            isTorrentLoading: false,
+            isLoading: false,
             error,
           });
         }
@@ -89,7 +89,7 @@ export default class MyComponent extends React.Component {
               movie.title,
               releaseDate
             );
-            this.setState({ isTorrentLoading: true });
+            this.setState({ isLoading: true });
           }}
         >
           Watch Movie

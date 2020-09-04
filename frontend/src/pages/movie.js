@@ -14,7 +14,6 @@ export default class MyComponent extends React.Component {
     this.state = {
       movie: null,
       torrent: null,
-      isTorrentLoading: false,
     };
   }
 
