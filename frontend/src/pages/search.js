@@ -6,18 +6,8 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import "./search.css";
 
-const styles = {
-  movieCardPosterCol: {
-    maxHeight: "8em",
-  },
-
-  moviePoster: {
-    height: "100%",
-    width: "4em",
-    // maxWidth: "50px",
-  },
-};
 export default class MyComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -55,22 +45,36 @@ export default class MyComponent extends React.Component {
       );
   }
 
+  onMovieClick(movie) {
+    this.setState({redirect: {to: '/movie', state: {movie} }})
+  }
+
   render() {
-    const { error, isLoaded, resp } = this.state;
+    const { error, isLoaded, resp, redirect } = this.state;
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
       return <div>Loading...</div>;
     }
 
+    if (redirect) {
+      return <Redirect
+        push
+        to={{
+          pathname: redirect.to,
+          state: redirect.state,
+        }}
+      />
+    }
+
     return (
       <Container>
         {resp.results.map((item) => (
-          <Row>
+          <Row className="movie-row">
             <Col>
-              <Card>
+              <Card className="movie-card" onClick={() => this.onMovieClick(item)}>
                 <Row noGutters>
-                  <Col md={1} style={styles.movieCardPosterCol}>
+                  <Col xs={1} className="movie-card-poster-col">
                     <Link
                       to={{
                         pathname: "/movie",
@@ -79,17 +83,20 @@ export default class MyComponent extends React.Component {
                     >
                       <Card.Img
                         variant="top"
-                        style={styles.moviePoster}
+                        className="movie-card-img"
                         src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
                       />
                     </Link>
                   </Col>
 
-                  <Col md={11} style={{ textAlign: "left" }}>
+                  <Col xs={11} className="align-items-center" style={{ textAlign: "left" }}>
                     <Card.Body>
                       <Card.Title>
-                        {item.title} {item.vote_average}
+                        <b>{item.title}</b> {item.vote_average}
                       </Card.Title>
+                      <Card.Subtitle className={"card-subtitle"}>
+                        {item.overview}
+                      </Card.Subtitle>
                     </Card.Body>
                   </Col>
                 </Row>

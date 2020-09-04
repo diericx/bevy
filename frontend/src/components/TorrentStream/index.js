@@ -8,7 +8,6 @@ import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import Col from "react-bootstrap/Col";
 
-
 let backendURL = window._env_.BACKEND_URL;
 
 export default class MyComponent extends React.Component {
