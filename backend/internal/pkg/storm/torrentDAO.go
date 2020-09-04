@@ -1,10 +1,11 @@
 package storm
 
 import (
+	"time"
+
 	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 	"github.com/diericx/iceetime/internal/app"
-	"time"
 )
 
 type TorrentDAO struct {
