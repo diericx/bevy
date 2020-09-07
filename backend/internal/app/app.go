@@ -130,6 +130,7 @@ type TorrentDAO interface {
 	Save(*Torrent) error
 	GetByImdbIDAndMinQuality(imdbID string, minQuality int) (*Torrent, error)
 	GetByID(id int) (*Torrent, error)
+	Get() ([]Torrent, error)
 }
 
 type TorrentClient interface {

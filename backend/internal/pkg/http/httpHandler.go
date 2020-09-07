@@ -30,6 +30,8 @@ func (h *HTTPHandler) Serve() {
 	iceetimeService := h.IceetimeService
 
 	r := gin.Default()
+	r.LoadHTMLGlob("internal/pkg/http/templates/**/*")
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "PUT", "PATCH"},
@@ -37,6 +39,8 @@ func (h *HTTPHandler) Serve() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+
+	InitTorrentsGroupOnRouter(r, iceetimeService)
 
 	r.GET("/find/movie", func(c *gin.Context) {
 		imdbID := c.Query("imdbid")

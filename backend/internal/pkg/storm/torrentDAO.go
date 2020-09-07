@@ -84,6 +84,18 @@ func (dao *TorrentDAO) GetByID(id int) (*app.Torrent, error) {
 	return &torrent, nil
 }
 
+func (dao *TorrentDAO) Get() ([]app.Torrent, error) {
+	var torrents []app.Torrent
+	err := dao.db.All(&torrents)
+	if err != nil {
+		if err == storm.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return torrents, nil
+}
+
 func (dao *TorrentDAO) All() ([]app.Torrent, error) {
 	var torrents []app.Torrent
 	err := dao.db.All(&torrents)

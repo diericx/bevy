@@ -75,6 +75,15 @@ func (s *IceetimeService) GetTorrentByID(id int) (*Torrent, *Error) {
 	return torrent, nil
 }
 
+func (s *IceetimeService) GetAllTorrents() ([]Torrent, *Error) {
+	torrents, err := s.TorrentDAO.Get()
+	if err != nil {
+		return nil, NewError(err, http.StatusInternalServerError, LocalDBQueryErr)
+	}
+
+	return torrents, nil
+}
+
 func (s *IceetimeService) GetFileReaderForFileInTorrent(t *Torrent, fileIndex int) (torrent.Reader, *Error) {
 	reader, err := s.TorrentClient.GetReaderForFileInTorrent(t.InfoHash, fileIndex)
 	if err != nil {
