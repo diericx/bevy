@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitTorrentsGroupOnRouter(r *gin.Engine, s app.IceetimeService) {
+func addTorrentsGroup(rg *gin.RouterGroup, s app.IceetimeService) {
 
-	torrents := r.Group("/torrents")
+	torrents := rg.Group("/torrents")
 	{
 		torrents.GET("/", Index)
 	}
