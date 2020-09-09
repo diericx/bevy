@@ -49,6 +49,7 @@ type Movie struct {
 	ID     int // fkey
 	ImdbID string
 	Title  string
+	Year   int
 }
 
 // MovieDAO handles storing and retrieving Movies
@@ -69,8 +70,10 @@ type MovieTorrentLink struct {
 // MovieTorrentLinkDAO handles storing and retrieving MovieTorrentLinks
 type MovieTorrentLinkDAO interface {
 	Store(MovieTorrentLink) error
+
 	GetByMovieID(int) (MovieTorrentLink, error)
 	GetByTorrentID(int) (MovieTorrentLink, error)
 	Get() ([]Movie, error)
+
 	Remove(int) error
 }
