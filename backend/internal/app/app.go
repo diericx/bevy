@@ -1,51 +1,45 @@
 package app
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 // Torrent metadata
 type Torrent struct {
 	gorm.Model
-	InfoHash     string `storm:"unique" json:"infoHash"`
-	Link         string
-	LinkUsername string
-	LinkPassword string
-	Size         int64
-	Title        string
-	Grabs        int
-	Seeders      int
-	Tracker      string
-	MinRatio     float32
-	MinSeedTime  int
-	CreatedAt    time.Time `json:"createdAt"`
+	InfoHash    string
+	MagnetLink  string
+	File        string
+	Size        int64
+	Title       string
+	Grabs       int
+	Seeders     int
+	MinRatio    float32
+	MinSeedTime int
 }
 
 // TorrentDAO handles storing Torrent objects
 type TorrentDAO interface {
-	Store(Torrent) error
-	GetByID(int) (Torrent, error)
+	Store(Torrent) (Torrent, error)
+	GetByID(uint) (Torrent, error)
 	Get() ([]Torrent, error)
-	Remove(int) error
+	Remove(uint) error
 }
 
 // TorrentService combines a torrent client with local data storage to
 // create a highly functional torrent client.
 type TorrentService interface {
-	AddFromMagnet(magnet string) (hash string, err error)
-	AddFromFile(filePath string) (hash string, err error)
-	AddFromInfoHash(infoHash string) error
+	Add(torrent Torrent) (Torrent, error)
 
-	GetByInfoHash(infoHash string) (Torrent, error)
+	// GetByInfoHash(infoHash string) (Torrent, error)
+	GetByID(uint) (Torrent, error)
 	Get() ([]Torrent, error)
 
-	Start(Torrent) error
-	Stop(Torrent) error
-	GetFileReader(Torrent, int) error
+	// Start(Torrent) error
+	// Stop(Torrent) error
+	// GetFileReader(Torrent, int) error
 
-	Remove(Torrent) error
+	// Remove(Torrent) error
 }
 
 // Movie is a simple struct for holding metadata about a movie

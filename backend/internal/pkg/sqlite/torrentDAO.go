@@ -6,27 +6,27 @@ import (
 )
 
 type TorrentDAO struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
 func (dao *TorrentDAO) Store(torrent app.Torrent) (app.Torrent, error) {
-	result := dao.db.Create(&torrent)
+	result := dao.Db.Create(&torrent)
 	return torrent, result.Error
 }
 
 func (dao *TorrentDAO) GetByID(id uint) (app.Torrent, error) {
 	var torrent app.Torrent
-	result := dao.db.First(&torrent, id)
+	result := dao.Db.First(&torrent, id)
 	return torrent, result.Error
 }
 
 func (dao *TorrentDAO) Get() ([]app.Torrent, error) {
 	var torrents []app.Torrent
-	result := dao.db.Find(&torrents)
+	result := dao.Db.Find(&torrents)
 	return torrents, result.Error
 }
 
-func (dao *TorrentDAO) Remove(id int) error {
-	result := dao.db.Delete(&app.Torrent{}, id)
+func (dao *TorrentDAO) Remove(id uint) error {
+	result := dao.Db.Delete(&app.Torrent{}, id)
 	return result.Error
 }
