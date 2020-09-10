@@ -2,8 +2,21 @@
 
 <html>
 	<h1>
-		{{ .title }}
+        Torrents
 	</h1>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+        </tr>
+        {{range .torrents}}
+        <tr>
+            <td>{{ .Title }}</td>
+            <td>Downloading</td>
+        </tr>
+        {{end}}
+    </table>
 </html>
 
 {{end}}

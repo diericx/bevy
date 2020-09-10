@@ -59,9 +59,11 @@ func (s *TorrentService) Add(torrentToAdd app.Torrent) (app.Torrent, error) {
 }
 
 func (s *TorrentService) GetByID(id uint) (app.Torrent, error) {
+	// TODO: fill in status from torrent client
 	return s.TorrentDAO.GetByID(id)
 }
 
 func (s *TorrentService) Get() ([]app.Torrent, error) {
+	// TODO: fill in status from torrent client
 	return s.TorrentDAO.Get()
 }
