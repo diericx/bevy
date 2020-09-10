@@ -22,6 +22,7 @@ type Torrent struct {
 type TorrentStats struct {
 	torrent.TorrentStats
 	BytesCompleted int64
+	BytesMissing   int64
 	IsSeeding      bool
 }
 

@@ -8,12 +8,14 @@
     <table>
         <tr>
             <th>Name</th>
-            <th>Status</th>
+            <th>Downloading</th>
+            <th>Seeding</th>
         </tr>
         {{range .torrents}}
         <tr>
             <td>{{ .Title }}</td>
-            <td>Downloading</td>
+            <td> {{ .PercentageCompleted }} </td>
+            <td> {{ .IsSeeding }} </td>
         </tr>
         {{end}}
     </table>

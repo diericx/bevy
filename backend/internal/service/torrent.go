@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 
 	"github.com/diericx/iceetime/internal/app"
 )
@@ -9,6 +10,7 @@ import (
 type Torrent struct {
 	app.Torrent
 	app.TorrentStats
+	PercentageCompleted int
 }
 
 type TorrentService struct {
@@ -62,14 +64,17 @@ func (s *TorrentService) Get() ([]Torrent, error) {
 	for i, torrent := range torrents {
 		stats, err := s.TorrentClient.Stats(torrent)
 		if err != nil {
+			log.Println(err)
+			log.Printf("%+v", torrent)
 			torrentsToReturn[i] = Torrent{
 				Torrent: torrent,
 			}
 		}
 
 		torrentsToReturn[i] = Torrent{
-			Torrent:      torrent,
-			TorrentStats: stats,
+			Torrent:             torrent,
+			TorrentStats:        stats,
+			PercentageCompleted: int(100 * (stats.BytesCompleted + 1) / (torrent.Size + 1)),
 		}
 	}
 	// TODO: fill in status from torrent client

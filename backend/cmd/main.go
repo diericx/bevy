@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+	torrentFilePath := "./downloads"
+	torrentDataPath := "./downloads"
+
 	db, err := sqlite.InitSqliteDB("./downloads/torrents.db")
 	if err != nil {
 		log.Fatalf("failed to connect to db: %s", err)
@@ -22,7 +25,7 @@ func main() {
 	}
 	// TODO: Close this db connection??
 
-	torrentClient, err := torrent.NewTorrentClient("./downloads", "./downloads", 15, 30, 30, time.Second*15)
+	torrentClient, err := torrent.NewTorrentClient(torrentFilePath, torrentDataPath, 15, 30, 30, time.Second*15)
 	if err != nil {
 		log.Panicf("Error starting torrent client: %s", err)
 	}
@@ -34,7 +37,8 @@ func main() {
 	}
 
 	httpHandler := http.HTTPHandler{
-		TorrentService: torrentService,
+		TorrentService:  torrentService,
+		TorrentFilePath: torrentFilePath,
 	}
 
 	httpHandler.Serve("secret-todo")

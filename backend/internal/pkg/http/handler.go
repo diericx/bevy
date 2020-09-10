@@ -16,7 +16,8 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
-	TorrentService service.TorrentService
+	TorrentService  service.TorrentService
+	TorrentFilePath string
 }
 
 func (h *HTTPHandler) Serve(cookieSecret string) {
@@ -36,7 +37,7 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 
 	root := r.Group("/")
 
-	addTorrentsGroup(root, h.TorrentService)
+	h.addTorrentsGroup(root)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

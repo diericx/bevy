@@ -2,18 +2,19 @@ package http
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/service"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
-type NewForm struct {
+type NewMagnetForm struct {
 	MagnetLink string `form:"magnet_link" binding:"required"`
 }
 
-func addTorrentsGroup(rg *gin.RouterGroup, s service.TorrentService) {
+func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
+	s := h.TorrentService
 
 	torrents := rg.Group("/torrents")
 	{
@@ -26,17 +27,20 @@ func addTorrentsGroup(rg *gin.RouterGroup, s service.TorrentService) {
 		})
 		torrents.GET("/new", func(c *gin.Context) {
 			session := sessions.Default(c)
+
 			err := session.Get("error")
 			session.Set("error", nil)
 			session.Save()
+
 			c.HTML(http.StatusOK, "torrents/new.tmpl", gin.H{
 				"error": err,
 			})
 		})
 
-		torrents.POST("/new", func(c *gin.Context) {
+		torrents.POST("/new/magnet", func(c *gin.Context) {
 			session := sessions.Default(c)
-			var form NewForm
+
+			var form NewMagnetForm
 			// in this case proper binding will be automatically selected
 			if err := c.ShouldBind(&form); err != nil {
 				c.String(http.StatusBadRequest, "bad request")
@@ -44,6 +48,37 @@ func addTorrentsGroup(rg *gin.RouterGroup, s service.TorrentService) {
 			}
 
 			_, err := s.Add(app.Torrent{MagnetLink: form.MagnetLink})
+			if err != nil {
+				session.Set("error", err.Error())
+				session.Save()
+				c.Redirect(http.StatusFound, "/torrents/new")
+				return
+			}
+
+			c.Redirect(http.StatusFound, "/torrents")
+		})
+
+		torrents.POST("/new/file", func(c *gin.Context) {
+			session := sessions.Default(c)
+
+			// Source
+			file, err := c.FormFile("file")
+			if err != nil {
+				session.Set("error", err.Error())
+				session.Save()
+				c.Redirect(http.StatusFound, "/torrents/new")
+				return
+			}
+
+			filename := filepath.Join(h.TorrentFilePath, file.Filename)
+			if err := c.SaveUploadedFile(file, filename); err != nil {
+				session.Set("error", err.Error())
+				session.Save()
+				c.Redirect(http.StatusFound, "/torrents/new")
+				return
+			}
+
+			_, err = s.Add(app.Torrent{File: filename})
 			if err != nil {
 				session.Set("error", err.Error())
 				session.Save()
