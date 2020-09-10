@@ -1,44 +1,42 @@
 package app
 
 import (
+	"github.com/anacrolix/metainfo"
 	"github.com/anacrolix/torrent"
-	"gorm.io/gorm"
 )
 
 // Torrent metadata
 type Torrent struct {
-	gorm.Model
-	InfoHash       string
-	MagnetLink     string
-	File           string
-	Size           int64
-	Title          string
-	Grabs          int
-	InitialSeeders int
-	MinRatio       float32
-	MinSeedTime    int
+	InfoHash    metainfo.Hash
+	Stats       torrent.TorrentStats
+	Length      int64
+	Name        string
+	MinRatio    float32
+	MinSeedTime int
 }
 
-type TorrentStats struct {
-	torrent.TorrentStats
-	BytesCompleted int64
-	BytesMissing   int64
-	IsSeeding      bool
-}
+// type TorrentExpiration struct {
+// 	InfoHash string
+// 	Ratio    float32
+// 	Hours    int
+// }
 
-// TorrentDAO handles storing Torrent objects
-type TorrentDAO interface {
-	Store(Torrent) (Torrent, error)
-	GetByID(uint) (Torrent, error)
+// // TorrentExpirationDAO handles storing Torrent objects
+// type TorrentExpirationDAO interface {
+// 	Store(TorrentExpiration) (TorrentExpiration, error)
+// 	GetByID(uint) (TorrentExpiration, error)
+// 	Get() ([]TorrentExpiration, error)
+// 	Remove(uint) error
+// }
+
+type TorrentService interface {
+	AddFromMagnet(string) (Torrent, error)
+	AddFromFile(string) (Torrent, error)
+
+	GetByHash(metainfo.Hash) (Torrent, error)
 	Get() ([]Torrent, error)
-	Remove(uint) error
-}
 
-type TorrentClient interface {
-	AddFromMagnet(Torrent) (Torrent, error)
-	AddFromFile(Torrent) (Torrent, error)
-	Stats(Torrent) (TorrentStats, error)
-	Start(Torrent) error
+	DownloadAll(Torrent) error
 
 	Close()
 }
@@ -51,28 +49,28 @@ type Movie struct {
 	Year   int
 }
 
-// MovieDAO handles storing and retrieving Movies
-type MovieDAO interface {
-	Store(Movie) error
-	GetByID(int) (Movie, error)
-	Get() ([]Movie, error)
-	Remove(int) error
-}
+// // MovieDAO handles storing and retrieving Movies
+// type MovieDAO interface {
+// 	Store(Movie) error
+// 	GetByID(int) (Movie, error)
+// 	Get() ([]Movie, error)
+// 	Remove(int) error
+// }
 
-// MovieTorrentLink handles linking a Movie to a specific file in a torrent
-type MovieTorrentLink struct {
-	MovieID   int
-	TorrentID int
-	FileIndex int
-}
+// // MovieTorrentLink handles linking a Movie to a specific file in a torrent
+// type MovieTorrentLink struct {
+// 	MovieID         int
+// 	TorrentInfoHash string
+// 	FileIndex       int
+// }
 
-// MovieTorrentLinkDAO handles storing and retrieving MovieTorrentLinks
-type MovieTorrentLinkDAO interface {
-	Store(MovieTorrentLink) error
+// // MovieTorrentLinkDAO handles storing and retrieving MovieTorrentLinks
+// type MovieTorrentLinkDAO interface {
+// 	Store(MovieTorrentLink) error
 
-	GetByMovieID(int) (MovieTorrentLink, error)
-	GetByTorrentID(int) (MovieTorrentLink, error)
-	Get() ([]Movie, error)
+// 	GetByMovieID(int) (MovieTorrentLink, error)
+// 	GetByTorrentID(int) (MovieTorrentLink, error)
+// 	Get() ([]Movie, error)
 
-	Remove(int) error
-}
+// 	Remove(int) error
+// }
