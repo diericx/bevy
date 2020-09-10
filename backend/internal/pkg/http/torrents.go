@@ -3,11 +3,11 @@ package http
 import (
 	"net/http"
 
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func addTorrentsGroup(rg *gin.RouterGroup, s app.TorrentService) {
+func addTorrentsGroup(rg *gin.RouterGroup, s service.TorrentService) {
 
 	torrents := rg.Group("/torrents")
 	{

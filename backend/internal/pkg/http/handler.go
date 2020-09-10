@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +14,7 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
-	TorrentService app.TorrentService
+	TorrentService service.TorrentService
 }
 
 func (h *HTTPHandler) Serve() {

@@ -1,21 +1,28 @@
 package app
 
 import (
+	"github.com/anacrolix/torrent"
 	"gorm.io/gorm"
 )
 
 // Torrent metadata
 type Torrent struct {
 	gorm.Model
-	InfoHash    string
-	MagnetLink  string
-	File        string
-	Size        int64
-	Title       string
-	Grabs       int
-	Seeders     int
-	MinRatio    float32
-	MinSeedTime int
+	InfoHash       string
+	MagnetLink     string
+	File           string
+	Size           int64
+	Title          string
+	Grabs          int
+	InitialSeeders int
+	MinRatio       float32
+	MinSeedTime    int
+}
+
+type TorrentStats struct {
+	torrent.TorrentStats
+	BytesCompleted int64
+	IsSeeding      bool
 }
 
 // TorrentDAO handles storing Torrent objects
@@ -26,20 +33,13 @@ type TorrentDAO interface {
 	Remove(uint) error
 }
 
-// TorrentService combines a torrent client with local data storage to
-// create a highly functional torrent client.
-type TorrentService interface {
-	Add(torrent Torrent) (Torrent, error)
+type TorrentClient interface {
+	AddFromMagnet(Torrent) (Torrent, error)
+	AddFromFile(Torrent) (Torrent, error)
+	Stats(Torrent) (TorrentStats, error)
+	Start(Torrent) error
 
-	// GetByInfoHash(infoHash string) (Torrent, error)
-	GetByID(uint) (Torrent, error)
-	Get() ([]Torrent, error)
-
-	// Start(Torrent) error
-	// Stop(Torrent) error
-	// GetFileReader(Torrent, int) error
-
-	// Remove(Torrent) error
+	Close()
 }
 
 // Movie is a simple struct for holding metadata about a movie
