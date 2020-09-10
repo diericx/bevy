@@ -37,5 +37,5 @@ func main() {
 		TorrentService: torrentService,
 	}
 
-	httpHandler.Serve()
+	httpHandler.Serve("secret-todo")
 }

@@ -3,6 +3,8 @@ package http
 import (
 	"github.com/diericx/iceetime/internal/service"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,9 +19,12 @@ type HTTPHandler struct {
 	TorrentService service.TorrentService
 }
 
-func (h *HTTPHandler) Serve() {
+func (h *HTTPHandler) Serve(cookieSecret string) {
 
 	r := gin.Default()
+	store := cookie.NewStore([]byte(cookieSecret))
+	r.Use(sessions.Sessions("mysession", store))
+
 	r.LoadHTMLGlob("internal/pkg/http/templates/**/*")
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
