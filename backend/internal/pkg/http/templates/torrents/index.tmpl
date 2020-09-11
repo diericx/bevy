@@ -13,9 +13,9 @@
         </tr>
         {{range .torrents}}
         <tr>
-            <td>{{ .Title }}</td>
-            <td> {{ .PercentageCompleted }} </td>
-            <td> {{ .IsSeeding }} </td>
+            <td>{{ .Name }}</td>
+            <td> {{ .Length }} </td>
+            <td> {{ .Seeding }} </td>
         </tr>
         {{end}}
     </table>

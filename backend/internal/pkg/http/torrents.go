@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/diericx/iceetime/internal/app"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"os"
 )
 
 type NewMagnetForm struct {
@@ -47,7 +47,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				return
 			}
 
-			_, err := s.Add(app.Torrent{MagnetLink: form.MagnetLink})
+			_, err := s.AddFromMagnet(form.MagnetLink)
 			if err != nil {
 				session.Set("error", err.Error())
 				session.Save()
@@ -78,13 +78,16 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				return
 			}
 
-			_, err = s.Add(app.Torrent{File: filename})
+			_, err = s.AddFromFile(filename)
 			if err != nil {
 				session.Set("error", err.Error())
 				session.Save()
 				c.Redirect(http.StatusFound, "/torrents/new")
 				return
 			}
+
+			// Remove old file now that we have one in our system
+			os.Remove(filename)
 
 			c.Redirect(http.StatusFound, "/torrents")
 		})

@@ -6,7 +6,7 @@ import (
 	"github.com/anacrolix/torrent"
 )
 
-func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int, timeout time.Duration) (*Client, error) {
+func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int, timeout time.Duration) (*torrent.Client, error) {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = dataPath
 	config.ListenPort = 42070
@@ -17,8 +17,5 @@ func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, 
 		return nil, err
 	}
 
-	return &Client{
-		timeout: timeout,
-		c:       client,
-	}, nil
+	return client, nil
 }

@@ -4,63 +4,77 @@ import (
 	"errors"
 	"time"
 
+	"fmt"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/app"
+	"log"
+	"os"
+	"path/filepath"
 )
 
 type TorrentService struct {
-	timeout time.Duration
-	c       *torrent.Client
+	Timeout          time.Duration
+	Client           *torrent.Client
+	TorrentsLocation string
 }
 
-func (client *Client) Close() {
-	client.c.Close()
-}
-
-func (s *TorrentService) AddFromMagnet(torrent app.Torrent) (app.Torrent, error) {
-	t, err := s.c.AddMagnet(torrent.MagnetLink)
+func (s *TorrentService) LoadTorrentFilesFromCache() error {
+	var files []string
+	err := filepath.Walk(s.TorrentsLocation, func(path string, info os.FileInfo, err error) error {
+		if filepath.Ext(path) == ".torrent" {
+			files = append(files, path)
+		}
+		return nil
+	})
 	if err != nil {
-		return torrent, err
+		return err
+	}
+
+	for _, file := range files {
+		s.AddFromFile(file)
+	}
+
+	return nil
+}
+
+func (s *TorrentService) AddFromMagnet(magnet string) (*app.Torrent, error) {
+	t, err := s.Client.AddMagnet(magnet)
+	if err != nil {
+		return nil, err
 	}
 	select {
 	case <-t.GotInfo():
-	case <-time.After(c.timeout):
+	case <-time.After(s.Timeout):
 		t.Drop()
-		return torrent, errors.New("info grab timed out")
+		return nil, errors.New("info grab timed out")
 	}
 
-	info := t.Info()
-	torrent.InfoHash = t.InfoHash()
-	torrent.Length = info.Length
-	torrent.Name = info.Name
-
-	return torrent, nil
+	torrent := AnacrolixTorrentToApp(t)
+	return &torrent, nil
 }
 
-func (s *TorrentService) AddFromFile(torrent app.Torrent) (app.Torrent, error) {
-	t, err := s.c.AddTorrentFromFile(torrent.File)
+func (s *TorrentService) AddFromFile(file string) (*app.Torrent, error) {
+	t, err := s.Client.AddTorrentFromFile(file)
 	if err != nil {
-		return torrent, err
+		return nil, err
 	}
 	select {
 	case <-t.GotInfo():
-	case <-time.After(c.timeout):
+	case <-time.After(s.Timeout):
 		t.Drop()
-		return torrent, errors.New("info grab timed out")
+		return nil, errors.New("info grab timed out")
 	}
 
-	info := t.Info()
-	torrent.InfoHash = t.InfoHash()
-	torrent.Length = info.Length
-	torrent.Name = info.Name
+	// Save for later recovery on restart
+	s.saveTorrentFile(t)
 
-	return torrent, nil
+	torrent := AnacrolixTorrentToApp(t)
+	return &torrent, nil
 }
 
 func (s *TorrentService) Start(torrent app.Torrent) error {
-	hash := metainfo.NewHashFromHex(torrent.InfoHash)
-	t, ok := s.c.Torrent(hash)
+	t, ok := s.Client.Torrent(torrent.InfoHash)
 	if !ok {
 		return errors.New("torrent not found")
 	}
@@ -69,23 +83,44 @@ func (s *TorrentService) Start(torrent app.Torrent) error {
 	return nil
 }
 
-func (s *TorrentService) Stats(torrent app.Torrent) (app.TorrentStats, error) {
-	hash := metainfo.NewHashFromHex(torrent.InfoHash)
-	t, ok := s.c.Torrent(hash)
-	if !ok {
-		return app.TorrentStats{}, errors.New("torrent not found")
+func (s *TorrentService) Get() ([]app.Torrent, error) {
+	torrents := s.Client.Torrents()
+	torrentsConverted := make([]app.Torrent, len(torrents))
+	for i, torrent := range torrents {
+		torrentsConverted[i] = AnacrolixTorrentToApp(torrent)
 	}
-
-	stats := t.Stats()
-
-	return app.TorrentStats{
-		TorrentStats:   stats,
-		BytesCompleted: t.BytesCompleted(),
-		IsSeeding:      t.Seeding(),
-	}, nil
+	return torrentsConverted, nil
 }
 
-func (s *TorrentService) Get() ([]Torrent, error) {
-	torrents := s.c.Torrents()
-	torrentsConverted := make([]Torrent, len())
+func (s *TorrentService) GetByHash(hash metainfo.Hash) (*app.Torrent, error) {
+	t, ok := s.Client.Torrent(hash)
+	if !ok {
+		return nil, errors.New("torrent not found")
+	}
+	torrent := AnacrolixTorrentToApp(t)
+	return &torrent, nil
+}
+
+func (s *TorrentService) cachedMetaInfo(infoHash metainfo.Hash) (ret *metainfo.MetaInfo) {
+	file := filepath.Join(s.TorrentsLocation, fmt.Sprintf("%s.torrent", infoHash.HexString()))
+	ret, err := metainfo.LoadFromFile(file)
+	if err != nil {
+		ret = nil
+		return
+	}
+	if ret.HashInfoBytes() != infoHash {
+		ret = nil
+		return
+	}
+	return
+}
+
+func (s *TorrentService) saveTorrentFile(t *torrent.Torrent) (err error) {
+	file := filepath.Join(s.TorrentsLocation, fmt.Sprintf("%s.torrent", t.InfoHash().HexString()))
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	return t.Metainfo().Write(f)
 }

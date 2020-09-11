@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/diericx/iceetime/internal/service"
+	"github.com/diericx/iceetime/internal/app"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -16,7 +16,7 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
-	TorrentService  service.TorrentService
+	TorrentService  app.TorrentService
 	TorrentFilePath string
 }
 

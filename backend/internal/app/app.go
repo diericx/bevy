@@ -1,18 +1,17 @@
 package app
 
 import (
-	"github.com/anacrolix/metainfo"
 	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/metainfo"
 )
 
 // Torrent metadata
 type Torrent struct {
-	InfoHash    metainfo.Hash
-	Stats       torrent.TorrentStats
-	Length      int64
-	Name        string
-	MinRatio    float32
-	MinSeedTime int
+	InfoHash metainfo.Hash
+	Stats    torrent.TorrentStats
+	Length   int64
+	Name     string
+	Seeding  bool
 }
 
 // type TorrentExpiration struct {
@@ -30,15 +29,13 @@ type Torrent struct {
 // }
 
 type TorrentService interface {
-	AddFromMagnet(string) (Torrent, error)
-	AddFromFile(string) (Torrent, error)
-
-	GetByHash(metainfo.Hash) (Torrent, error)
+	AddFromMagnet(string) (*Torrent, error)
+	AddFromFile(string) (*Torrent, error)
+	LoadTorrentFilesFromCache() error
+	GetByHash(metainfo.Hash) (*Torrent, error)
 	Get() ([]Torrent, error)
 
-	DownloadAll(Torrent) error
-
-	Close()
+	// DownloadAll(*Torrent) error
 }
 
 // Movie is a simple struct for holding metadata about a movie
