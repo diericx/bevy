@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/app"
-	"log"
-	"os"
-	"path/filepath"
 )
 
 type TorrentService struct {
