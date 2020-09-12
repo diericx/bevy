@@ -28,6 +28,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				"error":    err,
 			})
 		})
+
 		torrents.GET("/new", func(c *gin.Context) {
 			session := sessions.Default(c)
 
@@ -94,9 +95,10 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 
 			c.Redirect(http.StatusFound, "/torrents")
 		})
-		torrents.GET("/stream/:infohash", func(c *gin.Context) {
+
+		torrents.GET("/stream/:infohash/file/:file", func(c *gin.Context) {
 			hashStr := c.Param("infohash")
-			fileIndexStr := c.Query("file_index")
+			fileIndexStr := c.Param("file")
 			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
 			if err != nil {
 				c.String(http.StatusBadRequest, err.Error())

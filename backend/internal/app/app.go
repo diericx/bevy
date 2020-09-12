@@ -7,6 +7,10 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 )
 
+// TODO: input from config file
+const DefaultResolution = "iw:ih"
+const DefaultMaxBitrate = "50M"
+
 // Torrent metadata
 type Torrent struct {
 	InfoHash       metainfo.Hash
@@ -31,6 +35,16 @@ type TorrentService interface {
 	GetReadSeekerForFileInTorrent(*Torrent, int) (io.ReadSeeker, error)
 
 	// DownloadAll(*Torrent) error
+}
+
+type TranscoderConfig struct {
+	Video struct {
+		Format          string `yaml:"format"`
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"video"`
+	Audio struct {
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"audio"`
 }
 
 // Movie is a simple struct for holding metadata about a movie

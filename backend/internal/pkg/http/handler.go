@@ -4,6 +4,7 @@ import (
 	"html/template"
 
 	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/pkg/ffmpeg"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -20,6 +21,7 @@ type Metadata struct {
 type HTTPHandler struct {
 	TorrentService  app.TorrentService
 	TorrentFilePath string
+	Transcoder      ffmpeg.Transcoder
 }
 
 func (h *HTTPHandler) Serve(cookieSecret string) {
@@ -44,6 +46,7 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	root := r.Group("/")
 
 	h.addTorrentsGroup(root)
+	h.addTranscoderGroup(root)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

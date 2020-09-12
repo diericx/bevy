@@ -6,15 +6,19 @@ import (
 	"time"
 
 	"github.com/asdine/storm"
+	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/pkg/ffmpeg"
 	"github.com/diericx/iceetime/internal/pkg/http"
 
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
 
 func main() {
+	// TODO: input from config file
 	torrentFilePath := "./downloads"
 	torrentDataPath := "./downloads"
 
+	// TODO: input file location from config file
 	stormDB, err := storm.Open(filepath.Join(torrentFilePath, ".iceetime.storm.db"))
 	defer stormDB.Close()
 
@@ -35,9 +39,19 @@ func main() {
 		log.Panicf("Error loading torrent files from cache: %s", err)
 	}
 
+	// TODO: Input from config file
+	transcoderConfig := app.TranscoderConfig{}
+	transcoderConfig.Video.Format = "ismv"
+	transcoderConfig.Video.CompressionAlgo = "libx264"
+	transcoderConfig.Audio.CompressionAlgo = "copy"
+	transcoder := ffmpeg.Transcoder{
+		Config: transcoderConfig,
+	}
+
 	httpHandler := http.HTTPHandler{
 		TorrentService:  &torrentService,
 		TorrentFilePath: torrentFilePath,
+		Transcoder:      transcoder,
 	}
 
 	httpHandler.Serve("secret-todo")
