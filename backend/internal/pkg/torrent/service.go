@@ -2,6 +2,7 @@ package torrent
 
 import (
 	"errors"
+	"io"
 	"log"
 	"time"
 
@@ -124,13 +125,24 @@ func (s *TorrentService) Get() ([]app.Torrent, error) {
 	return torrentsConverted, nil
 }
 
-func (s *TorrentService) GetByHash(hash metainfo.Hash) (*app.Torrent, error) {
+func (s *TorrentService) GetByHashStr(hashStr string) (*app.Torrent, error) {
+	hash := metainfo.NewHashFromHex(hashStr)
 	t, ok := s.Client.Torrent(hash)
 	if !ok {
 		return nil, errors.New("torrent not found")
 	}
 	torrent := anacrolixTorrentToApp(t)
 	return &torrent, nil
+}
+
+func (s *TorrentService) GetReadSeekerForFileInTorrent(_t *app.Torrent, fileIndex int) (io.ReadSeeker, error) {
+	t, ok := s.Client.Torrent(_t.InfoHash)
+	if !ok {
+		return nil, errors.New("not found")
+	}
+
+	files := t.Files()
+	return files[fileIndex].NewReader(), nil
 }
 
 func (s *TorrentService) downloadAll(_t *app.Torrent) error {

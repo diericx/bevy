@@ -3,6 +3,8 @@ package http
 import (
 	"net/http"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"os"
 
@@ -91,6 +93,24 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 			os.Remove(filename)
 
 			c.Redirect(http.StatusFound, "/torrents")
+		})
+		torrents.GET("/stream/:infohash", func(c *gin.Context) {
+			hashStr := c.Param("infohash")
+			fileIndexStr := c.Query("file_index")
+			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
+			if err != nil {
+				c.String(http.StatusBadRequest, err.Error())
+			}
+			torrent, err := s.GetByHashStr(hashStr)
+			if err != nil {
+				c.String(http.StatusBadRequest, err.Error())
+			}
+
+			readseeker, err := s.GetReadSeekerForFileInTorrent(torrent, int(fileIndex))
+			if err != nil {
+				c.String(http.StatusBadRequest, err.Error())
+			}
+			http.ServeContent(c.Writer, c.Request, torrent.Name, time.Time{}, readseeker)
 		})
 	}
 }

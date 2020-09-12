@@ -1,6 +1,8 @@
 package app
 
 import (
+	"io"
+
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 )
@@ -24,8 +26,9 @@ type TorrentService interface {
 	AddFromMagnet(string) (*Torrent, error)
 	AddFromFile(string) (*Torrent, error)
 	LoadTorrentFilesFromCache() error
-	GetByHash(metainfo.Hash) (*Torrent, error)
+	GetByHashStr(string) (*Torrent, error)
 	Get() ([]Torrent, error)
+	GetReadSeekerForFileInTorrent(*Torrent, int) (io.ReadSeeker, error)
 
 	// DownloadAll(*Torrent) error
 }
