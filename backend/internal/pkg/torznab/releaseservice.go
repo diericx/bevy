@@ -36,21 +36,21 @@ type Item struct {
 	TorznabAttrs   []TorznabAttr          `xml:"attr"` // Used for immediate parsing but map is more useful
 }
 
-type IndexerQueryHandler struct {
+type ReleaseService struct {
 	Qualities []app.Quality
 	Indexers  []app.Indexer
 }
 
-// NewIndexerQueryHandler instantiates a new IndexerQueryHandler object that implements torznab queries/indexers
-func NewIndexerQueryHandler(indexers []app.Indexer, qualities []app.Quality) (*IndexerQueryHandler, error) {
-	return &IndexerQueryHandler{
+// NewReleaseService instantiates a new ReleaseService object that implements torznab queries/indexers
+func NewReleaseService(indexers []app.Indexer, qualities []app.Quality) (*ReleaseService, error) {
+	return &ReleaseService{
 		Indexers:  indexers,
 		Qualities: qualities,
 	}, nil
 }
 
-func (iqh *IndexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, error) {
-	torznabResponses, err := iqh.torznabQuery(imdbID, fmt.Sprintf("%s %s %s", title, year, iqh.Qualities[minQuality].Regex))
+func (s *ReleaseService) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, error) {
+	torznabResponses, err := s.torznabQuery(imdbID, fmt.Sprintf("%s %s %s", title, year, s.Qualities[minQuality].Regex))
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +79,10 @@ func (iqh *IndexerQueryHandler) QueryMovie(imdbID string, title string, year str
 	return torrents, nil
 }
 
-func (iqh *IndexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, error) {
+func (s *ReleaseService) torznabQuery(imdbID string, search string) ([]Rss, error) {
 	torznabResponses := []Rss{}
 
-	for _, indexer := range iqh.Indexers {
+	for _, indexer := range s.Indexers {
 		var torznabResp Rss
 		torznabResp.indexer = indexer
 

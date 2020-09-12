@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"time"
 
 	"fmt"
@@ -61,7 +63,7 @@ func (s *TorrentService) LoadTorrentFilesFromCache() error {
 		log.Printf("%+v, %v", meta, err)
 
 		if !meta.IsStopped {
-			s.downloadAll(t)
+			s.Start(t)
 		}
 	}
 
@@ -81,6 +83,9 @@ func (s *TorrentService) AddFromMagnet(magnet string) (*app.Torrent, error) {
 	}
 
 	torrent := anacrolixTorrentToApp(t)
+
+	s.Start(&torrent)
+
 	return &torrent, nil
 }
 
@@ -99,14 +104,62 @@ func (s *TorrentService) AddFromFile(file string) (*app.Torrent, error) {
 	// Save for later recovery on restart
 	s.saveTorrentFile(t)
 
-	// TODO: this may get very slow on large files...
-	t.VerifyData()
+	// TODO: Verify data to start downloading right away?
 
 	torrent := anacrolixTorrentToApp(t)
+
+	s.Start(&torrent)
+
 	return &torrent, nil
 }
 
-func (s *TorrentService) Start(torrent app.Torrent) error {
+// AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
+// file or recursicely follow a redirect
+func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth) (*Torrent, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+	if u.Scheme == "magnet" {
+		return c.AddFromMagnet(rawURL)
+	}
+
+	// Attempt to make http/s call
+	req, err := http.NewRequest("GET", rawURL, nil)
+	if err != nil {
+		panic(err)
+	}
+	if auth != nil {
+		req.SetBasicAuth(auth.Username, auth.Password)
+	}
+	client := new(http.Client)
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return errors.New("Redirect")
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		if resp.StatusCode == http.StatusFound { //status code 302
+			url, err := resp.Location()
+			if err != nil {
+				return "", err
+			}
+			return c.AddFromURLUknownScheme(url.String(), auth)
+		}
+		return "", err
+	}
+
+	tempFilePath := fmt.Sprintf("%s/%s", c.torrentFilePath, RandomString(10))
+	err = downloadFileFromResponse(resp, tempFilePath)
+	defer os.Remove(tempFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	return c.AddFromFile(tempFilePath)
+}
+
+func (s *TorrentService) Start(torrent *app.Torrent) error {
 	t, ok := s.Client.Torrent(torrent.InfoHash)
 	if !ok {
 		return errors.New("torrent not found")
@@ -143,15 +196,6 @@ func (s *TorrentService) GetReadSeekerForFileInTorrent(_t *app.Torrent, fileInde
 
 	files := t.Files()
 	return files[fileIndex].NewReader(), nil
-}
-
-func (s *TorrentService) downloadAll(_t *app.Torrent) error {
-	t, ok := s.Client.Torrent(_t.InfoHash)
-	if !ok {
-		return errors.New("not found")
-	}
-	t.DownloadAll()
-	return nil
 }
 
 func (s *TorrentService) cachedMetaInfo(infoHash metainfo.Hash) (ret *metainfo.MetaInfo) {
@@ -218,4 +262,23 @@ func anacrolixTorrentToApp(t *torrent.Torrent) app.Torrent {
 		Name:           t.Name(),
 		Seeding:        t.Seeding(),
 	}
+}
+
+func downloadFileFromResponse(resp *http.Response, filePath string) error {
+	// Get the data
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("couldn't reach file server with code: %v", resp.StatusCode)
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
