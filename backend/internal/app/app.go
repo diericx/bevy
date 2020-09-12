@@ -7,26 +7,18 @@ import (
 
 // Torrent metadata
 type Torrent struct {
-	InfoHash metainfo.Hash
-	Stats    torrent.TorrentStats
-	Length   int64
-	Name     string
-	Seeding  bool
+	InfoHash       metainfo.Hash
+	Stats          torrent.TorrentStats
+	Length         int64
+	BytesCompleted int64
+	Name           string
+	Seeding        bool
+
+	RatioToStop  float32
+	MinutesAlive int
+	HoursToStop  int
+	IsStopped    bool
 }
-
-// type TorrentExpiration struct {
-// 	InfoHash string
-// 	Ratio    float32
-// 	Hours    int
-// }
-
-// // TorrentExpirationDAO handles storing Torrent objects
-// type TorrentExpirationDAO interface {
-// 	Store(TorrentExpiration) (TorrentExpiration, error)
-// 	GetByID(uint) (TorrentExpiration, error)
-// 	Get() ([]TorrentExpiration, error)
-// 	Remove(uint) error
-// }
 
 type TorrentService interface {
 	AddFromMagnet(string) (*Torrent, error)

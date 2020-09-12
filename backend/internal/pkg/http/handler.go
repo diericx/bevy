@@ -1,6 +1,8 @@
 package http
 
 import (
+	"html/template"
+
 	"github.com/diericx/iceetime/internal/app"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
@@ -26,6 +28,10 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	store := cookie.NewStore([]byte(cookieSecret))
 	r.Use(sessions.Sessions("mysession", store))
 
+	r.SetFuncMap(template.FuncMap{
+		"getTorrentProg": getTorrentProg,
+	})
+
 	r.LoadHTMLGlob("internal/pkg/http/templates/**/*")
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -40,4 +46,11 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	h.addTorrentsGroup(root)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
+
+func getTorrentProg(t app.Torrent) int64 {
+	if t.Length == 0 {
+		return 0
+	}
+	return 100 * t.BytesCompleted / t.Length
 }

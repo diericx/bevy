@@ -8,14 +8,14 @@
     <table>
         <tr>
             <th>Name</th>
-            <th>Downloading</th>
+            <th>Progress</th>
             <th>Seeding</th>
         </tr>
-        {{range .torrents}}
+        {{range $key, $torrent := .torrents}}
         <tr>
-            <td>{{ .Name }}</td>
-            <td> {{ .Length }} </td>
-            <td> {{ .Seeding }} </td>
+            <td> {{ $torrent.Name }}</td>
+            <td> {{ getTorrentProg $torrent }} </td>
+            <td> {{ $torrent.Seeding }} </td>
         </tr>
         {{end}}
     </table>

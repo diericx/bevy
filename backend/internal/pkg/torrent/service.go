@@ -2,6 +2,7 @@ package torrent
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"fmt"
@@ -10,13 +11,27 @@ import (
 
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/asdine/storm"
 	"github.com/diericx/iceetime/internal/app"
 )
+
+const DefaultRatioToStopAt = 1.0
+const DefaultHoursToStopAt = 336
+const DefaultIsStopped = false
 
 type TorrentService struct {
 	Timeout          time.Duration
 	Client           *torrent.Client
+	DB               *storm.DB
 	TorrentsLocation string
+}
+
+type TorrentMeta struct {
+	InfoHash      string `storm:"id"`
+	MinutesAlive  int
+	RatioToStopAt float32
+	HoursToStopAt int
+	IsStopped     bool
 }
 
 func (s *TorrentService) LoadTorrentFilesFromCache() error {
@@ -32,7 +47,21 @@ func (s *TorrentService) LoadTorrentFilesFromCache() error {
 	}
 
 	for _, file := range files {
-		s.AddFromFile(file)
+		t, err := s.AddFromFile(file)
+		if err != nil {
+			log.Printf("ERROR: Could not add file: %s\n", file)
+		}
+
+		// Get meta
+		meta, err := s.getOrCreateMetaForTorrent(t)
+		if err != nil {
+			return err
+		}
+		log.Printf("%+v, %v", meta, err)
+
+		if !meta.IsStopped {
+			s.downloadAll(t)
+		}
 	}
 
 	return nil
@@ -50,7 +79,7 @@ func (s *TorrentService) AddFromMagnet(magnet string) (*app.Torrent, error) {
 		return nil, errors.New("info grab timed out")
 	}
 
-	torrent := AnacrolixTorrentToApp(t)
+	torrent := anacrolixTorrentToApp(t)
 	return &torrent, nil
 }
 
@@ -69,7 +98,10 @@ func (s *TorrentService) AddFromFile(file string) (*app.Torrent, error) {
 	// Save for later recovery on restart
 	s.saveTorrentFile(t)
 
-	torrent := AnacrolixTorrentToApp(t)
+	// TODO: this may get very slow on large files...
+	t.VerifyData()
+
+	torrent := anacrolixTorrentToApp(t)
 	return &torrent, nil
 }
 
@@ -87,7 +119,7 @@ func (s *TorrentService) Get() ([]app.Torrent, error) {
 	torrents := s.Client.Torrents()
 	torrentsConverted := make([]app.Torrent, len(torrents))
 	for i, torrent := range torrents {
-		torrentsConverted[i] = AnacrolixTorrentToApp(torrent)
+		torrentsConverted[i] = anacrolixTorrentToApp(torrent)
 	}
 	return torrentsConverted, nil
 }
@@ -97,8 +129,17 @@ func (s *TorrentService) GetByHash(hash metainfo.Hash) (*app.Torrent, error) {
 	if !ok {
 		return nil, errors.New("torrent not found")
 	}
-	torrent := AnacrolixTorrentToApp(t)
+	torrent := anacrolixTorrentToApp(t)
 	return &torrent, nil
+}
+
+func (s *TorrentService) downloadAll(_t *app.Torrent) error {
+	t, ok := s.Client.Torrent(_t.InfoHash)
+	if !ok {
+		return errors.New("not found")
+	}
+	t.DownloadAll()
+	return nil
 }
 
 func (s *TorrentService) cachedMetaInfo(infoHash metainfo.Hash) (ret *metainfo.MetaInfo) {
@@ -123,4 +164,46 @@ func (s *TorrentService) saveTorrentFile(t *torrent.Torrent) (err error) {
 	}
 	defer f.Close()
 	return t.Metainfo().Write(f)
+}
+
+func (s *TorrentService) getOrCreateMetaForTorrent(t *app.Torrent) (*TorrentMeta, error) {
+	infoHashStr := t.InfoHash.HexString()
+	var meta TorrentMeta
+	err := s.DB.One("InfoHash", infoHashStr, &meta)
+	if err != nil {
+		// Not found err, save a new one
+		if err == storm.ErrNotFound {
+			meta = TorrentMeta{
+				InfoHash:      infoHashStr,
+				RatioToStopAt: DefaultRatioToStopAt,
+				HoursToStopAt: DefaultHoursToStopAt,
+			}
+			err := s.DB.Save(&meta)
+			if err != nil {
+				return nil, err
+			}
+
+			return &meta, nil
+		}
+
+		// Some other err, return it
+		return nil, err
+	}
+
+	return &meta, nil
+}
+
+func (s *TorrentService) updateMetaForTorrent(meta TorrentMeta) error {
+	return s.DB.Update(&meta)
+}
+
+func anacrolixTorrentToApp(t *torrent.Torrent) app.Torrent {
+	return app.Torrent{
+		InfoHash:       t.InfoHash(),
+		Stats:          t.Stats(),
+		Length:         t.Length(),
+		BytesCompleted: t.BytesCompleted(),
+		Name:           t.Name(),
+		Seeding:        t.Seeding(),
+	}
 }

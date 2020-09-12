@@ -1,12 +1,14 @@
 package http
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 
+	"os"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
 type NewMagnetForm struct {
@@ -20,6 +22,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 	{
 		torrents.GET("", func(c *gin.Context) {
 			torrents, err := s.Get()
+			log.Printf("%+v", torrents[0])
 			c.HTML(http.StatusOK, "torrents/index.tmpl", gin.H{
 				"torrents": torrents,
 				"error":    err,
