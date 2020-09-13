@@ -20,6 +20,7 @@ type Metadata struct {
 
 type HTTPHandler struct {
 	TorrentService   services.Torrent
+	ReleaseService   services.Release
 	Transcoder       services.Transcoder
 	TorrentFilesPath string
 }

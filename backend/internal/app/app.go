@@ -64,7 +64,7 @@ type Release struct {
 	Link        string
 	LinkAuth    *BasicAuth
 	InfoHash    string
-	Grabs       string
+	Grabs       int
 	Seeders     int
 	MinRatio    float32
 	MinSeedTime int
