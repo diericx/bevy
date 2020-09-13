@@ -17,6 +17,7 @@ func main() {
 	// TODO: input from config file
 	torrentFilesPath := "./downloads"
 	torrentDataPath := "./downloads"
+	minSeeders := 3
 	qualities := []app.Quality{
 		app.Quality{
 			Name:       "720p",
@@ -71,7 +72,18 @@ func main() {
 	//
 	// Initialize services
 	//
-	torrentService, err := services.NewTorrentService(client, &torrentMetaRepo, time.Second*15, 3, torrentFilesPath)
+	torrentService := services.Torrent{
+		Client:           client,
+		TorrentMetaRepo:  &torrentMetaRepo,
+		GetInfoTimeout:   time.Second * 15,
+		MinSeeders:       minSeeders,
+		TorrentFilesPath: torrentFilesPath,
+	}
+	if err != nil {
+		panic(err)
+	}
+	torrentService.AddTorrentsOnDisk()
+	err = torrentService.StartTorrentsAccordingToMetadata()
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +107,7 @@ func main() {
 	}
 
 	httpHandler := http.HTTPHandler{
-		TorrentService:     *torrentService,
+		TorrentService:     torrentService,
 		ReleaseService:     releaseService,
 		TorrentLinkService: torrentLinkService,
 		Transcoder:         transcoder,

@@ -31,27 +31,8 @@ type Torrent struct {
 	TorrentFilesPath string
 }
 
-func NewTorrentService(client app.TorrentClient, torrentMetaRepo app.TorrentMetaRepo, getInfoTimeout time.Duration, minSeeders int, torrentFilesPath string) (*Torrent, error) {
-	s := Torrent{
-		Client:           client,
-		TorrentMetaRepo:  torrentMetaRepo,
-		GetInfoTimeout:   getInfoTimeout,
-		MinSeeders:       minSeeders,
-		TorrentFilesPath: torrentFilesPath,
-	}
-
-	// Load torrents that exist in torrent files location
-	s.addTorrentsViaFilesInPath()
-	err := s.startTorrentsAccordingToMetadata()
-	if err != nil {
-		return nil, err
-	}
-
-	return &s, nil
-}
-
-// AddTorrentsViaFilesInDirectory adds all torrent files in a dir then async waits for info
-func (s *Torrent) addTorrentsViaFilesInPath() error {
+// AddTorrentsOnDisk adds all torrent files in a dir then async waits for info
+func (s *Torrent) AddTorrentsOnDisk() error {
 	var files []string
 	err := filepath.Walk(s.TorrentFilesPath, func(path string, info os.FileInfo, err error) error {
 		if filepath.Ext(path) == ".torrent" {
@@ -80,7 +61,8 @@ func (s *Torrent) addTorrentsViaFilesInPath() error {
 	return nil
 }
 
-func (s *Torrent) startTorrentsAccordingToMetadata() error {
+// StartTorrentsAccordingToMetadata goes through all the torrents, gets metadata and starts if they should be running
+func (s *Torrent) StartTorrentsAccordingToMetadata() error {
 	torrents, err := s.Get()
 	if err != nil {
 		return err
