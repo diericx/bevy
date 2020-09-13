@@ -3,8 +3,8 @@ package http
 import (
 	"html/template"
 
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/pkg/ffmpeg"
+	"github.com/diericx/iceetime/internal/app/services"
+	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -19,9 +19,8 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
-	TorrentService  app.TorrentService
-	TorrentFilePath string
-	Transcoder      ffmpeg.Transcoder
+	TorrentService   services.Torrent
+	TorrentFilesPath string
 }
 
 func (h *HTTPHandler) Serve(cookieSecret string) {
@@ -34,7 +33,7 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 		"getTorrentProg": getTorrentProg,
 	})
 
-	r.LoadHTMLGlob("internal/pkg/http/templates/**/*")
+	r.LoadHTMLGlob("internal/app/http/templates/**/*")
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "PUT", "PATCH"},
@@ -46,14 +45,14 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	root := r.Group("/")
 
 	h.addTorrentsGroup(root)
-	h.addTranscoderGroup(root)
+	// h.addTranscoderGroup(root)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-func getTorrentProg(t app.Torrent) int64 {
-	if t.Length == 0 {
+func getTorrentProg(t torrent.Torrent) int64 {
+	if t.Length() == 0 {
 		return 0
 	}
-	return 100 * t.BytesCompleted / t.Length
+	return 100 * t.BytesCompleted() / t.Length()
 }

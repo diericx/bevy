@@ -1,4 +1,4 @@
-package repos
+package storm
 
 import "github.com/asdine/storm"
 

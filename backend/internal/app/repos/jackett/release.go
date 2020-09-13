@@ -5,4 +5,6 @@ package repos
 type Release struct {
 }
 
+func GetReleasesForMovie()
+
 // GetReleasesForMovie

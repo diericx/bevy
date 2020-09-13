@@ -1,5 +1,10 @@
 package app
 
+import (
+	"github.com/anacrolix/torrent/metainfo"
+	"github.com/diericx/iceetime/internal/pkg/torrent"
+)
+
 // // TODO: input from config file
 // const DefaultResolution = "iw:ih"
 // const DefaultMaxBitrate = "50M"
@@ -26,20 +31,8 @@ type BasicAuth struct {
 	Password string `yaml:"password"`
 }
 
-// Torrent is an actual torrent on our client, active or inactive. It is added to the client and we have info for it.
-// type Torrent struct {
-// 	InfoHash       metainfo.Hash
-// 	Stats          torrent.TorrentStats
-// 	Length         int64
-// 	BytesCompleted int64
-// 	Name           string
-// 	Seeding        bool
-// }
-// type Torrent interface {
-// 	BytesCompleted() int64
-// }
-
 type TorrentMeta struct {
+	InfoHash     string `storm:"unique"`
 	RatioToStop  float32
 	MinutesAlive int
 	HoursToStop  int
@@ -86,38 +79,15 @@ type Quality struct {
 	Resolution string `yaml:"resolution"`
 }
 
-// // TorrentService handles CRUD actions for Torrents
-// type TorrentService interface {
-// 	// Adding
-// 	AddFromMagnet(string) (*Torrent, error)
-// 	AddFromFile(string) (*Torrent, error)
-// 	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (*Torrent, error)
-// 	// Loading from previous state
-// 	LoadTorrentFilesFromCache() error
-// 	// Queries
-// 	GetByHashStr(string) (*Torrent, error)
-// 	Get() ([]Torrent, error)
-// 	// Actions
-// 	GetFiles(*Torrent) ([]TorrentFile, error)
-// 	GetReadSeekerForFileInTorrent(*Torrent, int) (io.ReadSeeker, error)
-// 	Start(*Torrent) error
-// }
-
-// // ReleaseService will find releases via attributes like imdbID, title, etc. but will not actually add them.
-// // It probably uses the torrent client to probe torrents for quality and files.
-// type ReleaseService interface {
-// 	GetReleasesForMovie(imdbID string, title string, year string, minQuality int) ([]Release, error)
-// }
-
-// type TranscoderConfig struct {
-// 	Video struct {
-// 		Format          string `yaml:"format"`
-// 		CompressionAlgo string `yaml:"compressionAlgo"`
-// 	} `yaml:"video"`
-// 	Audio struct {
-// 		CompressionAlgo string `yaml:"compressionAlgo"`
-// 	} `yaml:"audio"`
-// }
+type TranscoderConfig struct {
+	Video struct {
+		Format          string `yaml:"format"`
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"video"`
+	Audio struct {
+		CompressionAlgo string `yaml:"compressionAlgo"`
+	} `yaml:"audio"`
+}
 
 // Movie is a simple struct for holding metadata about a movie
 type Movie struct {
@@ -127,14 +97,6 @@ type Movie struct {
 	Year   int
 }
 
-// // MovieDAO handles storing and retrieving Movies
-// type MovieDAO interface {
-// 	Store(Movie) error
-// 	GetByID(int) (Movie, error)
-// 	Get() ([]Movie, error)
-// 	Remove(int) error
-// }
-
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
 type MovieTorrentLink struct {
 	MovieID         int
@@ -142,13 +104,24 @@ type MovieTorrentLink struct {
 	FileIndex       int
 }
 
-// // MovieTorrentLinkDAO handles storing and retrieving MovieTorrentLinks
-// type MovieTorrentLinkDAO interface {
-// 	Store(MovieTorrentLink) error
+type TorrentMetaRepo interface {
+	Store(TorrentMeta) error
+	GetByInfoHash(string) (TorrentMeta, error)
+}
 
-// 	GetByMovieID(int) (MovieTorrentLink, error)
-// 	GetByTorrentID(int) (MovieTorrentLink, error)
-// 	Get() ([]Movie, error)
+type ReleaseRepo interface {
+	GetForMovie(imdbID string, title string, year string, minQuality int) ([]Release, error)
+}
 
-// 	Remove(int) error
-// }
+type MovieTorrentLinkRepo interface {
+	Store(MovieTorrentLink) (*MovieTorrentLink, error)
+	GetByImdbID(imdbID string) ([]MovieTorrentLink, error)
+}
+
+type TorrentClient interface {
+	Close()
+	AddMagnet(string) (torrent.Torrent, error)
+	AddFile(string) (torrent.Torrent, error)
+	Torrents() []torrent.Torrent
+	Torrent(metainfo.Hash) (torrent.Torrent, bool)
+}

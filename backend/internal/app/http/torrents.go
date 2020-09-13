@@ -3,8 +3,6 @@ package http
 import (
 	"net/http"
 	"path/filepath"
-	"strconv"
-	"time"
 
 	"os"
 
@@ -74,7 +72,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				return
 			}
 
-			filename := filepath.Join(h.TorrentFilePath, file.Filename)
+			filename := filepath.Join(h.TorrentFilesPath, file.Filename)
 			if err := c.SaveUploadedFile(file, filename); err != nil {
 				session.Set("error", err.Error())
 				session.Save()
@@ -96,23 +94,23 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 			c.Redirect(http.StatusFound, "/torrents")
 		})
 
-		torrents.GET("/stream/:infohash/file/:file", func(c *gin.Context) {
-			hashStr := c.Param("infohash")
-			fileIndexStr := c.Param("file")
-			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
-			if err != nil {
-				c.String(http.StatusBadRequest, err.Error())
-			}
-			torrent, err := s.GetByHashStr(hashStr)
-			if err != nil {
-				c.String(http.StatusBadRequest, err.Error())
-			}
+		// torrents.GET("/stream/:infohash/file/:file", func(c *gin.Context) {
+		// 	hashStr := c.Param("infohash")
+		// 	fileIndexStr := c.Param("file")
+		// 	fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
+		// 	if err != nil {
+		// 		c.String(http.StatusBadRequest, err.Error())
+		// 	}
+		// 	torrent, err := s.GetByInfoHashStr(hashStr)
+		// 	if err != nil {
+		// 		c.String(http.StatusBadRequest, err.Error())
+		// 	}
 
-			readseeker, err := s.GetReadSeekerForFileInTorrent(torrent, int(fileIndex))
-			if err != nil {
-				c.String(http.StatusBadRequest, err.Error())
-			}
-			http.ServeContent(c.Writer, c.Request, torrent.Name, time.Time{}, readseeker)
-		})
+		// 	readseeker, err := s.GetReadSeekerForFileInTorrent(torrent, int(fileIndex))
+		// 	if err != nil {
+		// 		c.String(http.StatusBadRequest, err.Error())
+		// 	}
+		// 	http.ServeContent(c.Writer, c.Request, torrent.Name, time.Time{}, readseeker)
+		// })
 	}
 }
