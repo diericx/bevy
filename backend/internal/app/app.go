@@ -1,31 +1,24 @@
 package app
 
-import (
-	"io"
+// // TODO: input from config file
+// const DefaultResolution = "iw:ih"
+// const DefaultMaxBitrate = "50M"
 
-	"github.com/anacrolix/torrent"
-	"github.com/anacrolix/torrent/metainfo"
-)
+// // These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
+// // GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
+// func GetSupportedVideoFileFormats() []string {
+// 	return []string{".mkv", ".mp4"}
+// }
 
-// TODO: input from config file
-const DefaultResolution = "iw:ih"
-const DefaultMaxBitrate = "50M"
+// // GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names
+// func GetBlacklistedFileNameContents() []string {
+// 	return []string{"sample"}
+// }
 
-// These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
-// GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
-func GetSupportedVideoFileFormats() []string {
-	return []string{".mkv", ".mp4"}
-}
-
-// GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names
-func GetBlacklistedFileNameContents() []string {
-	return []string{"sample"}
-}
-
-// TODO: These languages are only blacklisted because it's hard to support
-func GetBlacklistedTorrentNameContents() []string {
-	return []string{"fre", "french", "ita", "italian"}
-}
+// // TODO: These languages are only blacklisted because it's hard to support
+// func GetBlacklistedTorrentNameContents() []string {
+// 	return []string{"fre", "french", "ita", "italian"}
+// }
 
 // BasicAuth info for basic auth http requests
 type BasicAuth struct {
@@ -34,14 +27,19 @@ type BasicAuth struct {
 }
 
 // Torrent is an actual torrent on our client, active or inactive. It is added to the client and we have info for it.
-type Torrent struct {
-	InfoHash       metainfo.Hash
-	Stats          torrent.TorrentStats
-	Length         int64
-	BytesCompleted int64
-	Name           string
-	Seeding        bool
+// type Torrent struct {
+// 	InfoHash       metainfo.Hash
+// 	Stats          torrent.TorrentStats
+// 	Length         int64
+// 	BytesCompleted int64
+// 	Name           string
+// 	Seeding        bool
+// }
+// type Torrent interface {
+// 	BytesCompleted() int64
+// }
 
+type TorrentMeta struct {
 	RatioToStop  float32
 	MinutesAlive int
 	HoursToStop  int
@@ -88,38 +86,38 @@ type Quality struct {
 	Resolution string `yaml:"resolution"`
 }
 
-// TorrentService handles CRUD actions for Torrents
-type TorrentService interface {
-	// Adding
-	AddFromMagnet(string) (*Torrent, error)
-	AddFromFile(string) (*Torrent, error)
-	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (*Torrent, error)
-	// Loading from previous state
-	LoadTorrentFilesFromCache() error
-	// Queries
-	GetByHashStr(string) (*Torrent, error)
-	Get() ([]Torrent, error)
-	// Actions
-	GetFiles(*Torrent) ([]TorrentFile, error)
-	GetReadSeekerForFileInTorrent(*Torrent, int) (io.ReadSeeker, error)
-	Start(*Torrent) error
-}
+// // TorrentService handles CRUD actions for Torrents
+// type TorrentService interface {
+// 	// Adding
+// 	AddFromMagnet(string) (*Torrent, error)
+// 	AddFromFile(string) (*Torrent, error)
+// 	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (*Torrent, error)
+// 	// Loading from previous state
+// 	LoadTorrentFilesFromCache() error
+// 	// Queries
+// 	GetByHashStr(string) (*Torrent, error)
+// 	Get() ([]Torrent, error)
+// 	// Actions
+// 	GetFiles(*Torrent) ([]TorrentFile, error)
+// 	GetReadSeekerForFileInTorrent(*Torrent, int) (io.ReadSeeker, error)
+// 	Start(*Torrent) error
+// }
 
-// ReleaseService will find releases via attributes like imdbID, title, etc. but will not actually add them.
-// It probably uses the torrent client to probe torrents for quality and files.
-type ReleaseService interface {
-	GetReleasesForMovie(imdbID string, title string, year string, minQuality int) ([]Release, error)
-}
+// // ReleaseService will find releases via attributes like imdbID, title, etc. but will not actually add them.
+// // It probably uses the torrent client to probe torrents for quality and files.
+// type ReleaseService interface {
+// 	GetReleasesForMovie(imdbID string, title string, year string, minQuality int) ([]Release, error)
+// }
 
-type TranscoderConfig struct {
-	Video struct {
-		Format          string `yaml:"format"`
-		CompressionAlgo string `yaml:"compressionAlgo"`
-	} `yaml:"video"`
-	Audio struct {
-		CompressionAlgo string `yaml:"compressionAlgo"`
-	} `yaml:"audio"`
-}
+// type TranscoderConfig struct {
+// 	Video struct {
+// 		Format          string `yaml:"format"`
+// 		CompressionAlgo string `yaml:"compressionAlgo"`
+// 	} `yaml:"video"`
+// 	Audio struct {
+// 		CompressionAlgo string `yaml:"compressionAlgo"`
+// 	} `yaml:"audio"`
+// }
 
 // Movie is a simple struct for holding metadata about a movie
 type Movie struct {
@@ -137,12 +135,12 @@ type Movie struct {
 // 	Remove(int) error
 // }
 
-// // MovieTorrentLink handles linking a Movie to a specific file in a torrent
-// type MovieTorrentLink struct {
-// 	MovieID         int
-// 	TorrentInfoHash string
-// 	FileIndex       int
-// }
+// MovieTorrentLink handles linking a Movie to a specific file in a torrent
+type MovieTorrentLink struct {
+	MovieID         int
+	TorrentInfoHash string
+	FileIndex       int
+}
 
 // // MovieTorrentLinkDAO handles storing and retrieving MovieTorrentLinks
 // type MovieTorrentLinkDAO interface {

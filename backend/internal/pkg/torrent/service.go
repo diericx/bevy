@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"fmt"
@@ -113,51 +112,51 @@ func (s *TorrentService) AddFromFile(file string) (*app.Torrent, error) {
 	return &torrent, nil
 }
 
-// AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
-// file or recursicely follow a redirect
-func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth) (*Torrent, error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-	if u.Scheme == "magnet" {
-		return c.AddFromMagnet(rawURL)
-	}
+// // AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
+// // file or recursicely follow a redirect
+// func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth) (*Torrent, error) {
+// 	u, err := url.Parse(rawURL)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	if u.Scheme == "magnet" {
+// 		return c.AddFromMagnet(rawURL)
+// 	}
 
-	// Attempt to make http/s call
-	req, err := http.NewRequest("GET", rawURL, nil)
-	if err != nil {
-		panic(err)
-	}
-	if auth != nil {
-		req.SetBasicAuth(auth.Username, auth.Password)
-	}
-	client := new(http.Client)
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return errors.New("Redirect")
-	}
+// 	// Attempt to make http/s call
+// 	req, err := http.NewRequest("GET", rawURL, nil)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	if auth != nil {
+// 		req.SetBasicAuth(auth.Username, auth.Password)
+// 	}
+// 	client := new(http.Client)
+// 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+// 		return errors.New("Redirect")
+// 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		if resp.StatusCode == http.StatusFound { //status code 302
-			url, err := resp.Location()
-			if err != nil {
-				return "", err
-			}
-			return c.AddFromURLUknownScheme(url.String(), auth)
-		}
-		return "", err
-	}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		if resp.StatusCode == http.StatusFound { //status code 302
+// 			url, err := resp.Location()
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			return c.AddFromURLUknownScheme(url.String(), auth)
+// 		}
+// 		return "", err
+// 	}
 
-	tempFilePath := fmt.Sprintf("%s/%s", c.torrentFilePath, RandomString(10))
-	err = downloadFileFromResponse(resp, tempFilePath)
-	defer os.Remove(tempFilePath)
-	if err != nil {
-		return "", err
-	}
+// 	tempFilePath := fmt.Sprintf("%s/%s", c.torrentFilePath, RandomString(10))
+// 	err = downloadFileFromResponse(resp, tempFilePath)
+// 	defer os.Remove(tempFilePath)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return c.AddFromFile(tempFilePath)
-}
+// 	return c.AddFromFile(tempFilePath)
+// }
 
 func (s *TorrentService) Start(torrent *app.Torrent) error {
 	t, ok := s.Client.Torrent(torrent.InfoHash)
