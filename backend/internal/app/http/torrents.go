@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/asdine/storm"
+
 	"github.com/diericx/iceetime/internal/app"
 
 	"os"
@@ -98,23 +100,80 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 			c.Redirect(http.StatusFound, "/torrents")
 		})
 
-		torrents.GET("/stream/:infohash/file/:file", func(c *gin.Context) {
+		torrents.GET("/stream/:infohash/:file", func(c *gin.Context) {
 			hashStr := c.Param("infohash")
 			fileIndexStr := c.Param("file")
 			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
 			if err != nil {
 				c.String(http.StatusBadRequest, err.Error())
+				return
 			}
 			torrent, err := s.GetByInfoHashStr(hashStr)
 			if err != nil {
 				c.String(http.StatusBadRequest, err.Error())
+				return
 			}
 
 			readseeker, err := s.GetReadSeekerForFileInTorrent(torrent, int(fileIndex))
 			if err != nil {
 				c.String(http.StatusBadRequest, err.Error())
+				return
 			}
 			http.ServeContent(c.Writer, c.Request, torrent.Name(), time.Time{}, readseeker)
+		})
+
+		torrents.GET("/find_for_movie", func(c *gin.Context) {
+			imdbID := c.Query("imdb_id")
+			title := c.Query("title")
+			year := c.Query("year")
+			minQualityStr := c.Query("min_quality")
+			minQuality, err := strconv.ParseInt(minQualityStr, 10, 32)
+			if err != nil {
+				c.String(http.StatusBadRequest, err.Error())
+				return
+			}
+
+			links, err := h.TorrentLinkService.GetLinksForMovie(imdbID)
+			if err != nil {
+				if err != storm.ErrNotFound {
+					c.String(http.StatusBadRequest, err.Error())
+					return
+				}
+			}
+			if len(links) > 0 {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"torrentHash": links[0].TorrentInfoHash,
+					"fileIndex":   links[0].FileIndex,
+				})
+				return
+			}
+
+			releases, err := h.ReleaseService.QueryMovie(imdbID, title, year, int(minQuality))
+			if err != nil {
+				c.String(http.StatusBadRequest, err.Error())
+				return
+			}
+
+			torrent, fileIndex, err := h.TorrentService.AddBestTorrentFromReleases(releases, h.Qualities[minQuality])
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+			if torrent == nil {
+				c.String(http.StatusBadRequest, "no valid torrent found")
+				return
+			}
+
+			err = h.TorrentLinkService.LinkTorrentToMovie(imdbID, torrent, fileIndex)
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"torrentHash": torrent.InfoHash().HexString(),
+				"fileIndex":   fileIndex,
+			})
 		})
 	}
 }

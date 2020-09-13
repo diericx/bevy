@@ -99,24 +99,18 @@ type TranscoderConfig struct {
 	} `yaml:"audio"`
 }
 
-// Movie is a simple struct for holding metadata about a movie
-type Movie struct {
-	ID     int    // primary key
-	ImdbID string `storm:"unique"`
-	Title  string
-	Year   int
-}
-
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
 type MovieTorrentLink struct {
-	MovieID         int
+	ID              int `storm:"id,increment"`
+	ImdbID          string
 	TorrentInfoHash string
 	FileIndex       int
 }
 
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
-	GetByInfoHash(string) (TorrentMeta, error)
+	GetByInfoHashStr(string) (TorrentMeta, error)
+	RemoveByInfoHashStr(hashStr string) error
 }
 
 type ReleaseRepo interface {

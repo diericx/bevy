@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,14 +27,16 @@ type Torrent struct {
 	// MovieTorrentLinkRepo MovieTorrentLinkRepo
 
 	GetInfoTimeout   time.Duration
+	MinSeeders       int
 	TorrentFilesPath string
 }
 
-func NewTorrentService(client app.TorrentClient, torrentMetaRepo app.TorrentMetaRepo, getInfoTimeout time.Duration, torrentFilesPath string) (*Torrent, error) {
+func NewTorrentService(client app.TorrentClient, torrentMetaRepo app.TorrentMetaRepo, getInfoTimeout time.Duration, minSeeders int, torrentFilesPath string) (*Torrent, error) {
 	s := Torrent{
 		Client:           client,
 		TorrentMetaRepo:  torrentMetaRepo,
 		GetInfoTimeout:   getInfoTimeout,
+		MinSeeders:       minSeeders,
 		TorrentFilesPath: torrentFilesPath,
 	}
 
@@ -84,7 +88,7 @@ func (s *Torrent) startTorrentsAccordingToMetadata() error {
 
 	for _, t := range torrents {
 		// Get meta
-		meta, err := s.TorrentMetaRepo.GetByInfoHash(t.InfoHash().HexString())
+		meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
 		if err != nil {
 			return err
 		}
@@ -166,20 +170,6 @@ func (s *Torrent) AddFromFile(file string, meta app.TorrentMeta) (torrent.Torren
 	return t, nil
 }
 
-func (s *Torrent) Get() ([]torrent.Torrent, error) {
-	torrents := s.Client.Torrents()
-	return torrents, nil
-}
-
-func (s *Torrent) GetByInfoHashStr(infoHashStr string) (torrent.Torrent, error) {
-	hash := metainfo.NewHashFromHex(infoHashStr)
-	t, ok := s.Client.Torrent(hash)
-	if !ok {
-		return nil, errors.New("torrent not found")
-	}
-	return t, nil
-}
-
 // AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
 // file or recursicely follow a redirect
 func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, meta app.TorrentMeta) (torrent.Torrent, error) {
@@ -226,6 +216,20 @@ func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, met
 	return s.AddFromFile(tempFilePath, meta)
 }
 
+func (s *Torrent) Get() ([]torrent.Torrent, error) {
+	torrents := s.Client.Torrents()
+	return torrents, nil
+}
+
+func (s *Torrent) GetByInfoHashStr(infoHashStr string) (torrent.Torrent, error) {
+	hash := metainfo.NewHashFromHex(infoHashStr)
+	t, ok := s.Client.Torrent(hash)
+	if !ok {
+		return nil, errors.New("torrent not found")
+	}
+	return t, nil
+}
+
 func (s *Torrent) GetReadSeekerForFileInTorrent(_t torrent.Torrent, fileIndex int) (io.ReadSeeker, error) {
 	t, ok := s.Client.Torrent(_t.InfoHash())
 	if !ok {
@@ -234,6 +238,85 @@ func (s *Torrent) GetReadSeekerForFileInTorrent(_t torrent.Torrent, fileIndex in
 
 	files := t.Files()
 	return files[fileIndex].NewReader(), nil
+}
+
+func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quality) (torrent.Torrent, int, error) {
+	// sort torrents by seeders (to get most available torrents first)
+	sort.Slice(releases, func(i, j int) bool {
+		return releases[i].Seeders > releases[j].Seeders
+	})
+
+	for _, r := range releases {
+		if r.Size < q.MinSize || r.Size > q.MaxSize {
+			log.Printf("INFO: Passing on release %s because size %v is not correct.", r.Title, r.Size)
+			continue
+		}
+		if r.Seeders < s.MinSeeders {
+			log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", r.Title, r.Seeders, s.MinSeeders)
+			continue
+		}
+		if stringContainsAnyOf(strings.ToLower(r.Title), app.GetBlacklistedTorrentNameContents()) {
+			log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", r.Title, app.GetBlacklistedTorrentNameContents())
+			continue
+		}
+
+		// Add to client to get hash
+		t, err := s.AddFromURLUknownScheme(
+			r.Link,
+			r.LinkAuth,
+			app.TorrentMeta{
+				InfoHash:    r.InfoHash,
+				RatioToStop: r.MinRatio,
+				HoursToStop: r.MinSeedTime,
+			},
+		)
+		if err != nil {
+			log.Printf("WARNING: could not add torrent magnet for %s\n Err: %s", r.Title, err)
+			s.RemoveByHash(t.InfoHash())
+			continue
+		}
+		r.InfoHash = t.InfoHash().HexString()
+
+		// Attempt to find a valid file
+		index, terr := s.getValidFileInTorrent(t)
+		if terr != nil {
+			log.Printf("INFO: Passing on release %s because there was no valid file.", r.Title)
+			s.RemoveByHash(t.InfoHash())
+			continue
+		}
+
+		copyT := t // Why does this object need to be copied?? So weird..
+		return copyT, index, nil
+	}
+	return nil, 0, nil
+}
+
+func (s *Torrent) RemoveByHash(hash metainfo.Hash) error {
+	t, ok := s.Client.Torrent(hash)
+	if !ok {
+		return errors.New("not found")
+	}
+
+	t.Drop()
+
+	err := s.TorrentMetaRepo.RemoveByInfoHashStr(hash.HexString())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Torrent) getValidFileInTorrent(t torrent.Torrent) (int, error) {
+	// Get correct file
+	files := t.Files()
+
+	for i, file := range files {
+		if stringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !stringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
+			return i, nil
+		}
+	}
+	return 0, nil
 }
 
 func downloadFileFromResponse(resp *http.Response, filePath string) error {
@@ -281,4 +364,22 @@ func stringWithCharset(length int, charset string) string {
 
 func randomString(length int) string {
 	return stringWithCharset(length, charset)
+}
+
+func stringContainsAnyOf(s string, substrings []string) bool {
+	for _, substring := range substrings {
+		if strings.Contains(s, substring) {
+			return true
+		}
+	}
+	return false
+}
+
+func stringEndsInAny(s string, suffixes []string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
 }

@@ -3,6 +3,7 @@ package http
 import (
 	"html/template"
 
+	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/app/services"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/gin-contrib/cors"
@@ -19,10 +20,12 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
-	TorrentService   services.Torrent
-	ReleaseService   services.Release
-	Transcoder       services.Transcoder
-	TorrentFilesPath string
+	TorrentService     services.Torrent
+	ReleaseService     services.Release
+	TorrentLinkService services.TorrentLink
+	Transcoder         services.Transcoder
+	Qualities          []app.Quality
+	TorrentFilesPath   string
 }
 
 func (h *HTTPHandler) Serve(cookieSecret string) {

@@ -9,12 +9,12 @@ type MovieTorrentLink struct {
 	DB *storm.DB
 }
 
-func (r *MovieTorrentLink) Store(meta app.TorrentMeta) error {
+func (r *MovieTorrentLink) Store(meta app.MovieTorrentLink) error {
 	return r.DB.Save(&meta)
 }
 
-func (r *MovieTorrentLink) GetByImdbID(imdbID string) (app.MovieTorrentLink, error) {
-	var movieTorrentLink app.MovieTorrentLink
-	err := r.DB.One("ImdbID", imdbID, &movieTorrentLink)
-	return movieTorrentLink, err
+func (r *MovieTorrentLink) GetByImdbID(imdbID string) ([]app.MovieTorrentLink, error) {
+	var movieTorrentLinks []app.MovieTorrentLink
+	err := r.DB.Find("ImdbID", imdbID, &movieTorrentLinks)
+	return movieTorrentLinks, err
 }

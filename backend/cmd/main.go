@@ -52,7 +52,14 @@ func main() {
 	}
 	defer client.Close()
 
+	//
+	// Initialize repos
+	//
 	torrentMetaRepo := storm.TorrentMeta{
+		DB: stormDB,
+	}
+
+	movieTorrentLinkRepo := storm.MovieTorrentLink{
 		DB: stormDB,
 	}
 
@@ -61,7 +68,10 @@ func main() {
 		Indexers:  indexers,
 	}
 
-	torrentService, err := services.NewTorrentService(client, &torrentMetaRepo, time.Second*15, torrentFilesPath)
+	//
+	// Initialize services
+	//
+	torrentService, err := services.NewTorrentService(client, &torrentMetaRepo, time.Second*15, 3, torrentFilesPath)
 	if err != nil {
 		panic(err)
 	}
@@ -69,6 +79,10 @@ func main() {
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,
 		Qualities:   qualities,
+	}
+
+	torrentLinkService := services.TorrentLink{
+		MovieTorrentLinkRepo: movieTorrentLinkRepo,
 	}
 
 	// TODO: Input from config file
@@ -81,10 +95,12 @@ func main() {
 	}
 
 	httpHandler := http.HTTPHandler{
-		TorrentService:   *torrentService,
-		ReleaseService:   releaseService,
-		Transcoder:       transcoder,
-		TorrentFilesPath: torrentFilesPath,
+		TorrentService:     *torrentService,
+		ReleaseService:     releaseService,
+		TorrentLinkService: torrentLinkService,
+		Transcoder:         transcoder,
+		Qualities:          qualities,
+		TorrentFilesPath:   torrentFilesPath,
 	}
 
 	httpHandler.Serve("secret-todo")
