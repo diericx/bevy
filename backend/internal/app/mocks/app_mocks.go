@@ -36,12 +36,11 @@ func (m *MockTorrentMetaRepo) EXPECT() *MockTorrentMetaRepoMockRecorder {
 }
 
 // Store mocks base method
-func (m *MockTorrentMetaRepo) Store(arg0 app.TorrentMeta) (*app.TorrentMeta, error) {
+func (m *MockTorrentMetaRepo) Store(arg0 app.TorrentMeta) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Store", arg0)
-	ret0, _ := ret[0].(*app.TorrentMeta)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Store indicates an expected call of Store
@@ -50,19 +49,33 @@ func (mr *MockTorrentMetaRepoMockRecorder) Store(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Store", reflect.TypeOf((*MockTorrentMetaRepo)(nil).Store), arg0)
 }
 
-// GetByInfoHash mocks base method
-func (m *MockTorrentMetaRepo) GetByInfoHash(arg0 string) (*app.TorrentMeta, error) {
+// GetByInfoHashStr mocks base method
+func (m *MockTorrentMetaRepo) GetByInfoHashStr(arg0 string) (app.TorrentMeta, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByInfoHash", arg0)
-	ret0, _ := ret[0].(*app.TorrentMeta)
+	ret := m.ctrl.Call(m, "GetByInfoHashStr", arg0)
+	ret0, _ := ret[0].(app.TorrentMeta)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByInfoHash indicates an expected call of GetByInfoHash
-func (mr *MockTorrentMetaRepoMockRecorder) GetByInfoHash(arg0 interface{}) *gomock.Call {
+// GetByInfoHashStr indicates an expected call of GetByInfoHashStr
+func (mr *MockTorrentMetaRepoMockRecorder) GetByInfoHashStr(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByInfoHash", reflect.TypeOf((*MockTorrentMetaRepo)(nil).GetByInfoHash), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByInfoHashStr", reflect.TypeOf((*MockTorrentMetaRepo)(nil).GetByInfoHashStr), arg0)
+}
+
+// RemoveByInfoHashStr mocks base method
+func (m *MockTorrentMetaRepo) RemoveByInfoHashStr(hashStr string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveByInfoHashStr", hashStr)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveByInfoHashStr indicates an expected call of RemoveByInfoHashStr
+func (mr *MockTorrentMetaRepoMockRecorder) RemoveByInfoHashStr(hashStr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveByInfoHashStr", reflect.TypeOf((*MockTorrentMetaRepo)(nil).RemoveByInfoHashStr), hashStr)
 }
 
 // MockReleaseRepo is a mock of ReleaseRepo interface

@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	torrent "github.com/anacrolix/torrent"
+	metainfo "github.com/anacrolix/torrent/metainfo"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -96,4 +98,60 @@ func (m *MockTorrent) Length() int64 {
 func (mr *MockTorrentMockRecorder) Length() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockTorrent)(nil).Length))
+}
+
+// Metainfo mocks base method
+func (m *MockTorrent) Metainfo() metainfo.MetaInfo {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Metainfo")
+	ret0, _ := ret[0].(metainfo.MetaInfo)
+	return ret0
+}
+
+// Metainfo indicates an expected call of Metainfo
+func (mr *MockTorrentMockRecorder) Metainfo() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metainfo", reflect.TypeOf((*MockTorrent)(nil).Metainfo))
+}
+
+// InfoHash mocks base method
+func (m *MockTorrent) InfoHash() metainfo.Hash {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InfoHash")
+	ret0, _ := ret[0].(metainfo.Hash)
+	return ret0
+}
+
+// InfoHash indicates an expected call of InfoHash
+func (mr *MockTorrentMockRecorder) InfoHash() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InfoHash", reflect.TypeOf((*MockTorrent)(nil).InfoHash))
+}
+
+// Files mocks base method
+func (m *MockTorrent) Files() []*torrent.File {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Files")
+	ret0, _ := ret[0].([]*torrent.File)
+	return ret0
+}
+
+// Files indicates an expected call of Files
+func (mr *MockTorrentMockRecorder) Files() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Files", reflect.TypeOf((*MockTorrent)(nil).Files))
+}
+
+// Name mocks base method
+func (m *MockTorrent) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name
+func (mr *MockTorrentMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockTorrent)(nil).Name))
 }
