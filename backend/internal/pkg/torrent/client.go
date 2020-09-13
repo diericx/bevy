@@ -13,6 +13,8 @@ type Torrent interface {
 	Length() int64
 	Metainfo() metainfo.MetaInfo
 	InfoHash() metainfo.Hash
+	Files() []*torrent.File
+	Name() string
 }
 
 type Client struct {

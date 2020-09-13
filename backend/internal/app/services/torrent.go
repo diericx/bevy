@@ -226,6 +226,16 @@ func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, met
 	return s.AddFromFile(tempFilePath, meta)
 }
 
+func (s *Torrent) GetReadSeekerForFileInTorrent(_t torrent.Torrent, fileIndex int) (io.ReadSeeker, error) {
+	t, ok := s.Client.Torrent(_t.InfoHash())
+	if !ok {
+		return nil, errors.New("not found")
+	}
+
+	files := t.Files()
+	return files[fileIndex].NewReader(), nil
+}
+
 func downloadFileFromResponse(resp *http.Response, filePath string) error {
 	// Get the data
 	if resp.StatusCode != 200 {
