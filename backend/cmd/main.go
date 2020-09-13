@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/app/http"
 	"github.com/diericx/iceetime/internal/app/repos/storm"
 	"github.com/diericx/iceetime/internal/app/services"
@@ -40,17 +41,18 @@ func main() {
 	// 	log.Panicf("Error loading torrent files from cache: %s", err)
 	// }
 
-	// // TODO: Input from config file
-	// transcoderConfig := app.TranscoderConfig{}
-	// transcoderConfig.Video.Format = "ismv"
-	// transcoderConfig.Video.CompressionAlgo = "libx264"
-	// transcoderConfig.Audio.CompressionAlgo = "copy"
-	// transcoder := ffmpeg.Transcoder{
-	// 	Config: transcoderConfig,
-	// }
+	// TODO: Input from config file
+	transcoderConfig := app.TranscoderConfig{}
+	transcoderConfig.Video.Format = "ismv"
+	transcoderConfig.Video.CompressionAlgo = "libx264"
+	transcoderConfig.Audio.CompressionAlgo = "copy"
+	transcoder := services.Transcoder{
+		Config: transcoderConfig,
+	}
 
 	httpHandler := http.HTTPHandler{
 		TorrentService:   *torrentService,
+		Transcoder:       transcoder,
 		TorrentFilesPath: torrentFilesPath,
 	}
 
