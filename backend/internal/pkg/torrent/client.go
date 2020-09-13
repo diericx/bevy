@@ -22,6 +22,7 @@ type Client struct {
 func NewClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int) (*Client, error) {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = dataPath
+	config.Seed = true
 	// config.ListenPort = 42070
 	config.EstablishedConnsPerTorrent = establishedConnsPerTorrent
 	config.HalfOpenConnsPerTorrent = halfOpenConnsPerTorrent

@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/diericx/iceetime/internal/app"
+
 	"os"
 
 	"github.com/gin-contrib/sessions"
@@ -49,7 +51,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				return
 			}
 
-			_, err := s.AddFromMagnet(form.MagnetLink)
+			_, err := s.AddFromMagnet(form.MagnetLink, app.GetDefaultTorrentMeta())
 			if err != nil {
 				session.Set("error", err.Error())
 				session.Save()
@@ -80,7 +82,7 @@ func (h *HTTPHandler) addTorrentsGroup(rg *gin.RouterGroup) {
 				return
 			}
 
-			_, err = s.AddFromFile(filename)
+			_, err = s.AddFromFile(filename, app.GetDefaultTorrentMeta())
 			if err != nil {
 				session.Set("error", err.Error())
 				session.Save()

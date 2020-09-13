@@ -5,25 +5,35 @@ import (
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
 
-// // TODO: input from config file
-// const DefaultResolution = "iw:ih"
-// const DefaultMaxBitrate = "50M"
+// TODO: input from config file
+const DefaultResolution = "iw:ih"
+const DefaultMaxBitrate = "50M"
 
-// // These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
-// // GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
-// func GetSupportedVideoFileFormats() []string {
-// 	return []string{".mkv", ".mp4"}
-// }
+func GetDefaultTorrentMeta() TorrentMeta {
+	return TorrentMeta{
+		RatioToStop: 1,
+		HoursToStop: 336,
+		IsStopped:   false,
+	}
 
-// // GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names
-// func GetBlacklistedFileNameContents() []string {
-// 	return []string{"sample"}
-// }
+}
 
-// // TODO: These languages are only blacklisted because it's hard to support
-// func GetBlacklistedTorrentNameContents() []string {
-// 	return []string{"fre", "french", "ita", "italian"}
-// }
+// These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
+
+// GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
+func GetSupportedVideoFileFormats() []string {
+	return []string{".mkv", ".mp4"}
+}
+
+// GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names
+func GetBlacklistedFileNameContents() []string {
+	return []string{"sample"}
+}
+
+// TODO: These languages are only blacklisted because it's hard to support
+func GetBlacklistedTorrentNameContents() []string {
+	return []string{"fre", "french", "ita", "italian"}
+}
 
 // BasicAuth info for basic auth http requests
 type BasicAuth struct {
@@ -32,7 +42,7 @@ type BasicAuth struct {
 }
 
 type TorrentMeta struct {
-	InfoHash     string `storm:"unique"`
+	InfoHash     string `storm:"id"`
 	RatioToStop  float32
 	MinutesAlive int
 	HoursToStop  int
