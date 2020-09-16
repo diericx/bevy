@@ -1,30 +1,31 @@
 package torrent
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"os"
-	"time"
-
-	"github.com/diericx/iceetime/internal/app"
-
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 )
 
-type TorrentClient struct {
-	torrentFilePath string
-	dataPath        string
-	infoTimeout     time.Duration
-	client          *torrent.Client
+type Torrent interface {
+	BytesCompleted() int64
+	GotInfo() <-chan struct{}
+	Drop()
+	DownloadAll()
+	Length() int64
+	Metainfo() metainfo.MetaInfo
+	InfoHash() metainfo.Hash
+	Files() []*torrent.File
+	Name() string
 }
 
-func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int) (*TorrentClient, error) {
+type Client struct {
+	*torrent.Client
+}
+
+func NewClient(torrentFilePath string, dataPath string, infoTimeout int, establishedConnsPerTorrent int, halfOpenConnsPerTorrent int) (*Client, error) {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = dataPath
+	config.Seed = true
+	// config.ListenPort = 42070
 	config.EstablishedConnsPerTorrent = establishedConnsPerTorrent
 	config.HalfOpenConnsPerTorrent = halfOpenConnsPerTorrent
 	client, err := torrent.NewClient(config)
@@ -32,170 +33,31 @@ func NewTorrentClient(torrentFilePath string, dataPath string, infoTimeout int, 
 		return nil, err
 	}
 
-	return &TorrentClient{
-		torrentFilePath: torrentFilePath,
-		dataPath:        dataPath,
-		infoTimeout:     time.Second * time.Duration(infoTimeout),
-		client:          client,
-	}, nil
+	return &Client{Client: client}, nil
 }
 
-func (c *TorrentClient) Close() {
-	c.client.Close()
+func (c *Client) Close() {
+	c.Client.Close()
 }
 
-// AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
-// file or recursicely follow a redirect
-func (c *TorrentClient) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth) (hash string, err error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-	if u.Scheme == "magnet" {
-		return c.AddFromMagnet(rawURL)
-	}
-
-	// Attempt to make http/s call
-	req, err := http.NewRequest("GET", rawURL, nil)
-	if err != nil {
-		panic(err)
-	}
-	if auth != nil {
-		req.SetBasicAuth(auth.Username, auth.Password)
-	}
-	client := new(http.Client)
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return errors.New("Redirect")
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		if resp.StatusCode == http.StatusFound { //status code 302
-			url, err := resp.Location()
-			if err != nil {
-				return "", err
-			}
-			return c.AddFromURLUknownScheme(url.String(), auth)
-		}
-		return "", err
-	}
-
-	tempFilePath := fmt.Sprintf("%s/%s", c.torrentFilePath, RandomString(10))
-	err = downloadFileFromResponse(resp, tempFilePath)
-	defer os.Remove(tempFilePath)
-	if err != nil {
-		return "", err
-	}
-
-	return c.AddFromFile(tempFilePath)
+func (c *Client) AddMagnet(uri string) (Torrent, error) {
+	return c.Client.AddMagnet(uri)
 }
 
-func (c *TorrentClient) AddFromMagnet(magnet string) (string, error) {
-	t, err := c.client.AddMagnet(magnet)
-	if err != nil {
-		return "", err
-	}
-	select {
-	case <-t.GotInfo():
-	case <-time.After(c.infoTimeout):
-		return "", errors.New("info grab timed out")
-	}
-	// TODO: Start downloading?
-	hash := t.InfoHash()
-	return hash.HexString(), nil
+func (c *Client) AddFile(file string) (Torrent, error) {
+	return c.Client.AddTorrentFromFile(file)
 }
 
-func (c *TorrentClient) AddFromFile(filePath string) (string, error) {
-	t, err := c.client.AddTorrentFromFile(filePath)
-	if err != nil {
-		return "", err
+func (c *Client) Torrents() []Torrent {
+	// Simply converting type, must be a better way than this...
+	aTs := c.Client.Torrents()
+	torrents := make([]Torrent, len(aTs))
+	for i, t := range aTs {
+		torrents[i] = t
 	}
-
-	select {
-	case <-t.GotInfo():
-	case <-time.After(c.infoTimeout):
-		return "", errors.New("info grab timed out")
-	}
-	// TODO: Start downloading?
-	hash := t.InfoHash()
-	return hash.HexString(), nil
+	return torrents
 }
 
-func (c *TorrentClient) AddFromInfoHash(hashString string) error {
-	hash := metainfo.Hash{}
-	err := hash.FromHexString(hashString)
-	if err != nil {
-		return err
-	}
-
-	t, _ := c.client.AddTorrentInfoHash(hash)
-	<-t.GotInfo()
-
-	return nil
-}
-
-func (c *TorrentClient) RemoveByHash(hashString string) error {
-	hash := metainfo.Hash{}
-	hash.FromHexString(hashString)
-
-	t, ok := c.client.Torrent(hash)
-	if !ok {
-		return errors.New("Torrent not found")
-	}
-
-	t.Drop()
-
-	return nil
-}
-
-func (c *TorrentClient) GetReaderForFileInTorrent(hashString string, fileIndex int) (torrent.Reader, error) {
-	hash := metainfo.Hash{}
-	hash.FromHexString(hashString)
-
-	t, ok := c.client.Torrent(hash)
-	if !ok {
-		return nil, errors.New("Torrent not found")
-	}
-
-	<-t.GotInfo()
-	files := t.Files()
-
-	return files[fileIndex].NewReader(), nil
-}
-
-func (c *TorrentClient) GetFiles(hashString string) ([]string, error) {
-	hash := metainfo.Hash{}
-	hash.FromHexString(hashString)
-
-	t, ok := c.client.Torrent(hash)
-	if !ok {
-		return nil, errors.New("Torrent not found")
-	}
-
-	files := t.Files()
-	var filePaths []string
-	for _, file := range files {
-		filePaths = append(filePaths, file.DisplayPath())
-	}
-
-	return filePaths, nil
-}
-
-func downloadFileFromResponse(resp *http.Response, filePath string) error {
-	// Get the data
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("couldn't reach file server with code: %v", resp.StatusCode)
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
+func (c *Client) Torrent(h metainfo.Hash) (Torrent, bool) {
+	return c.Client.Torrent(h)
 }

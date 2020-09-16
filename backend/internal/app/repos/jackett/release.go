@@ -1,4 +1,4 @@
-package torznab
+package jackett
 
 import (
 	"encoding/xml"
@@ -36,30 +36,30 @@ type Item struct {
 	TorznabAttrs   []TorznabAttr          `xml:"attr"` // Used for immediate parsing but map is more useful
 }
 
-type IndexerQueryHandler struct {
+type ReleaseRepo struct {
 	Qualities []app.Quality
 	Indexers  []app.Indexer
 }
 
-// NewIndexerQueryHandler instantiates a new IndexerQueryHandler object that implements torznab queries/indexers
-func NewIndexerQueryHandler(indexers []app.Indexer, qualities []app.Quality) (*IndexerQueryHandler, error) {
-	return &IndexerQueryHandler{
+// NewReleaseRepo instantiates a new ReleaseRepo object that implements torznab queries/indexers
+func NewReleaseRepo(indexers []app.Indexer, qualities []app.Quality) (*ReleaseRepo, error) {
+	return &ReleaseRepo{
 		Indexers:  indexers,
 		Qualities: qualities,
 	}, nil
 }
 
-func (iqh *IndexerQueryHandler) QueryMovie(imdbID string, title string, year string, minQuality int) ([]app.Torrent, error) {
-	torznabResponses, err := iqh.torznabQuery(imdbID, fmt.Sprintf("%s %s %s", title, year, iqh.Qualities[minQuality].Regex))
+func (s *ReleaseRepo) QueryAllIndexers(imdbID string, queryString string) ([]app.Release, error) {
+	torznabResponses, err := s.torznabQuery(imdbID, queryString)
 	if err != nil {
 		return nil, err
 	}
 
-	torrents := []app.Torrent{}
+	releases := []app.Release{}
 	for _, resp := range torznabResponses {
 		for _, channel := range resp.Channels {
 			for _, item := range channel.Items {
-				torrents = append(torrents, app.Torrent{
+				releases = append(releases, app.Release{
 					ImdbID:   imdbID,
 					Title:    item.Title,
 					Size:     item.Size,
@@ -76,13 +76,13 @@ func (iqh *IndexerQueryHandler) QueryMovie(imdbID string, title string, year str
 		}
 	}
 
-	return torrents, nil
+	return releases, nil
 }
 
-func (iqh *IndexerQueryHandler) torznabQuery(imdbID string, search string) ([]Rss, error) {
+func (s *ReleaseRepo) torznabQuery(imdbID string, search string) ([]Rss, error) {
 	torznabResponses := []Rss{}
 
-	for _, indexer := range iqh.Indexers {
+	for _, indexer := range s.Indexers {
 		var torznabResp Rss
 		torznabResp.indexer = indexer
 

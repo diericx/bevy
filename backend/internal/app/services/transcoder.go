@@ -1,4 +1,4 @@
-package ffmpeg
+package services
 
 import (
 	"fmt"

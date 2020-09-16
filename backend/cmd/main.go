@@ -1,91 +1,119 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	"github.com/diericx/iceetime/internal/pkg/http"
+	"path/filepath"
+	"time"
 
 	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/pkg/ffmpeg"
-	"github.com/diericx/iceetime/internal/pkg/storm"
+	"github.com/diericx/iceetime/internal/app/http"
+	"github.com/diericx/iceetime/internal/app/repos/jackett"
+	"github.com/diericx/iceetime/internal/app/repos/storm"
+	"github.com/diericx/iceetime/internal/app/services"
+
 	"github.com/diericx/iceetime/internal/pkg/torrent"
-	"github.com/diericx/iceetime/internal/pkg/torznab"
-	"gopkg.in/yaml.v2"
 )
 
 func main() {
-	configLocation := os.Getenv("CONFIG_FILE")
-	dbLocation := os.Getenv("TORRENT_DB_FILE")
-
-	if configLocation == "" {
-		log.Println("No config file")
-		os.Exit(1)
+	// TODO: input from config file
+	torrentFilesPath := "./downloads"
+	torrentDataPath := "./downloads"
+	minSeeders := 3
+	qualities := []app.Quality{
+		app.Quality{
+			Name:       "720p",
+			Regex:      "720",
+			MinSize:    5e8,
+			MaxSize:    1e10,
+			Resolution: "1280x720",
+		},
+		app.Quality{
+			Name:       "1080p",
+			Regex:      "1080",
+			MinSize:    5e8,
+			MaxSize:    1e10,
+			Resolution: "1920x1080",
+		},
 	}
-	if dbLocation == "" {
-		log.Println("No db file location specified")
-		os.Exit(1)
+	indexers := []app.Indexer{
+		app.Indexer{
+			Name:       "1337x",
+			URL:        "http://192.168.1.71:9117/api/v2.0/indexers/1337x/results/torznab",
+			APIKey:     "0x7ym4k6c4nghc6nh6qi3s2pdyicxj19",
+			Categories: "2000,100002,100004,100001,100054,100042,100070,100055,100003,100076,2010,2020,2030,2040,2045,2050,2060,2070,2080",
+		},
 	}
 
-	config := app.Config{}
+	// TODO: input file location from config file
+	stormDB, err := storm.OpenDB(filepath.Join(torrentFilesPath, ".iceetime.storm.db"))
+	defer stormDB.Close()
 
-	// Open release manager config file
-	file, err := os.Open(configLocation)
+	client, err := torrent.NewClient(torrentFilesPath, torrentDataPath, 15, 30, 30)
 	if err != nil {
-		log.Println("Config file not found: ", configLocation)
-		os.Exit(1)
+		panic(err)
 	}
-	defer file.Close()
+	defer client.Close()
 
-	// Decode config yaml
-	d := yaml.NewDecoder(file)
-	if err := d.Decode(&config); err != nil {
-		log.Panicf("Invalid yaml in config: %s", err)
+	//
+	// Initialize repos
+	//
+	torrentMetaRepo := storm.TorrentMeta{
+		DB: stormDB,
 	}
 
-	torrentDAO, err := storm.NewTorrentDAO(dbLocation, config.Qualities)
+	movieTorrentLinkRepo := storm.MovieTorrentLink{
+		DB: stormDB,
+	}
+
+	releaseRepo := jackett.ReleaseRepo{
+		Qualities: qualities,
+		Indexers:  indexers,
+	}
+
+	//
+	// Initialize services
+	//
+	torrentService := services.Torrent{
+		Client:           client,
+		TorrentMetaRepo:  &torrentMetaRepo,
+		GetInfoTimeout:   time.Second * 15,
+		MinSeeders:       minSeeders,
+		TorrentFilesPath: torrentFilesPath,
+	}
 	if err != nil {
-		log.Panicf("Error starting torrent db access object: %s", err)
+		panic(err)
 	}
-	defer torrentDAO.Close()
-
-	torrentClient, err := torrent.NewTorrentClient(config.TorrentFilePath, config.TorrentDataPath, config.TorrentInfoTimeout, config.TorrentEstablishedConnsPerTorrent, config.TorrentHalfOpenConnsPerTorrent)
+	torrentService.AddTorrentsOnDisk()
+	err = torrentService.StartTorrentsAccordingToMetadata()
 	if err != nil {
-		log.Panicf("Error starting torrent client: %s", err)
-	}
-	defer torrentClient.Close()
-
-	torznabIQH, _ := torznab.NewIndexerQueryHandler(config.Indexers, config.Qualities) // TODO: handle this error
-
-	// Add all torrents from disk
-	allTorrents, err := torrentDAO.All()
-	if err != nil {
-		log.Panicf("Error starting indexer query handler: %s", err)
-	}
-	for _, t := range allTorrents {
-		err := torrentClient.AddFromInfoHash(t.InfoHash)
-		if err != nil {
-			log.Panicf("Error adding torrent from state on disk \nTitle: %s\nError: %s", t.Title, err)
-		}
+		panic(err)
 	}
 
-	ffmpegTranscoder := ffmpeg.Transcoder{
-		Config: config.TranscoderConfig,
+	releaseService := services.Release{
+		ReleaseRepo: releaseRepo,
+		Qualities:   qualities,
 	}
 
-	// Create main service
-	iceetimeService := app.IceetimeService{
-		TorrentDAO:          torrentDAO,
-		TorrentClient:       torrentClient,
-		IndexerQueryHandler: torznabIQH,
-		Qualities:           config.Qualities,
-		MinSeeders:          config.MinSeeders,
-		Transcoder:          ffmpegTranscoder,
+	torrentLinkService := services.TorrentLink{
+		MovieTorrentLinkRepo: movieTorrentLinkRepo,
+	}
+
+	// TODO: Input from config file
+	transcoderConfig := app.TranscoderConfig{}
+	transcoderConfig.Video.Format = "ismv"
+	transcoderConfig.Video.CompressionAlgo = "libx264"
+	transcoderConfig.Audio.CompressionAlgo = "copy"
+	transcoder := services.Transcoder{
+		Config: transcoderConfig,
 	}
 
 	httpHandler := http.HTTPHandler{
-		IceetimeService: iceetimeService,
+		TorrentService:     torrentService,
+		ReleaseService:     releaseService,
+		TorrentLinkService: torrentLinkService,
+		Transcoder:         transcoder,
+		Qualities:          qualities,
+		TorrentFilesPath:   torrentFilesPath,
 	}
 
-	httpHandler.Serve()
+	httpHandler.Serve("secret-todo")
 }

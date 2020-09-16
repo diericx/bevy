@@ -1,30 +1,31 @@
 package app
 
 import (
-	"log"
-	"os/exec"
-	"time"
-
-	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/metainfo"
+	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
 
-const InvalidTorrentErr string = "invalid torrent"
-const InvalidIDErr string = "invalid id"
-const IndexerQueryNoResultsErr string = "indexer query gave no results"
-const IndexerQueryErr string = "indexer could not fetch results"
-const NoValidTorrentsInQueryErr string = "no valid release found from query"
-const TorrentByIDNotFoundErr string = "no torrent by that id was found"
-const TorrentFileReaderErr string = "unable to get file reader for torrent"
-const LocalDBQueryErr string = "unable to query local db"
-const LocalDBSaveErr string = "unable to save to local db"
-
+// TODO: input from config file
 const DefaultResolution = "iw:ih"
 const DefaultMaxBitrate = "50M"
 
+func GetDefaultTorrentMeta() TorrentMeta {
+	return TorrentMeta{
+		RatioToStop: 1,
+		HoursToStop: 336,
+		IsStopped:   false,
+	}
+
+}
+
+// These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
+
+// GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
 func GetSupportedVideoFileFormats() []string {
 	return []string{".mkv", ".mp4"}
 }
 
+// GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names
 func GetBlacklistedFileNameContents() []string {
 	return []string{"sample"}
 }
@@ -34,43 +35,42 @@ func GetBlacklistedTorrentNameContents() []string {
 	return []string{"fre", "french", "ita", "italian"}
 }
 
-type Error struct {
-	OrigionalError error
-	Code           int
-	Message        string
-}
-
-func NewError(origionalError error, code int, message string) *Error {
-	log.Printf("%s\n%s", message, origionalError)
-	return &Error{
-		OrigionalError: origionalError,
-		Code:           code,
-		Message:        message,
-	}
-}
-
-func (e Error) Error() string {
-	return e.Message
-}
-
-type MediaMeta struct {
-	Title       string `json:"title"`
-	ReleaseDate string `json:"release_date"`
-}
-
-type Quality struct {
-	Name       string `yaml:"name"`
-	Regex      string `yaml:"regex"`
-	MinSize    int64  `yaml:"minSize"`
-	MaxSize    int64  `yaml:"maxSize"`
-	Resolution string `yaml:"resolution"`
-}
-
+// BasicAuth info for basic auth http requests
 type BasicAuth struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
 
+type TorrentMeta struct {
+	InfoHash     string `storm:"id"`
+	RatioToStop  float32
+	MinutesAlive int
+	HoursToStop  int
+	IsStopped    bool
+}
+
+// TorrentFile represents a file in a torrent
+type TorrentFile struct {
+	Path string
+	Size int64
+}
+
+// Release is a potential torrent for a specific piece of media. We use this info to decide whether or not we want to
+// actually grab the torrent.
+type Release struct {
+	ImdbID      string
+	Title       string
+	Size        int64
+	Link        string
+	LinkAuth    *BasicAuth
+	InfoHash    string
+	Grabs       int
+	Seeders     int
+	MinRatio    float32
+	MinSeedTime int
+}
+
+// Indexer is info we need to hit an indexer for a list of torrents
 type Indexer struct {
 	Name                 string     `yaml:"name"`
 	URL                  string     `yaml:"url"`
@@ -80,27 +80,13 @@ type Indexer struct {
 	Categories           string     `yaml:"categories"`
 }
 
-// Torrent metadata for a certain torrent
-type Torrent struct {
-	ID            int    `storm:"id,increment" json:"id"`
-	Type          string // Movie, Episode, Season, Season Pack, etc.
-	ImdbID        string `storm:"unique" json:"imdbID"`
-	Title         string `json:"title"` // Note: Quality is inferred from this
-	Size          int64  `json:"size"`
-	InfoHash      string `storm:"unique" json:"infoHash"`
-	Grabs         int    `json:"grabs"`
-	Link          string
-	LinkAuth      *BasicAuth // TODO: Encrypt or don't store this?
-	Seeders       int        `json:"seeders"` // Note: subject to change
-	MainFileIndex int
-	Tracker       string
-	MinRatio      float32
-	MinSeedTime   int
-	CreatedAt     time.Time `json:"createdAt"`
-}
-
-type Tmdb struct {
-	ApiKey string `yaml:"apiKey"`
+// Quality contains specifications for a specific quality of torrent and how to infer that quality from a name
+type Quality struct {
+	Name       string `yaml:"name"`
+	Regex      string `yaml:"regex"`
+	MinSize    int64  `yaml:"minSize"`
+	MaxSize    int64  `yaml:"maxSize"`
+	Resolution string `yaml:"resolution"`
 }
 
 type TranscoderConfig struct {
@@ -113,40 +99,33 @@ type TranscoderConfig struct {
 	} `yaml:"audio"`
 }
 
-type Config struct {
-	Indexers                          []Indexer        `yaml:"indexers"`
-	Qualities                         []Quality        `yaml:"qualities"`
-	MinSeeders                        int              `yaml:"minSeeders"`
-	TorrentInfoTimeout                int              `yaml:"torrentInfoTimeout"`
-	TorrentFilePath                   string           `yaml:"torrentFilePath"`
-	TorrentDataPath                   string           `yaml:"torrentDataPath"`
-	TorrentHalfOpenConnsPerTorrent    int              `yaml:"torrentHalfOpenConnsPerTorrent"`
-	TorrentEstablishedConnsPerTorrent int              `yaml:"torrentEstablishedConnsPerTorrent"`
-	Tmdb                              Tmdb             `yaml:"tmdb"`
-	TranscoderConfig                  TranscoderConfig `yaml:"transcoder"`
+// MovieTorrentLink handles linking a Movie to a specific file in a torrent
+type MovieTorrentLink struct {
+	ID              int `storm:"id,increment"`
+	ImdbID          string
+	TorrentInfoHash string
+	FileIndex       int
 }
 
-type TorrentDAO interface {
-	Save(*Torrent) error
-	GetByImdbIDAndMinQuality(imdbID string, minQuality int) (*Torrent, error)
-	GetByID(id int) (*Torrent, error)
+type TorrentMetaRepo interface {
+	Store(TorrentMeta) error
+	GetByInfoHashStr(string) (TorrentMeta, error)
+	RemoveByInfoHashStr(hashStr string) error
+}
+
+type ReleaseRepo interface {
+	GetForMovie(imdbID string, title string, year string, minQuality int) ([]Release, error)
+}
+
+type MovieTorrentLinkRepo interface {
+	Store(MovieTorrentLink) (*MovieTorrentLink, error)
+	GetByImdbID(imdbID string) ([]MovieTorrentLink, error)
 }
 
 type TorrentClient interface {
-	AddFromMagnet(magnet string) (hash string, err error)
-	AddFromFile(filePath string) (hash string, err error)
-	AddFromURLUknownScheme(rawURL string, auth *BasicAuth) (hash string, err error)
-	AddFromInfoHash(infoHash string) error
-	GetFiles(hash string) (files []string, err error)
-	GetReaderForFileInTorrent(hashString string, fileIndex int) (torrent.Reader, error)
-	RemoveByHash(hash string) error
-}
-
-// IndexerQueryHandler given inputs will handle querying indexers for torrents
-type IndexerQueryHandler interface {
-	QueryMovie(imdbID string, title string, year string, minQuality int) ([]Torrent, error)
-}
-
-type Transcoder interface {
-	NewTranscodeCommand(input string, time string, resolution string, maxBitrate string, audioStream int, videoStream int) *exec.Cmd
+	Close()
+	AddMagnet(string) (torrent.Torrent, error)
+	AddFile(string) (torrent.Torrent, error)
+	Torrents() []torrent.Torrent
+	Torrent(metainfo.Hash) (torrent.Torrent, bool)
 }

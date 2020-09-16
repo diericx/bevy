@@ -1,0 +1,33 @@
+
+{{ define "torrents/new.tmpl" }}
+
+<html>
+	<h1>
+        Add Torrent
+	</h1>
+
+    {{if .error}}
+        Error: {{.error}}
+    {{end}}
+
+    <h2>
+        Magnet
+    </h2>
+    <form action="/torrents/new/magnet" method="post">
+        <label for="magnet_link">Magnet:</label><br>
+        <input type="text" id="magnet_link" name="magnet_link" value=""><br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <h2>
+       File
+    </h2>
+    <form action="/torrents/new/file" method="post" enctype="multipart/form-data">
+        <label for="file">File:</label><br>
+        <input type="file" id="file" name="file" value="" accept=".torrent"><br>
+        <input type="submit" value="Submit">
+    </form>
+
+</html>
+
+{{end}}
