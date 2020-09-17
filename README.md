@@ -8,9 +8,9 @@ Iceetime is a self hosted alternative to Popcorntime that aims to improve file a
 
 ### Gist of how it works
 
-Torrents are grabbed from indexers by hitting Jackett (no need to reinvent the wheel here) and then sent to the torrent client. There they are served via HTTP and the file pieces are downloaded as they are needed/streamed. A media player then sits in front of this web server and transcodes the media files in real time (rather than downloading different versions) for the web client. 
+Torrents are grabbed from indexers by hitting Jackett (no need to reinvent the wheel here) and then sent to the torrent client. There they are served via HTTP and the file pieces are downloaded as they are needed/streamed. A media player then sits in front of this web server and transcodes the media files in real time (rather than downloading different versions) for the web client.
 
-This means you can grab a single release at the highest quality/size you are willing, and transcode to meet your current internet speed wherever you are. No need for VPNs on your clients, all torrenting happens on your server/seedbox. 
+This means you can grab a single release at the highest quality/size you are willing, and transcode to meet your current internet speed wherever you are. No need for VPNs on your clients, all torrenting happens on your server/seedbox.
 
 If you are still confused about why this project was started, check out the motivation section at the bottom... but also, I just had some free time and wanted to see how far I could take it :)
 
@@ -55,33 +55,26 @@ Features:
 - [ ] Option to select transcode quality
 - [ ] Page for movies with status about files on disk
 
-# Docker Deployment
+# Deployment
 
-Building
+Building (optional)
 ```
-pushd backend && make docker && popd
-pushd frontend && make docker && popd
+make docker
 ```
 
 Running
 ```
 docker run -it \
--v $(pwd)/config.yaml:/etc/config.yaml \
--v $(pwd)/dbs:/dbs \
--e CONFIG_FILE=/etc/config.yaml \
--e TORRENT_DB_FILE=/dbs/torrent.db \
--p 8080:8080
-iceetime/backend
-
-docker run -it \
--e REACT_APP_TMDB_API_KEY=/etc/config.yaml \
--e REACT_APP_TMDB_API_KEY=<your-api-key> \
--p 3000:3000 \
-iceetime/frontend
+-v $(pwd)/downloads:/downloads \
+-v $(pwd)/internal/app/http/templates:/internal/app/http/templates \
+-v $(pwd)/config.toml:/config.toml \
+-e CONFIG_FILE=/config.toml \
+-p 8080:8080 \
+iceetime/iceetime:latest
 ```
 
 Docker Compose
-
+*Note: Not currently working, getting fix ASAP*
 ```
 jackett:
     image: linuxserver/jackett
@@ -97,22 +90,37 @@ jackett:
       - 9117:9117
     restart: unless-stopped
 
-iceetimeBackend:
+iceetime:
     image: iceetime/backend
     container_name: iceetime-backend
     environment:
         - CONFIG_FILE=/etc/config.yaml
-        - TORRENT_DB_FILE=/dbs/torrent.db
     volumes:
         - /mnt/iceetime/dbs:/dbs
         - /mnt/downloads:/downloads
-
-iceetimeFrontend:
-    image: iceetime/frontend
-    container_name: iceetime-frontend
-    environment:
-        - REACT_APP_TMDB_API_KEY=<your-api-key>
 ```
+
+# Development
+
+When developing you need to run the frontend and backend as sepperate services.
+
+### Backend
+
+`CONFIG_FILE=config.toml go run cmd/main.go`
+
+Available on localhost:8080
+
+### Frontend
+
+Install deps
+
+`pushd frontend && yarn`
+
+Start
+
+`pushd frontend && yarn start`
+
+Available on localhost:3000
 
 # Motivation for this project (issues with Popcorntime)
 

@@ -17,7 +17,7 @@ build: macos linux docker
 
 .PHONY: docker
 docker:
-	@docker build -t iceetime/backend:$(VERSION) -f build/package/Dockerfile .
+	@docker build -t iceetime/iceetime:$(VERSION) .
 
 .PHONY: linux
 linux:
