@@ -1,6 +1,6 @@
 .vscode
 *.mp4
-config.yaml
+config.toml
 *.torrent
 *.mkv
 *.db
