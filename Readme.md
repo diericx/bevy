@@ -1,2 +1,0 @@
-mockgen -source=internal/app/app.go -destination internal/app/mocks/app_mocks.go -package mocks
-mockgen -source=internal/pkg/torrent/client.go -destination internal/app/mocks/torrents_mocks.go -package mocks
