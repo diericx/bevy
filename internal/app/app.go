@@ -70,6 +70,15 @@ type Release struct {
 	MinSeedTime int
 }
 
+type TorrentClientConfig struct {
+	MinSeeders                        int    `toml:"min_seeders"`
+	TorrentInfoTimeout                int    `toml:"torrent_info_timeout"`
+	TorrentFilePath                   string `toml:"torrent_file_path"`
+	TorrentDataPath                   string `toml:"torrent_data_path"`
+	TorrentHalfOpenConnsPerTorrent    int    `toml:"torrent_half_open_conns_per_torrent"`
+	TorrentEstablishedConnsPerTorrent int    `toml:"torrent_established_conns_per_torrent"`
+}
+
 // Indexer is info we need to hit an indexer for a list of torrents
 type Indexer struct {
 	Name                 string     `toml:"name"`
@@ -82,11 +91,11 @@ type Indexer struct {
 
 // Quality contains specifications for a specific quality of torrent and how to infer that quality from a name
 type Quality struct {
-	Name       string `toml:"name"`
-	Regex      string `toml:"regex"`
-	MinSize    int64  `toml:"min_size"`
-	MaxSize    int64  `toml:"max_size"`
-	Resolution string `toml:"resolution"`
+	Name       string  `toml:"name"`
+	Regex      string  `toml:"regex"`
+	MinSize    float64 `toml:"min_size"`
+	MaxSize    float64 `toml:"max_size"`
+	Resolution string  `toml:"resolution"`
 }
 
 type TranscoderConfig struct {

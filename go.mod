@@ -3,6 +3,7 @@ module github.com/diericx/iceetime
 go 1.14
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/anacrolix/torrent v1.15.2
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/asdine/storm/v3 v3.2.1

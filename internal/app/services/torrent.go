@@ -228,7 +228,7 @@ func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quali
 	})
 
 	for _, r := range releases {
-		if r.Size < q.MinSize || r.Size > q.MaxSize {
+		if float64(r.Size) < q.MinSize || float64(r.Size) > q.MaxSize {
 			log.Printf("INFO: Passing on release %s because size %v is not correct.", r.Title, r.Size)
 			continue
 		}

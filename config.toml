@@ -1,3 +1,5 @@
+tmdb_apiKey = "8aa5bee9448a33d049f8ab49da08c30e"
+
 [[indexers]]
   name = "1337x"
   url = "http://192.168.1.71:9117/api/v2.0/indexers/1337x/results/torznab"
@@ -25,8 +27,6 @@
   [audio]
     compression_algo = "copy"
 
-[tmdb]
-  apiKey = "8aa5bee9448a33d049f8ab49da08c30e"
 
 [torrent_client]
 min_seeders = 2
