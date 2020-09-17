@@ -1,9 +1,11 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/app/http"
 	"github.com/diericx/iceetime/internal/app/repos/jackett"
@@ -13,41 +15,26 @@ import (
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
 
+type tomlConfig struct {
+	Indexers      []app.Indexer
+	Qualities     []app.Quality
+	Transcoder    app.TranscoderConfig
+	TmdbAPIKey    string
+	TorrentClient app.TorrentClientConfig
+}
+
 func main() {
 	// TODO: input from config file
-	torrentFilesPath := "./downloads"
-	torrentDataPath := "./downloads"
-	minSeeders := 3
-	qualities := []app.Quality{
-		app.Quality{
-			Name:       "720p",
-			Regex:      "720",
-			MinSize:    5e8,
-			MaxSize:    1e10,
-			Resolution: "1280x720",
-		},
-		app.Quality{
-			Name:       "1080p",
-			Regex:      "1080",
-			MinSize:    5e8,
-			MaxSize:    1e10,
-			Resolution: "1920x1080",
-		},
-	}
-	indexers := []app.Indexer{
-		app.Indexer{
-			Name:       "1337x",
-			URL:        "http://192.168.1.71:9117/api/v2.0/indexers/1337x/results/torznab",
-			APIKey:     "0x7ym4k6c4nghc6nh6qi3s2pdyicxj19",
-			Categories: "2000,100002,100004,100001,100054,100042,100070,100055,100003,100076,2010,2020,2030,2040,2045,2050,2060,2070,2080",
-		},
+	var conf tomlConfig
+	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
+		panic(err)
 	}
 
 	// TODO: input file location from config file
-	stormDB, err := storm.OpenDB(filepath.Join(torrentFilesPath, ".iceetime.storm.db"))
+	stormDB, err := storm.OpenDB(filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db"))
 	defer stormDB.Close()
 
-	client, err := torrent.NewClient(torrentFilesPath, torrentDataPath, 15, 30, 30)
+	client, err := torrent.NewClient(conf.TorrentClient.TorrentFilePath, conf.TorrentClient.TorrentDataPath, 15, 30, 30)
 	if err != nil {
 		panic(err)
 	}
@@ -65,8 +52,8 @@ func main() {
 	}
 
 	releaseRepo := jackett.ReleaseRepo{
-		Qualities: qualities,
-		Indexers:  indexers,
+		Qualities: conf.Qualities,
+		Indexers:  conf.Indexers,
 	}
 
 	//
@@ -76,8 +63,8 @@ func main() {
 		Client:           client,
 		TorrentMetaRepo:  &torrentMetaRepo,
 		GetInfoTimeout:   time.Second * 15,
-		MinSeeders:       minSeeders,
-		TorrentFilesPath: torrentFilesPath,
+		MinSeeders:       conf.TorrentClient.MinSeeders,
+		TorrentFilesPath: conf.TorrentClient.TorrentFilePath,
 	}
 	if err != nil {
 		panic(err)
@@ -90,7 +77,7 @@ func main() {
 
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,
-		Qualities:   qualities,
+		Qualities:   conf.Qualities,
 	}
 
 	torrentLinkService := services.TorrentLink{
@@ -111,8 +98,8 @@ func main() {
 		ReleaseService:     releaseService,
 		TorrentLinkService: torrentLinkService,
 		Transcoder:         transcoder,
-		Qualities:          qualities,
-		TorrentFilesPath:   torrentFilesPath,
+		Qualities:          conf.Qualities,
+		TorrentFilesPath:   conf.TorrentClient.TorrentFilePath,
 	}
 
 	httpHandler.Serve("secret-todo")

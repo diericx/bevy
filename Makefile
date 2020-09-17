@@ -66,4 +66,5 @@ locust-client:
 	@cd test/locust/dist; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' ../client/...
 
 mocks:
-	mockgen -source=./internal/app/app.go -destination=./internal/pkg/mock/app.go -package=app_mock
+	mockgen -source=internal/app/app.go -destination internal/app/mocks/app_mocks.go -package mocks && \
+	mockgen -source=internal/pkg/torrent/client.go -destination internal/app/mocks/torrents_mocks.go -package mocks

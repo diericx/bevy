@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,6 +38,9 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	r.SetFuncMap(template.FuncMap{
 		"getTorrentProg": getTorrentProg,
 	})
+
+	// Serve frontend static files
+	r.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 
 	r.LoadHTMLGlob("internal/app/http/templates/**/*")
 	r.Use(cors.New(cors.Config{

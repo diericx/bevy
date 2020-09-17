@@ -37,8 +37,8 @@ func GetBlacklistedTorrentNameContents() []string {
 
 // BasicAuth info for basic auth http requests
 type BasicAuth struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Username string `toml:"username"`
+	Password string `toml:"password"`
 }
 
 type TorrentMeta struct {
@@ -70,32 +70,41 @@ type Release struct {
 	MinSeedTime int
 }
 
+type TorrentClientConfig struct {
+	MinSeeders                        int    `toml:"min_seeders"`
+	TorrentInfoTimeout                int    `toml:"torrent_info_timeout"`
+	TorrentFilePath                   string `toml:"torrent_file_path"`
+	TorrentDataPath                   string `toml:"torrent_data_path"`
+	TorrentHalfOpenConnsPerTorrent    int    `toml:"torrent_half_open_conns_per_torrent"`
+	TorrentEstablishedConnsPerTorrent int    `toml:"torrent_established_conns_per_torrent"`
+}
+
 // Indexer is info we need to hit an indexer for a list of torrents
 type Indexer struct {
-	Name                 string     `yaml:"name"`
-	URL                  string     `yaml:"url"`
-	BasicAuth            *BasicAuth `yaml:"basicAuth"`
-	SupportsImdbIDSearch bool       `yaml:"supportsImdbIDSearch"`
-	APIKey               string     `yaml:"apiKey"`
-	Categories           string     `yaml:"categories"`
+	Name                 string     `toml:"name"`
+	URL                  string     `toml:"url"`
+	BasicAuth            *BasicAuth `toml:"basic_auth"`
+	SupportsImdbIDSearch bool       `toml:"supports_imdb_id_search"`
+	APIKey               string     `toml:"api_key"`
+	Categories           string     `toml:"categories"`
 }
 
 // Quality contains specifications for a specific quality of torrent and how to infer that quality from a name
 type Quality struct {
-	Name       string `yaml:"name"`
-	Regex      string `yaml:"regex"`
-	MinSize    int64  `yaml:"minSize"`
-	MaxSize    int64  `yaml:"maxSize"`
-	Resolution string `yaml:"resolution"`
+	Name       string  `toml:"name"`
+	Regex      string  `toml:"regex"`
+	MinSize    float64 `toml:"min_size"`
+	MaxSize    float64 `toml:"max_size"`
+	Resolution string  `toml:"resolution"`
 }
 
 type TranscoderConfig struct {
 	Video struct {
 		Format          string `yaml:"format"`
-		CompressionAlgo string `yaml:"compressionAlgo"`
+		CompressionAlgo string `yaml:"compression_algo"`
 	} `yaml:"video"`
 	Audio struct {
-		CompressionAlgo string `yaml:"compressionAlgo"`
+		CompressionAlgo string `yaml:"compression_algo"`
 	} `yaml:"audio"`
 }
 
