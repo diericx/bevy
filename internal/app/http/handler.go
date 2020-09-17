@@ -35,10 +35,12 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	store := cookie.NewStore([]byte(cookieSecret))
 	r.Use(sessions.Sessions("mysession", store))
 
-	r.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 	r.SetFuncMap(template.FuncMap{
 		"getTorrentProg": getTorrentProg,
 	})
+
+	// Serve frontend static files
+	r.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 
 	r.LoadHTMLGlob("internal/app/http/templates/**/*")
 	r.Use(cors.New(cors.Config{

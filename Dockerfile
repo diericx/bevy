@@ -4,12 +4,11 @@ FROM node:13.12.0-alpine as frontend-builder
 WORKDIR /frontend
 ENV PATH /frontend/node_modules/.bin:$PATH
 COPY frontend/package.json ./
-COPY frontend/package-lock.json ./
-RUN npm ci --silent
-RUN npm install react-scripts@3.4.1 -g --silent
-COPY frontend ./
+COPY frontend/yarn.lock ./
+RUN yarn install --pure-lockfile
 
-RUN npm run build
+COPY frontend ./
+RUN yarn build
 
 # => backend build env
 FROM golang:1.14 as backend-builder
