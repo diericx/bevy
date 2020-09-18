@@ -128,7 +128,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
 		})
 
-		group.GET("/torrents/new/find_for_movie", func(c *gin.Context) {
+		group.GET("/torrents/find_for_movie", func(c *gin.Context) {
 			imdbID := c.Query("imdb_id")
 			title := c.Query("title")
 			year := c.Query("year")
