@@ -203,7 +203,11 @@ func (s *Torrent) Get() ([]torrent.Torrent, error) {
 }
 
 func (s *Torrent) GetByInfoHashStr(infoHashStr string) (torrent.Torrent, error) {
-	hash := metainfo.NewHashFromHex(infoHashStr)
+	var hash metainfo.Hash
+	err := hash.FromHexString(infoHashStr)
+	if err != nil {
+		return nil, err
+	}
 	t, ok := s.Client.Torrent(hash)
 	if !ok {
 		return nil, errors.New("torrent not found")
