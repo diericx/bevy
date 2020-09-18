@@ -42,11 +42,13 @@ type BasicAuth struct {
 }
 
 type TorrentMeta struct {
-	InfoHash     string `storm:"id"`
-	RatioToStop  float32
-	MinutesAlive int
-	HoursToStop  int
-	IsStopped    bool
+	InfoHash         string  `storm:"id" json:"-"`
+	RatioToStop      float32 `json:"ratioToStop"`
+	MinutesAlive     int     `json:"minutesAlive"`
+	HoursToStop      int     `json:"hourseToStop"`
+	IsStopped        bool    `json:"isStopped"`
+	BytesWrittenData int64   `json:"bytesWrittenData"`
+	BytesReadData    int64   `json:"bytesReadData"`
 }
 
 // TorrentFile represents a file in a torrent
@@ -77,6 +79,7 @@ type TorrentClientConfig struct {
 	TorrentDataPath                   string `toml:"data_path"`
 	TorrentHalfOpenConnsPerTorrent    int    `toml:"half_open_conns_per_torrent"`
 	TorrentEstablishedConnsPerTorrent int    `toml:"established_conns_per_torrent"`
+	MetaRefreshRate                   int    `toml:"meta_refresh_rate"`
 }
 
 // Indexer is info we need to hit an indexer for a list of torrents

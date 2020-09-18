@@ -35,3 +35,4 @@ file_path = "downloads"
 data_path = "downloads"
 established_conns_per_torrent = 15
 torrent_half_open_conns_per_torrent = 15
+meta_refresh_rate = 5

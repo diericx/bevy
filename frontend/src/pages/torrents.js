@@ -62,6 +62,8 @@ export default class Torrents extends React.Component {
                   <th>Size</th>
                   <th>Progress</th>
                   <th>Peers</th>
+                  <th>Uploaded</th>
+                  <th>Downloaded</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,6 +83,8 @@ export default class Torrents extends React.Component {
                       <td>
                         {torrent.activePeers}({torrent.totalPeers})
                       </td>
+                      <td>{prettyBytes(torrent.bytesWrittenData)}</td>
+                      <td>{prettyBytes(torrent.bytesReadData)}</td>
                     </tr>
                   );
                 })}

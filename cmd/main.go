@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,14 +26,16 @@ type tomlConfig struct {
 }
 
 func main() {
-	// TODO: input from config file
 	var conf tomlConfig
 	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
 		panic(err)
 	}
+	// TODO: real check function on configuration
+	if conf.TorrentClient.MetaRefreshRate < 1 {
+		panic(errors.New("Torrent client refresh rate cannot be less than 1"))
+	}
 	log.Printf("%+v", conf)
 
-	// TODO: input file location from config file
 	stormDB, err := storm.OpenDB(filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db"))
 	defer stormDB.Close()
 
@@ -71,11 +74,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// Add and start (if running) torrents on disk
 	torrentService.AddTorrentsOnDisk()
 	err = torrentService.StartTorrentsAccordingToMetadata()
 	if err != nil {
 		panic(err)
 	}
+	// Start maintinence thread which keeps meta up to date
+	go func() {
+		for {
+			err := torrentService.UpdateMetaForAllTorrents()
+			if err != nil {
+				log.Println(err)
+				panic(err)
+			}
+			time.Sleep(time.Duration(conf.TorrentClient.MetaRefreshRate) * time.Second)
+		}
+	}()
 
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,

@@ -18,39 +18,6 @@ type Torrent interface {
 	Stats() torrent.TorrentStats
 }
 
-type TorrentStruct struct {
-	BytesCompleted int64  `json:"bytesCompleted"`
-	Length         int64  `json:"length"`
-	InfoHash       string `json:"infoHash"`
-	Name           string `json:"name"`
-	TotalPeers     int    `json:"totalPeers"`
-	ActivePeers    int    `json:"activePeers"`
-}
-
-func torrentToStruct(t Torrent) TorrentStruct {
-	stats := t.Stats()
-	return TorrentStruct{
-		t.BytesCompleted(),
-		t.Length(),
-		t.InfoHash().HexString(),
-		t.Name(),
-		stats.TotalPeers,
-		stats.ActivePeers,
-	}
-}
-
-func TorrentToStruct(t Torrent) TorrentStruct {
-	return torrentToStruct(t)
-}
-
-func TorrentArrayToStructs(torrents []Torrent) []TorrentStruct {
-	torrentsAsStructs := make([]TorrentStruct, len(torrents))
-	for i, t := range torrents {
-		torrentsAsStructs[i] = torrentToStruct(t)
-	}
-	return torrentsAsStructs
-}
-
 type Client struct {
 	*torrent.Client
 }

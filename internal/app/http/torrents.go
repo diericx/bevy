@@ -19,6 +19,29 @@ type NewTorrentFromMagnet struct {
 	MagnetURL string `form:"magnet_url" json:"magnet_url" binding:"required"`
 }
 
+type Torrent struct {
+	app.TorrentMeta
+	// Comes from torrent interface
+	BytesCompleted int64  `json:"bytesCompleted"`
+	Length         int64  `json:"length"`
+	InfoHash       string `json:"infoHash"`
+	Name           string `json:"name"`
+	TotalPeers     int    `json:"totalPeers"`
+	ActivePeers    int    `json:"activePeers"`
+}
+
+func newTorrentResponseFromInterfaceAndMetadata(tIn torrent.Torrent, meta app.TorrentMeta) Torrent {
+	return Torrent{
+		TorrentMeta:    meta,
+		BytesCompleted: tIn.BytesCompleted(),
+		Length:         tIn.Length(),
+		InfoHash:       tIn.InfoHash().HexString(),
+		Name:           tIn.Name(),
+		TotalPeers:     tIn.Stats().TotalPeers,
+		ActivePeers:    tIn.Stats().ActivePeers,
+	}
+}
+
 func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 	s := h.TorrentService
 
@@ -41,7 +64,8 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			t, err := s.AddFromFile(filename, app.GetDefaultTorrentMeta())
+			meta := app.GetDefaultTorrentMeta()
+			t, err := s.AddFromFile(filename, meta)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"error": err.Error(),
@@ -54,7 +78,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			c.JSON(http.StatusOK, gin.H{
 				"error":   nil,
-				"torrent": torrent.TorrentToStruct(t),
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
 			})
 		})
 
@@ -68,7 +92,8 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			t, err := s.AddFromMagnet(json.MagnetURL, app.GetDefaultTorrentMeta())
+			meta := app.GetDefaultTorrentMeta()
+			t, err := s.AddFromMagnet(json.MagnetURL, meta)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"error": err.Error(),
@@ -78,14 +103,27 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			c.JSON(http.StatusOK, gin.H{
 				"error":   nil,
-				"torrent": torrent.TorrentToStruct(t),
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
 			})
 		})
 
 		group.GET("/torrents", func(c *gin.Context) {
 			torrents, err := s.Get()
+			torrentResponses := make([]Torrent, len(torrents))
+
+			for i, t := range torrents {
+				meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+				if err != nil {
+					c.JSON(http.StatusOK, gin.H{
+						"error": err.Error(),
+					})
+				}
+
+				torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, meta)
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"torrents": torrent.TorrentArrayToStructs(torrents),
+				"torrents": torrentResponses,
 				"error":    err,
 			})
 		})
@@ -100,8 +138,15 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
+			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"torrent": torrent.TorrentToStruct(t),
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
 				"error":   err.Error(),
 			})
 		})

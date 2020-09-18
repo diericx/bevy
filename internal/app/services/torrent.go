@@ -30,6 +30,31 @@ type Torrent struct {
 	TorrentFilesPath string
 }
 
+// UpdateMetaForAllTorrents goes through the current torrents in the client, takes a diff between what
+// it and it's stored metadata, then updates the meta with said diff.
+func (s *Torrent) UpdateMetaForAllTorrents() error {
+	torrents := s.Client.Torrents()
+	for _, t := range torrents {
+		stats := t.Stats()
+		meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+		if err != nil {
+			return err
+		}
+
+		bytesWrittenDataDiff := stats.BytesWrittenData.Int64() - meta.BytesWrittenData
+		bytesReadDataDiff := stats.BytesReadData.Int64() - meta.BytesReadData
+
+		// If there is a difference, update meta with diff
+		if bytesReadDataDiff > 0 || bytesWrittenDataDiff > 0 {
+			meta.BytesReadData += bytesReadDataDiff
+			meta.BytesWrittenData += bytesWrittenDataDiff
+			log.Println("Storing meta: %+v", meta)
+			s.TorrentMetaRepo.Store(meta)
+		}
+	}
+	return nil
+}
+
 // AddTorrentsOnDisk adds all torrent files in a dir then async waits for info
 func (s *Torrent) AddTorrentsOnDisk() error {
 	var files []string
