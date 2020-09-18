@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,11 +17,11 @@ import (
 )
 
 type tomlConfig struct {
-	Indexers      []app.Indexer
-	Qualities     []app.Quality
-	Transcoder    app.TranscoderConfig
-	TmdbAPIKey    string
-	TorrentClient app.TorrentClientConfig
+	Indexers      []app.Indexer           `toml:"indexers"`
+	Qualities     []app.Quality           `toml:"qualities"`
+	Transcoder    app.TranscoderConfig    `toml:"transcoder"`
+	TmdbAPIKey    string                  `toml:"tmdb_api_key"`
+	TorrentClient app.TorrentClientConfig `toml:"torrent_client"`
 }
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
 		panic(err)
 	}
+	log.Printf("%+v", conf)
 
 	// TODO: input file location from config file
 	stormDB, err := storm.OpenDB(filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db"))

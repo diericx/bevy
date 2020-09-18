@@ -15,8 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type NewMagnetForm struct {
-	MagnetLink string `form:"magnet_link" binding:"required"`
+type NewTorrentFromMagnet struct {
+	MagnetURL string `form:"magnet_url" json:"magnet_url" binding:"required"`
 }
 
 func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
@@ -54,31 +54,38 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			c.JSON(http.StatusOK, gin.H{
 				"error":   nil,
-				"torrent": torrent.ToJSON(t),
+				"torrent": torrent.TorrentToStruct(t),
 			})
 		})
 
 		group.POST("/torrents/new/magnet", func(c *gin.Context) {
-			var form NewMagnetForm
+			var json NewTorrentFromMagnet
 			// in this case proper binding will be automatically selected
-			if err := c.ShouldBind(&form); err != nil {
+			if err := c.ShouldBindJSON(&json); err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"error": err.Error(),
 				})
 				return
 			}
 
-			t, err := s.AddFromMagnet(form.MagnetLink, app.GetDefaultTorrentMeta())
+			t, err := s.AddFromMagnet(json.MagnetURL, app.GetDefaultTorrentMeta())
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"error":   err,
-				"torrent": torrent.ToJSON(t),
+				"error":   nil,
+				"torrent": torrent.TorrentToStruct(t),
 			})
 		})
 
 		group.GET("/torrents", func(c *gin.Context) {
 			torrents, err := s.Get()
 			c.JSON(http.StatusOK, gin.H{
-				"torrents": torrents,
+				"torrents": torrent.TorrentArrayToStructs(torrents),
 				"error":    err,
 			})
 		})
@@ -94,8 +101,8 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			}
 
 			c.JSON(http.StatusOK, gin.H{
-				"torrent": torrent.ToJSON(t),
-				"error":   err,
+				"torrent": torrent.TorrentToStruct(t),
+				"error":   err.Error(),
 			})
 		})
 
@@ -154,7 +161,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			// Return the torrent if one is already linked to this movie
 			if len(links) > 0 {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error":       false,
+					"error":       nil,
 					"torrentLink": links[0],
 				})
 				return

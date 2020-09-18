@@ -4,6 +4,18 @@ export class TorrentsAPI {
   // API Endpoints
   // ~=~=~=~=~=~=~=~=~=~=~=
 
+  static async NewMagnet(magnet) {
+    return asyncApiCall(`${this.baseURL}/torrents/new/magnet`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        magnet_url: magnet,
+      }),
+    });
+  }
+
   static async Get() {
     return asyncApiCall(`${this.baseURL}/torrents`);
   }
@@ -29,9 +41,9 @@ export class TorrentsAPI {
   }
 }
 
-async function asyncApiCall(url) {
+async function asyncApiCall(url, options) {
   try {
-    const resp = await fetch(url);
+    const resp = await fetch(url, options);
     const json = await resp.json();
     return json;
   } catch (error) {

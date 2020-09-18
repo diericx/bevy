@@ -72,11 +72,11 @@ type Release struct {
 
 type TorrentClientConfig struct {
 	MinSeeders                        int    `toml:"min_seeders"`
-	TorrentInfoTimeout                int    `toml:"torrent_info_timeout"`
-	TorrentFilePath                   string `toml:"torrent_file_path"`
-	TorrentDataPath                   string `toml:"torrent_data_path"`
-	TorrentHalfOpenConnsPerTorrent    int    `toml:"torrent_half_open_conns_per_torrent"`
-	TorrentEstablishedConnsPerTorrent int    `toml:"torrent_established_conns_per_torrent"`
+	TorrentInfoTimeout                int    `toml:"info_timeout"`
+	TorrentFilePath                   string `toml:"file_path"`
+	TorrentDataPath                   string `toml:"data_path"`
+	TorrentHalfOpenConnsPerTorrent    int    `toml:"half_open_conns_per_torrent"`
+	TorrentEstablishedConnsPerTorrent int    `toml:"established_conns_per_torrent"`
 }
 
 // Indexer is info we need to hit an indexer for a list of torrents

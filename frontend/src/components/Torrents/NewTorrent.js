@@ -26,6 +26,7 @@ export default class NewTorrent extends React.Component {
           </Modal.Header>
           <Modal.Body>
             <NewTorrentMagnetForm
+              successHook={this.handleClose}
               formState={this.state}
               handleChange={this.handleChange}
             />

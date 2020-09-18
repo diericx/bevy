@@ -4,14 +4,17 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Table from "react-bootstrap/Table";
+import ProgressBar from "react-bootstrap/ProgressBar";
 import Spinner from "react-bootstrap/Table";
 import "./movie.css";
+import prettyBytes from "pretty-bytes";
 import TorrentStream from "../components/TorrentStream";
 import { result } from "underscore";
 import NewTorrent from "../components/Torrents/NewTorrent.js";
 import { TorrentsAPI } from "../lib/IceetimeAPI";
 
 let backendURL = window._env_.BACKEND_URL;
+const REFRESH_RATE = 1000;
 
 export default class Torrents extends React.Component {
   state = {
@@ -20,10 +23,18 @@ export default class Torrents extends React.Component {
     isLoaded: false,
   };
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.timer = setInterval(() => this.fetchData(), REFRESH_RATE);
+  }
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+
+  async fetchData() {
+    const resp = await TorrentsAPI.Get();
     this.setState({
       isLoaded: true,
-      ...(await TorrentsAPI.Get()),
+      ...resp,
     });
   }
 
@@ -52,13 +63,22 @@ export default class Torrents extends React.Component {
                 </tr>
               </thead>
               <tbody>
-                {torrents.map((torrent) => (
-                  <tr>
-                    <td>{torrent.name}</td>
-                    <td>{torrent.length}</td>
-                    <td>0</td>
-                  </tr>
-                ))}
+                {torrents.map((torrent) => {
+                  const progress =
+                    (100 * torrent.bytesCompleted) / torrent.length;
+                  return (
+                    <tr>
+                      <td>{torrent.name}</td>
+                      <td>{prettyBytes(torrent.length)}</td>
+                      <td>
+                        <ProgressBar
+                          now={progress}
+                          label={`${Math.round(progress)}%`}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           </Col>
