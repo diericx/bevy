@@ -20,6 +20,12 @@ func (r *TorrentMeta) GetByInfoHashStr(infoHashStr string) (app.TorrentMeta, err
 	return meta, err
 }
 
+func (r *TorrentMeta) Get() ([]app.TorrentMeta, error) {
+	var metas []app.TorrentMeta
+	err := r.DB.All(&metas)
+	return metas, err
+}
+
 func (r *TorrentMeta) RemoveByInfoHashStr(hashStr string) error {
 	err := r.DB.DeleteStruct(app.TorrentMeta{InfoHash: hashStr})
 	return err

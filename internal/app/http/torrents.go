@@ -114,9 +114,8 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			for i, t := range torrents {
 				meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
 				if err != nil {
-					c.JSON(http.StatusOK, gin.H{
-						"error": err.Error(),
-					})
+					torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, app.TorrentMeta{})
+					continue
 				}
 
 				torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, meta)

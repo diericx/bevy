@@ -42,7 +42,9 @@ type BasicAuth struct {
 }
 
 type TorrentMeta struct {
-	InfoHash         string  `storm:"id" json:"-"`
+	ID int `storm:"id,increment"`
+	// Would like storm to enforce this to be unique but it bugged out last time...
+	InfoHash         string
 	RatioToStop      float32 `json:"ratioToStop"`
 	MinutesAlive     int     `json:"minutesAlive"`
 	HoursToStop      int     `json:"hourseToStop"`
@@ -122,6 +124,7 @@ type MovieTorrentLink struct {
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
 	GetByInfoHashStr(string) (TorrentMeta, error)
+	Get() ([]TorrentMeta, error)
 	RemoveByInfoHashStr(hashStr string) error
 }
 

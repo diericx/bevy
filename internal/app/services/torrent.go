@@ -20,8 +20,9 @@ import (
 )
 
 type Torrent struct {
-	Client          app.TorrentClient
-	TorrentMetaRepo app.TorrentMetaRepo
+	Client           app.TorrentClient
+	TorrentMetaRepo  app.TorrentMetaRepo
+	torrentStatCache torrent.StatCache
 	// ReleaseRepo          ReleaseRepo
 	// MovieTorrentLinkRepo MovieTorrentLinkRepo
 
@@ -33,23 +34,39 @@ type Torrent struct {
 // UpdateMetaForAllTorrents goes through the current torrents in the client, takes a diff between what
 // it and it's stored metadata, then updates the meta with said diff.
 func (s *Torrent) UpdateMetaForAllTorrents() error {
+	if s.torrentStatCache == nil {
+		s.torrentStatCache = make(torrent.StatCache)
+	}
+
 	torrents := s.Client.Torrents()
 	for _, t := range torrents {
 		stats := t.Stats()
-		meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
-		if err != nil {
-			return err
+		cachedStats, ok := s.torrentStatCache[t.InfoHash().HexString()]
+
+		// Add cache and move on if doesn't exist yet
+		if !ok {
+			s.torrentStatCache[t.InfoHash().HexString()] = t.Stats()
+			continue
 		}
 
-		bytesWrittenDataDiff := stats.BytesWrittenData.Int64() - meta.BytesWrittenData
-		bytesReadDataDiff := stats.BytesReadData.Int64() - meta.BytesReadData
+		bytesWrittenDataDiff := stats.BytesWrittenData.Int64() - cachedStats.BytesWrittenData.Int64()
+		bytesReadDataDiff := stats.BytesReadData.Int64() - cachedStats.BytesReadData.Int64()
 
 		// If there is a difference, update meta with diff
 		if bytesReadDataDiff > 0 || bytesWrittenDataDiff > 0 {
+			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			// if meta doesn't exist, torrent might just be still connecting. Just move on
+			if err != nil {
+				log.Println("ERROR: ", err)
+				continue
+			}
+
 			meta.BytesReadData += bytesReadDataDiff
 			meta.BytesWrittenData += bytesWrittenDataDiff
 			log.Println("Storing meta: %+v", meta)
 			s.TorrentMetaRepo.Store(meta)
+
+			s.torrentStatCache[t.InfoHash().HexString()] = t.Stats()
 		}
 	}
 	return nil
@@ -223,7 +240,22 @@ func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, met
 }
 
 func (s *Torrent) Get() ([]torrent.Torrent, error) {
-	torrents := s.Client.Torrents()
+	torrentMetas, err := s.TorrentMetaRepo.Get()
+	if err != nil {
+		return nil, err
+	}
+	torrents := []torrent.Torrent{}
+	for _, meta := range torrentMetas {
+		var hash metainfo.Hash
+		err := hash.FromHexString(meta.InfoHash)
+		if err != nil {
+			return nil, err
+		}
+		torrent, ok := s.Client.Torrent(hash)
+		if ok {
+			torrents = append(torrents, torrent)
+		}
+	}
 	return torrents, nil
 }
 
