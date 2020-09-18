@@ -14,7 +14,7 @@ import NewTorrent from "../components/Torrents/NewTorrent.js";
 import { TorrentsAPI } from "../lib/IceetimeAPI";
 
 let backendURL = window._env_.BACKEND_URL;
-const REFRESH_RATE = 1000;
+const REFRESH_RATE = 2000;
 
 export default class Torrents extends React.Component {
   state = {
@@ -24,6 +24,7 @@ export default class Torrents extends React.Component {
   };
 
   componentDidMount() {
+    this.fetchData();
     this.timer = setInterval(() => this.fetchData(), REFRESH_RATE);
   }
   componentWillUnmount() {
@@ -60,6 +61,7 @@ export default class Torrents extends React.Component {
                   <th>Name</th>
                   <th>Size</th>
                   <th>Progress</th>
+                  <th>Peers</th>
                 </tr>
               </thead>
               <tbody>
@@ -75,6 +77,9 @@ export default class Torrents extends React.Component {
                           now={progress}
                           label={`${Math.round(progress)}%`}
                         />
+                      </td>
+                      <td>
+                        {torrent.activePeers}({torrent.totalPeers})
                       </td>
                     </tr>
                   );

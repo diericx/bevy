@@ -9,13 +9,10 @@ import Card from "react-bootstrap/Card";
 import "./search.css";
 
 export default class MyComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      query: null,
-      response: null,
-    };
-  }
+  state = {
+    query: null,
+    response: null,
+  };
 
   componentDidMount() {
     let {

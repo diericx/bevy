@@ -15,6 +15,7 @@ type Torrent interface {
 	InfoHash() metainfo.Hash
 	Files() []*torrent.File
 	Name() string
+	Stats() torrent.TorrentStats
 }
 
 type TorrentStruct struct {
@@ -22,14 +23,19 @@ type TorrentStruct struct {
 	Length         int64  `json:"length"`
 	InfoHash       string `json:"infoHash"`
 	Name           string `json:"name"`
+	TotalPeers     int    `json:"totalPeers"`
+	ActivePeers    int    `json:"activePeers"`
 }
 
 func torrentToStruct(t Torrent) TorrentStruct {
+	stats := t.Stats()
 	return TorrentStruct{
 		t.BytesCompleted(),
 		t.Length(),
 		t.InfoHash().HexString(),
 		t.Name(),
+		stats.TotalPeers,
+		stats.ActivePeers,
 	}
 }
 
