@@ -110,10 +110,10 @@ type TranscoderConfig struct {
 
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
 type MovieTorrentLink struct {
-	ID              int `storm:"id,increment"`
-	ImdbID          string
-	TorrentInfoHash string
-	FileIndex       int
+	ID              int    `storm:"id,increment"`
+	ImdbID          string `json:"imdbID"`
+	TorrentInfoHash string `json:"torrentInfoHash"`
+	FileIndex       int    `json:"fileIndex"`
 }
 
 type TorrentMetaRepo interface {

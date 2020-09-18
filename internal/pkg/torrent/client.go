@@ -1,6 +1,8 @@
 package torrent
 
 import (
+	"encoding/json"
+
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 )
@@ -15,6 +17,22 @@ type Torrent interface {
 	InfoHash() metainfo.Hash
 	Files() []*torrent.File
 	Name() string
+}
+
+func ToJSON(t Torrent) []byte {
+	torrentAsStruct := struct {
+		BytesCompleted int64  `json:"bytesCompleted"`
+		Length         int64  `json:"length"`
+		InfoHash       string `json:"infoHash"`
+		Name           string `json:"name"`
+	}{
+		t.BytesCompleted(),
+		t.Length(),
+		t.InfoHash().HexString(),
+		t.Name(),
+	}
+	torrentAsJSON, _ := json.Marshal(torrentAsStruct)
+	return torrentAsJSON
 }
 
 type Client struct {

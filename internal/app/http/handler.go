@@ -42,7 +42,6 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 	// Serve frontend static files
 	r.Use(static.Serve("/", static.LocalFile("./frontend/build", true)))
 
-	r.LoadHTMLGlob("internal/app/http/templates/**/*")
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "PUT", "PATCH"},
@@ -51,10 +50,10 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 		AllowCredentials: true,
 	}))
 
-	root := r.Group("/")
+	v1 := r.Group("/v1")
 
-	h.addTorrentsGroup(root)
-	// h.addTranscoderGroup(root)
+	h.addTorrentsGroup(v1)
+	h.addTranscoderGroup(v1)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
