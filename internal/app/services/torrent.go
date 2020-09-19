@@ -38,8 +38,18 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 		s.torrentStatCache = make(torrent.StatCache)
 	}
 
-	torrents := s.Client.Torrents()
-	for _, t := range torrents {
+	// torrents := s.Client.Torrents()
+	torrentMetas, err := s.TorrentMetaRepo.Get()
+	if err != nil {
+		return err
+	}
+	for _, torrentMeta := range torrentMetas {
+		t, err := s.GetByInfoHashStr(torrentMeta.InfoHash)
+		if err != nil {
+			log.Println("ERROR: ", err)
+			continue
+		}
+
 		stats := t.Stats()
 		cachedStats, ok := s.torrentStatCache[t.InfoHash().HexString()]
 
