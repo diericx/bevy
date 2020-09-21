@@ -153,6 +153,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 		group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
 			hashStr := c.Param("infoHash")
 			fileIndexStr := c.Param("file")
+
 			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{

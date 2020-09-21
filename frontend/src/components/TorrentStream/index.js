@@ -7,7 +7,7 @@ import Row from "react-bootstrap/Row";
 import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import Col from "react-bootstrap/Col";
-import { TorrentsAPI } from "../../lib/IceetimeAPI";
+import { TorrentsAPI, TranscoderAPI} from "../../lib/IceetimeAPI";
 import Torrents from "../../pages/torrents";
 
 let backendURL = window._env_.BACKEND_URL;
@@ -79,6 +79,8 @@ export default class MyComponent extends React.Component {
 
 
     const videoJsOptions = {
+      infoHash: torrentLink.torrentInfoHash,
+      fileIndex: torrentLink.fileIndex,
       autoplay: true,
       controls: true,
       width: 720,
@@ -88,23 +90,23 @@ export default class MyComponent extends React.Component {
       },
       sources: [
         {
-          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:-2", "100G"),
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "iw:ih", "1G"),
           type: "video/mp4",
           label: "Original",
           selected: true,
         },
         {
-          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:1080", "2M"),
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:1080", "2M"),
           type: "video/mp4",
           label: "1080p",
         },
         {
-          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:720", "1M"),
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:720", "1M"),
           type: "video/mp4",
           label: "720p",
         },
         {
-          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:480", "1M"),
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:480", "1M"),
           type: "video/mp4",
           label: "480p",
         },
