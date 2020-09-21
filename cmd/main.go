@@ -36,12 +36,16 @@ func main() {
 	}
 	log.Printf("%+v", conf)
 
-	stormDB, err := storm.OpenDB(filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db"))
+	stormDBFilePath := filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db")
+	stormDB, err := storm.OpenDB(stormDBFilePath)
+	if err != nil {
+		log.Fatalf("Couldn't open torrent file at %s. The file will be created if it doesn't exist, make sure the directory exists and user has proper permissions.", stormDBFilePath)
+	}
 	defer stormDB.Close()
 
 	client, err := torrent.NewClient(conf.TorrentClient.TorrentFilePath, conf.TorrentClient.TorrentDataPath, 15, 30, 30)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Couldn't start torrent client: %s", err.Error())
 	}
 	defer client.Close()
 
@@ -71,22 +75,19 @@ func main() {
 		MinSeeders:       conf.TorrentClient.MinSeeders,
 		TorrentFilesPath: conf.TorrentClient.TorrentFilePath,
 	}
-	if err != nil {
-		panic(err)
-	}
+
 	// Add and start (if running) torrents on disk
 	torrentService.AddTorrentsOnDisk()
 	err = torrentService.StartTorrentsAccordingToMetadata()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error starting existing torrents on disk: %s", err)
 	}
 	// Start maintinence thread which keeps meta up to date
 	go func() {
 		for {
 			err := torrentService.UpdateMetaForAllTorrents()
 			if err != nil {
-				log.Println(err)
-				panic(err)
+				log.Fatalf("Error updating metadata for torrents: %s", err)
 			}
 			time.Sleep(time.Duration(conf.TorrentClient.MetaRefreshRate) * time.Second)
 		}
