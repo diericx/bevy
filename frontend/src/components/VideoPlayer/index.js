@@ -48,11 +48,10 @@ export default class VideoPlayer extends React.Component {
   // so videojs won't create additional wrapper in the DOM
   // see https://github.com/videojs/video.js/pull/3856
   render() {
-    const { infoHash, fileIndex } = this.props;
     return (
       <div>
         <div data-vjs-player>
-          <video ref={ node => this.videoNode = node } className="video-js" infoHash={infoHash} fileIndex={fileIndex}></video>
+          <video ref={ node => this.videoNode = node } className="video-js"></video>
         </div>
       </div>
     )
