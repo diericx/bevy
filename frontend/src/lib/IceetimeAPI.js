@@ -36,8 +36,23 @@ export class TorrentsAPI {
   // URL Composition
   // ~=~=~=~=~=~=~=~=~=~=~=
 
-  static ComposeURLForTorrentStream(infoHash, file, resolution, maxBitrate) {
-    return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}?res=${resolution}&max_bitrate=${maxBitrate}`;
+  static ComposeURLForDirectTorrentStream(infoHash, file) {
+    return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}`
+  }
+
+}
+
+export class TranscoderAPI {
+  static baseURL = "http://localhost:8080/v1";
+
+  static GetMetadataForFile(infoHash, file) {
+    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(infoHash, file)
+    return asyncApiCall(`${this.baseURL}/transcoder/from_url/metadata?url=${fileURL}`);
+  }
+
+  static ComposeURLForTranscodedTorrentStream(infoHash, file, resolution, maxBitrate) {
+    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(infoHash, file)
+    return `${this.baseURL}/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
   }
 }
 

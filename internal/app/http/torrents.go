@@ -1,7 +1,10 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -153,6 +156,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 		group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
 			hashStr := c.Param("infoHash")
 			fileIndexStr := c.Param("file")
+
 			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -177,6 +181,47 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			}
 
 			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
+		})
+
+		group.GET("/torrents/torrent/:infoHash/stream/:file/metadata", func(c *gin.Context) {
+			infoHash := c.Param("infoHash")
+			file := c.Param("file")
+			// TODO: get this from some kind of url composition
+			url := fmt.Sprintf("http://localhost:8080/v1/torrents/torrent/%s/stream/%s", infoHash, file)
+			out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", url).Output()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error":   true,
+					"message": fmt.Sprintf("Error fetching metadata", err.Error()),
+				})
+				return
+			}
+			durString := string(out)
+			durString = durString[:len(durString)-1]
+
+			dur, err := strconv.ParseFloat(durString, 32)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error":   true,
+					"message": fmt.Sprintf("Error fetching metadata", err.Error()),
+				})
+				return
+			}
+
+			// TODO: get full metadata
+			metadata := Metadata{
+				Format: Format{
+					Duration: int(dur),
+				},
+			}
+
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			c.Writer.WriteHeader(http.StatusOK)
+			if err := json.NewEncoder(c.Writer).Encode(metadata); err != nil {
+				panic(err)
+			}
+			return
 		})
 
 		group.GET("/torrents/find_for_movie", func(c *gin.Context) {
