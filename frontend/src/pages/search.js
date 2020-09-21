@@ -9,13 +9,10 @@ import Card from "react-bootstrap/Card";
 import "./search.css";
 
 export default class MyComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      query: null,
-      response: null,
-    };
-  }
+  state = {
+    query: null,
+    response: null,
+  };
 
   componentDidMount() {
     let {
@@ -24,7 +21,6 @@ export default class MyComponent extends React.Component {
       },
     } = this.props;
     let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
-    console.log("Got to search with: ", query);
     fetch(
       `https://api.themoviedb.org/3/search/movie?api_key=${tmdbAPIKey}&query=${query}`
     )
@@ -46,7 +42,7 @@ export default class MyComponent extends React.Component {
   }
 
   onMovieClick(movie) {
-    this.setState({redirect: {to: '/movie', state: {movie} }})
+    this.setState({ redirect: { to: "/movie", state: { movie } } });
   }
 
   render() {
@@ -58,13 +54,15 @@ export default class MyComponent extends React.Component {
     }
 
     if (redirect) {
-      return <Redirect
-        push
-        to={{
-          pathname: redirect.to,
-          state: redirect.state,
-        }}
-      />
+      return (
+        <Redirect
+          push
+          to={{
+            pathname: redirect.to,
+            state: redirect.state,
+          }}
+        />
+      );
     }
 
     return (
@@ -73,7 +71,10 @@ export default class MyComponent extends React.Component {
         {resp.results.map((item) => (
           <Row className="movie-row">
             <Col>
-              <Card className="movie-card" onClick={() => this.onMovieClick(item)}>
+              <Card
+                className="movie-card"
+                onClick={() => this.onMovieClick(item)}
+              >
                 <Row noGutters>
                   <Col xs={1} className="movie-card-poster-col">
                     <Link
@@ -90,7 +91,11 @@ export default class MyComponent extends React.Component {
                     </Link>
                   </Col>
 
-                  <Col xs={11} className="align-items-center" style={{ textAlign: "left" }}>
+                  <Col
+                    xs={11}
+                    className="align-items-center"
+                    style={{ textAlign: "left" }}
+                  >
                     <Card.Body>
                       <Card.Title>
                         <b>{item.title}</b> {item.vote_average}

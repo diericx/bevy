@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import Movies from "./pages/movies";
 import Search from "./pages/search";
 import Movie from "./pages/movie";
+import Torrents from "./pages/torrents";
+
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "video.js/dist/video-js.css";
@@ -27,6 +29,7 @@ export default function App() {
             renders the first one that matches the current URL. */}
         <Switch>
           <Route path="/movie" render={(props) => <Movie {...props} />} />
+          <Route path="/torrents" render={(props) => <Torrents {...props} />} />
           <Route path="/search" render={(props) => <Search {...props} />} />
           <Route path="/" render={(props) => <Movies {...props} />} />
         </Switch>

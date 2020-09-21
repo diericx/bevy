@@ -42,11 +42,15 @@ type BasicAuth struct {
 }
 
 type TorrentMeta struct {
-	InfoHash     string `storm:"id"`
-	RatioToStop  float32
-	MinutesAlive int
-	HoursToStop  int
-	IsStopped    bool
+	ID int `storm:"id,increment"`
+	// Would like storm to enforce this to be unique but it bugged out last time...
+	InfoHash         string
+	RatioToStop      float32 `json:"ratioToStop"`
+	MinutesAlive     int     `json:"minutesAlive"`
+	HoursToStop      int     `json:"hourseToStop"`
+	IsStopped        bool    `json:"isStopped"`
+	BytesWrittenData int64   `json:"bytesWrittenData"`
+	BytesReadData    int64   `json:"bytesReadData"`
 }
 
 // TorrentFile represents a file in a torrent
@@ -72,11 +76,12 @@ type Release struct {
 
 type TorrentClientConfig struct {
 	MinSeeders                        int    `toml:"min_seeders"`
-	TorrentInfoTimeout                int    `toml:"torrent_info_timeout"`
-	TorrentFilePath                   string `toml:"torrent_file_path"`
-	TorrentDataPath                   string `toml:"torrent_data_path"`
-	TorrentHalfOpenConnsPerTorrent    int    `toml:"torrent_half_open_conns_per_torrent"`
-	TorrentEstablishedConnsPerTorrent int    `toml:"torrent_established_conns_per_torrent"`
+	TorrentInfoTimeout                int    `toml:"info_timeout"`
+	TorrentFilePath                   string `toml:"file_path"`
+	TorrentDataPath                   string `toml:"data_path"`
+	TorrentHalfOpenConnsPerTorrent    int    `toml:"half_open_conns_per_torrent"`
+	TorrentEstablishedConnsPerTorrent int    `toml:"established_conns_per_torrent"`
+	MetaRefreshRate                   int    `toml:"meta_refresh_rate"`
 }
 
 // Indexer is info we need to hit an indexer for a list of torrents
@@ -119,6 +124,7 @@ type MovieTorrentLink struct {
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
 	GetByInfoHashStr(string) (TorrentMeta, error)
+	Get() ([]TorrentMeta, error)
 	RemoveByInfoHashStr(hashStr string) error
 }
 

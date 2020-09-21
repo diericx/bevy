@@ -15,8 +15,15 @@ func (r *TorrentMeta) Store(meta app.TorrentMeta) error {
 
 func (r *TorrentMeta) GetByInfoHashStr(infoHashStr string) (app.TorrentMeta, error) {
 	var meta app.TorrentMeta
+	meta.InfoHash = infoHashStr
 	err := r.DB.One("InfoHash", infoHashStr, &meta)
 	return meta, err
+}
+
+func (r *TorrentMeta) Get() ([]app.TorrentMeta, error) {
+	var metas []app.TorrentMeta
+	err := r.DB.All(&metas)
+	return metas, err
 }
 
 func (r *TorrentMeta) RemoveByInfoHashStr(hashStr string) error {
