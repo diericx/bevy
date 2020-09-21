@@ -29,10 +29,10 @@ tmdb_apiKey = ""
 
 
 [torrent_client]
-min_seeders = 2
-info_timeout = 30
-file_path = "downloads"
-data_path = "downloads"
-established_conns_per_torrent = 15
-torrent_half_open_conns_per_torrent = 15
-meta_refresh_rate = 5
+  min_seeders = 2
+  info_timeout = 30
+  file_path = "./downloads"
+  data_path = "./downloads"
+  established_conns_per_torrent = 15
+  torrent_half_open_conns_per_torrent = 15
+  meta_refresh_rate = 5
