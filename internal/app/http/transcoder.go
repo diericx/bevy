@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os/exec"
@@ -48,15 +49,17 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 					})
 					return
 				}
+			} else {
+				log.Println("Error encoding: ", err.Error())
 			}
 		})
-		torrents.GET("/get_metadata", func(c *gin.Context) {
+		torrents.GET("/from_url/metadata", func(c *gin.Context) {
 			url := c.Query("url")
 			out, err := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", url).Output()
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":   true,
-					"message": "Error fetching metadata",
+					"message": fmt.Sprintf("Error fetching metadata", err.Error()),
 				})
 				return
 			}
@@ -68,7 +71,7 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 				log.Println(err)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":   true,
-					"message": "Error parsing metadata",
+					"message": fmt.Sprintf("Error fetching metadata", err.Error()),
 				})
 				return
 			}
