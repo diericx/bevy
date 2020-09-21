@@ -12,6 +12,7 @@ import (
 	"github.com/diericx/iceetime/internal/app/http"
 	"github.com/diericx/iceetime/internal/app/repos/jackett"
 	"github.com/diericx/iceetime/internal/app/repos/storm"
+	"github.com/diericx/iceetime/internal/app/repos/tmdb"
 	"github.com/diericx/iceetime/internal/app/services"
 
 	"github.com/diericx/iceetime/internal/pkg/torrent"
@@ -21,7 +22,7 @@ type tomlConfig struct {
 	Indexers      []app.Indexer           `toml:"indexers"`
 	Qualities     []app.Quality           `toml:"qualities"`
 	Transcoder    app.TranscoderConfig    `toml:"transcoder"`
-	TmdbAPIKey    string                  `toml:"tmdb_api_key"`
+	Tmdb          app.TmdbConfig          `toml:"tmdb"`
 	TorrentClient app.TorrentClientConfig `toml:"torrent_client"`
 }
 
@@ -52,6 +53,10 @@ func main() {
 	//
 	// Initialize repos
 	//
+	tmdbRepo := tmdb.TmdbRepo{
+		APIKey: conf.Tmdb.APIKey,
+	}
+
 	torrentMetaRepo := storm.TorrentMeta{
 		DB: stormDB,
 	}
@@ -68,6 +73,10 @@ func main() {
 	//
 	// Initialize services
 	//
+	tmdbService := services.Tmdb{
+		TmdbRepo: tmdbRepo,
+	}
+
 	torrentService := services.NewTorrentService(
 		client,
 		&torrentMetaRepo,
@@ -104,6 +113,7 @@ func main() {
 	}
 
 	httpHandler := http.HTTPHandler{
+		TmdbService:        tmdbService,
 		TorrentService:     torrentService,
 		ReleaseService:     releaseService,
 		TorrentLinkService: torrentLinkService,

@@ -30,8 +30,6 @@ export default class MyComponent extends React.Component {
     const { movie } = this.props;
     const { torrentLink, isLoading, error } = this.state;
 
-    let releaseDate = movie.release_date.split('-')[0];
-
     if (error) {
       return (
         <Alert variant={'danger'} style={{ width: '80%' }}>
@@ -64,9 +62,9 @@ export default class MyComponent extends React.Component {
           variant="primary"
           onClick={async () => {
             this.findTorrent(
-              movie.externalIDs.imdb_id,
+              movie.imdb_id,
               movie.title,
-              releaseDate
+              movie.release_year
             );
             this.setState({ isLoading: true });
           }}

@@ -22,6 +22,7 @@ type Metadata struct {
 }
 
 type HTTPHandler struct {
+	TmdbService        services.Tmdb
 	TorrentService     services.Torrent
 	ReleaseService     services.Release
 	TorrentLinkService services.TorrentLink
@@ -54,6 +55,7 @@ func (h *HTTPHandler) Serve(cookieSecret string) {
 
 	v1 := r.Group("/v1")
 
+	h.addTmdbGroup(v1)
 	h.addTorrentsGroup(v1)
 	h.addTranscoderGroup(v1)
 
