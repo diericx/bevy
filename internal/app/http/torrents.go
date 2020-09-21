@@ -151,7 +151,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 		})
 
 		group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
-			hashStr := c.Param("infohash")
+			hashStr := c.Param("infoHash")
 			fileIndexStr := c.Param("file")
 			fileIndex, err := strconv.ParseInt(fileIndexStr, 10, 32)
 			if err != nil {
@@ -204,7 +204,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			}
 			// Return the torrent if one is already linked to this movie
 			if len(links) > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{
+				c.JSON(http.StatusOK, gin.H{
 					"error":       nil,
 					"torrentLink": links[0],
 				})

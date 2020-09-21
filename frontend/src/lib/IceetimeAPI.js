@@ -28,15 +28,15 @@ export class TorrentsAPI {
     return asyncApiCall(`${this.baseURL}/torrents/torrent/${infoHash}`);
   }
 
-  static async FindTorrentForMovie(imdbID) {
-    return asyncApiCall(`${this.baseURL}/torrents/find_for_movie`);
+  static async FindTorrentForMovie(imdbID, title, year, minQualityIndex) {
+    return asyncApiCall(`${this.baseURL}/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`);
   }
 
   // ~=~=~=~=~=~=~=~=~=~=~=
   // URL Composition
   // ~=~=~=~=~=~=~=~=~=~=~=
 
-  ComposeURLForTorrentStream(infoHash, file, resolution, maxBitrate) {
+  static ComposeURLForTorrentStream(infoHash, file, resolution, maxBitrate) {
     return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}?res=${resolution}&max_bitrate=${maxBitrate}`;
   }
 }

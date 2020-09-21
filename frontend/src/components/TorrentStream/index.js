@@ -7,51 +7,31 @@ import Row from "react-bootstrap/Row";
 import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import Col from "react-bootstrap/Col";
+import { TorrentsAPI } from "../../lib/IceetimeAPI";
+import Torrents from "../../pages/torrents";
 
 let backendURL = window._env_.BACKEND_URL;
 
 export default class MyComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      torrent: null,
+  state = {
+    torrentLink: null,
+    isLoading: false,
+    error: null,
+  };
+
+  async findTorrent(imdbID, title, year) {
+    // TODO: try catch here to handle network errors
+    const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0)
+    console.log(resp)
+    this.setState({
       isLoading: false,
-      error: null,
-    };
-  }
-
-  findTorrent(imdbID, title, year) {
-    fetch(
-      `http://${backendURL}/find/movie?imdbid=${imdbID}&title=${title}&year=${year}`
-    )
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result && result.error) {
-            this.setState({
-              isLoading: false,
-              error: result,
-            });
-            return
-          }
-
-          this.setState({
-            isLoading: false,
-            torrent: result,
-          });
-        },
-        (error) => {
-          this.setState({
-            isLoading: false,
-            error,
-          });
-        }
-      );
+      ...resp,
+    })
   }
 
   render() {
     const { movie } = this.props;
-    const { torrent, isLoading, error } = this.state;
+    const { torrentLink, isLoading, error } = this.state;
 
     let releaseDate = movie.release_date.split("-")[0];
 
@@ -79,11 +59,11 @@ export default class MyComponent extends React.Component {
       );
     }
 
-    if (!torrent) {
+    if (!torrentLink) {
       return (
         <Button
           variant="primary"
-          onClick={() => {
+          onClick={async () => {
             this.findTorrent(
               movie.externalIDs.imdb_id,
               movie.title,
@@ -108,23 +88,23 @@ export default class MyComponent extends React.Component {
       },
       sources: [
         {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode`,
+          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:-2", "100G"),
           type: "video/mp4",
           label: "Original",
           selected: true,
         },
         {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:1080&max_bitrate=2M`,
+          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:1080", "2M"),
           type: "video/mp4",
           label: "1080p",
         },
         {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:720&max_bitrate=1M`,
+          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:720", "1M"),
           type: "video/mp4",
           label: "720p",
         },
         {
-          src: `http://${backendURL}/stream/torrent/${torrent.id}/transcode?res=-2:480&max_bitrate=1M`,
+          src: TorrentsAPI.ComposeURLForTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:480", "1M"),
           type: "video/mp4",
           label: "480p",
         },
