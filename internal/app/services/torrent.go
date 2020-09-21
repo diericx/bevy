@@ -73,7 +73,6 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 
 			meta.BytesReadData += bytesReadDataDiff
 			meta.BytesWrittenData += bytesWrittenDataDiff
-			log.Println("Storing meta: %+v", meta)
 			s.TorrentMetaRepo.Store(meta)
 
 			s.torrentStatCache[t.InfoHash().HexString()] = t.Stats()
