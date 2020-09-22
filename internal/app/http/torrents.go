@@ -41,228 +41,230 @@ func newTorrentResponseFromInterfaceAndMetadata(tIn torrent.Torrent, meta app.To
 func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 	s := h.TorrentService
 
-	group.POST("/torrents/new/file", func(c *gin.Context) {
+	{
+		group.POST("/torrents/new/file", func(c *gin.Context) {
 
-		// Source
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		filename := filepath.Join(h.TorrentFilesPath, file.Filename)
-		if err := c.SaveUploadedFile(file, filename); err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		meta := app.GetDefaultTorrentMeta()
-		t, err := s.AddFromFile(filename, meta)
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		// Remove old file now that we have one in our system
-		os.Remove(filename)
-
-		c.JSON(http.StatusOK, gin.H{
-			"error":   nil,
-			"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
-		})
-	})
-
-	group.POST("/torrents/new/magnet", func(c *gin.Context) {
-		type Input struct {
-			MagnetURL string `form:"magnet_url" json:"magnet_url" binding:"required"`
-		}
-
-		var input Input
-		// in this case proper binding will be automatically selected
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		meta := app.GetDefaultTorrentMeta()
-		t, err := s.AddFromMagnet(input.MagnetURL, meta)
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"error":   nil,
-			"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
-		})
-	})
-
-	group.GET("/torrents", func(c *gin.Context) {
-		torrents, err := s.Get()
-		torrentResponses := make([]Torrent, len(torrents))
-
-		for i, t := range torrents {
-			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			// Source
+			file, err := c.FormFile("file")
 			if err != nil {
-				torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, app.TorrentMeta{})
-				continue
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
 			}
 
-			torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, meta)
-		}
+			filename := filepath.Join(h.TorrentFilesPath, file.Filename)
+			if err := c.SaveUploadedFile(file, filename); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"torrents": torrentResponses,
-			"error":    err,
+			meta := app.GetDefaultTorrentMeta()
+			t, err := s.AddFromFile(filename, meta)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			// Remove old file now that we have one in our system
+			os.Remove(filename)
+
+			c.JSON(http.StatusOK, gin.H{
+				"error":   nil,
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
+			})
 		})
-	})
 
-	group.GET("/torrents/torrent/:infoHash", func(c *gin.Context) {
-		type Input struct {
-			InfoHash string `uri:"infoHash" binding:"required"`
-		}
-		var input Input
+		group.POST("/torrents/new/magnet", func(c *gin.Context) {
+			type Input struct {
+				MagnetURL string `form:"magnet_url" json:"magnet_url" binding:"required"`
+			}
 
-		if err := c.ShouldBindUri(&input); err != nil {
+			var input Input
+			// in this case proper binding will be automatically selected
+			if err := c.ShouldBindJSON(&input); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			meta := app.GetDefaultTorrentMeta()
+			t, err := s.AddFromMagnet(input.MagnetURL, meta)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
+				"error":   nil,
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
 			})
-			return
-		}
-
-		t, err := s.GetByInfoHashStr(input.InfoHash)
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
-			})
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
-			"error":   err.Error(),
 		})
-	})
 
-	group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
-		type Input struct {
-			InfoHash  string `uri:"infoHash" binding:"required"`
-			FileIndex int    `uri:"file"`
-		}
-		var input Input
+		group.GET("/torrents", func(c *gin.Context) {
+			torrents, err := s.Get()
+			torrentResponses := make([]Torrent, len(torrents))
 
-		if err := c.ShouldBindUri(&input); err != nil {
+			for i, t := range torrents {
+				meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+				if err != nil {
+					torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, app.TorrentMeta{})
+					continue
+				}
+
+				torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, meta)
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
+				"torrents": torrentResponses,
+				"error":    err,
 			})
-			return
-		}
+		})
 
-		t, err := s.GetByInfoHashStr(input.InfoHash)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
+		group.GET("/torrents/torrent/:infoHash", func(c *gin.Context) {
+			type Input struct {
+				InfoHash string `uri:"infoHash" binding:"required"`
+			}
+			var input Input
 
-		readseeker, err := s.GetReadSeekerForFileInTorrent(t, input.FileIndex)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
+			if err := c.ShouldBindUri(&input); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
 
-		http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
-	})
+			t, err := s.GetByInfoHashStr(input.InfoHash)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
 
-	group.GET("/torrents/find_for_movie", func(c *gin.Context) {
-		type Input struct {
-			ImdbID     string `form:"imdb_id" binding:"required"`
-			Title      string `form:"title" binding:"required"`
-			Year       string `form:"year" binding:"required"`
-			MinQuality int    `form:"min_quality"`
-		}
-		var input Input
+			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+			}
 
-		if err := c.ShouldBind(&input); err != nil {
-			log.Println("Error binding json: ", err)
 			c.JSON(http.StatusOK, gin.H{
-				"error": err.Error(),
+				"torrent": newTorrentResponseFromInterfaceAndMetadata(t, meta),
+				"error":   err.Error(),
 			})
-			return
-		}
+		})
 
-		// TODO: Rename links, confusing
-		links, err := h.TorrentLinkService.GetLinksForMovie(input.ImdbID)
-		if err != nil {
-			if err != storm.ErrNotFound {
+		group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
+			type Input struct {
+				InfoHash  string `uri:"infoHash" binding:"required"`
+				FileIndex int    `uri:"file"`
+			}
+			var input Input
+
+			if err := c.ShouldBindUri(&input); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			t, err := s.GetByInfoHashStr(input.InfoHash)
+			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
 			}
-		}
-		// Return the torrent if one is already linked to this movie
-		if len(links) > 0 {
+
+			readseeker, err := s.GetReadSeekerForFileInTorrent(t, input.FileIndex)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
+		})
+
+		group.GET("/torrents/find_for_movie", func(c *gin.Context) {
+			type Input struct {
+				ImdbID     string `form:"imdb_id" binding:"required"`
+				Title      string `form:"title" binding:"required"`
+				Year       string `form:"year" binding:"required"`
+				MinQuality int    `form:"min_quality"`
+			}
+			var input Input
+
+			if err := c.ShouldBind(&input); err != nil {
+				log.Println("Error binding json: ", err)
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			// TODO: Rename links, confusing
+			links, err := h.TorrentLinkService.GetLinksForMovie(input.ImdbID)
+			if err != nil {
+				if err != storm.ErrNotFound {
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error": err.Error(),
+					})
+					return
+				}
+			}
+			// Return the torrent if one is already linked to this movie
+			if len(links) > 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"error":       nil,
+					"torrentLink": links[0],
+				})
+				return
+			}
+
+			releases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year, input.MinQuality)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			t, fileIndex, err := h.TorrentService.AddBestTorrentFromReleases(releases, h.Qualities[input.MinQuality])
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			if t == nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			link, err := h.TorrentLinkService.LinkTorrentToMovie(input.ImdbID, t, fileIndex)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
 			c.JSON(http.StatusOK, gin.H{
 				"error":       nil,
-				"torrentLink": links[0],
+				"torrentLink": link,
 			})
-			return
-		}
-
-		releases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year, input.MinQuality)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		t, fileIndex, err := h.TorrentService.AddBestTorrentFromReleases(releases, h.Qualities[input.MinQuality])
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		if t == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		link, err := h.TorrentLinkService.LinkTorrentToMovie(input.ImdbID, t, fileIndex)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"error":       nil,
-			"torrentLink": link,
 		})
-	})
+	}
 }
