@@ -43,7 +43,6 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 	{
 		group.POST("/torrents/new/file", func(c *gin.Context) {
-
 			// Source
 			file, err := c.FormFile("file")
 			if err != nil {
