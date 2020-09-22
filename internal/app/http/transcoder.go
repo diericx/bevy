@@ -14,7 +14,6 @@ import (
 
 func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 	torrents := rg.Group("/transcoder")
-
 	{
 		torrents.GET("/from_url", func(c *gin.Context) {
 			type Input struct {
