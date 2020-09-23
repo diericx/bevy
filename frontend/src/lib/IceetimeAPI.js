@@ -5,7 +5,7 @@ export class TorrentsAPI {
   // ~=~=~=~=~=~=~=~=~=~=~=
 
   static async NewMagnet(magnet) {
-    return asyncApiCall(`${this.baseURL}/torrents/new/magnet`, {
+    return asyncApiCall(`${this.backendURL}/torrents/new/magnet`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,20 +17,20 @@ export class TorrentsAPI {
   }
 
   static async Get() {
-    return asyncApiCall(`${this.baseURL}/torrents`);
+    return asyncApiCall(`${this.backendURL}/torrents`);
   }
 
   static async GetTorrentByInfoHash(infoHash) {
-    return asyncApiCall(`${this.baseURL}/torrents/torrent/${infoHash}`);
+    return asyncApiCall(`${this.backendURL}/torrents/torrent/${infoHash}`);
   }
 
   static async GetTorrentByInfoHash(infoHash) {
-    return asyncApiCall(`${this.baseURL}/torrents/torrent/${infoHash}`);
+    return asyncApiCall(`${this.backendURL}/torrents/torrent/${infoHash}`);
   }
 
   static async FindTorrentForMovie(imdbID, title, year, minQualityIndex) {
     return asyncApiCall(
-      `${this.baseURL}/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
+      `${this.backendURL}/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
     );
   }
 
@@ -39,12 +39,12 @@ export class TorrentsAPI {
   // ~=~=~=~=~=~=~=~=~=~=~=
 
   static ComposeURLForDirectTorrentStream(infoHash, file) {
-    return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}`;
+    return `${this.backendURL}/torrents/torrent/${infoHash}/stream/${file}`;
   }
 }
 
 export class TranscoderAPI {
-  static baseURL = "http://localhost:8080/v1";
+  static backendURL = window._env_.BACKEND_URL;
 
   static GetMetadataForFile(infoHash, file) {
     const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(
@@ -52,7 +52,7 @@ export class TranscoderAPI {
       file
     );
     return asyncApiCall(
-      `${this.baseURL}/transcoder/from_url/metadata?url=${fileURL}`
+      `${this.backendURL}/transcoder/from_url/metadata?url=${fileURL}`
     );
   }
 
@@ -66,7 +66,7 @@ export class TranscoderAPI {
       infoHash,
       file
     );
-    return `${this.baseURL}/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
+    return `${this.backendURL}/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
   }
 }
 

@@ -33,6 +33,8 @@ COPY --from=frontend-builder /frontend/build /frontend/build
 COPY ./frontend/env.sh .
 COPY ./frontend/.env .
 RUN chmod +x /env.sh
+# This is probably not the best... but allows for env sh to run
+# TODO: have go generate this file!
 RUN chmod -R o+w /frontend
 RUN chown -R nobody:nogroup /frontend
 
