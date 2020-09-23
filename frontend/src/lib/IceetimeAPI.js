@@ -1,5 +1,5 @@
 export class TorrentsAPI {
-  static baseURL = "http://localhost:8080/v1";
+  static backendURL = window._env_.BACKEND_URL;
   // ~=~=~=~=~=~=~=~=~=~=~=
   // API Endpoints
   // ~=~=~=~=~=~=~=~=~=~=~=
@@ -29,7 +29,9 @@ export class TorrentsAPI {
   }
 
   static async FindTorrentForMovie(imdbID, title, year, minQualityIndex) {
-    return asyncApiCall(`${this.baseURL}/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`);
+    return asyncApiCall(
+      `${this.baseURL}/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
+    );
   }
 
   // ~=~=~=~=~=~=~=~=~=~=~=
@@ -37,21 +39,33 @@ export class TorrentsAPI {
   // ~=~=~=~=~=~=~=~=~=~=~=
 
   static ComposeURLForDirectTorrentStream(infoHash, file) {
-    return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}`
+    return `${this.baseURL}/torrents/torrent/${infoHash}/stream/${file}`;
   }
-
 }
 
 export class TranscoderAPI {
   static baseURL = "http://localhost:8080/v1";
 
   static GetMetadataForFile(infoHash, file) {
-    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(infoHash, file)
-    return asyncApiCall(`${this.baseURL}/transcoder/from_url/metadata?url=${fileURL}`);
+    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(
+      infoHash,
+      file
+    );
+    return asyncApiCall(
+      `${this.baseURL}/transcoder/from_url/metadata?url=${fileURL}`
+    );
   }
 
-  static ComposeURLForTranscodedTorrentStream(infoHash, file, resolution, maxBitrate) {
-    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(infoHash, file)
+  static ComposeURLForTranscodedTorrentStream(
+    infoHash,
+    file,
+    resolution,
+    maxBitrate
+  ) {
+    const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(
+      infoHash,
+      file
+    );
     return `${this.baseURL}/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
   }
 }

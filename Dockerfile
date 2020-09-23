@@ -28,10 +28,14 @@ RUN apt-get update && apt-get install -y ffmpeg
 COPY --from=backend-builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=backend-builder /workspace/dist/linux/cmd /server
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
-# TODO: remove this line below
-COPY --from=backend-builder /workspace/internal/app/http/templates /internal/app/http/templates
-
 COPY --from=frontend-builder /frontend/build /frontend/build
+
+COPY ./frontend/env.sh ./env.sh
+COPY ./frontend/.env .
+RUN chmod +x env.sh
+RUN chmod +w ./frontend
+RUN chown nobody:nogroup ./frontend
+
 USER nobody
 
-ENTRYPOINT ["/server"]
+ENTRYPOINT ["/bin/bash", "-c", "/env.sh ./frontend/env-config.js && /server"]
