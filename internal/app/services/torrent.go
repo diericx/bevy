@@ -323,7 +323,9 @@ func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quali
 		)
 		if err != nil {
 			log.Printf("WARNING: could not add torrent magnet for %s\n Err: %s", r.Title, err)
-			s.RemoveByHash(t.InfoHash())
+			if t != nil {
+				s.RemoveByHash(t.InfoHash())
+			}
 			continue
 		}
 		r.InfoHash = t.InfoHash().HexString()
