@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@silvermine/videojs-chromecast": "^1.2.1",
     "@silvermine/videojs-quality-selector": "^1.2.4",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",

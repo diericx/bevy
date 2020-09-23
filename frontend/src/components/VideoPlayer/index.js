@@ -3,12 +3,26 @@ import videojs from 'video.js';
 import TimeRangesSeeking from '../VideojsPlugins/TimeRangesSeeking';
 import DurationFromServer from '../VideojsPlugins/DurationFromServer';
 require('../VideojsPlugins/videojs-quality-selector/src/js')(videojs);
+require('@silvermine/videojs-chromecast')(videojs, {
+  preloadWebComponents: true,
+});
 
 export default class VideoPlayer extends React.Component {
   componentDidMount() {
     // TODO: Maybe this can be done not on mount, somwhere onece?
     videojs.registerPlugin('timeRangesSeeking', TimeRangesSeeking);
     videojs.registerPlugin('durationFromServer', DurationFromServer);
+
+    let options = {
+      ...this.props,
+      controls: true,
+      techOrder: ['chromecast', 'html5'], // You may have more Tech, such as Flash or HLS
+      plugins: {
+        chromecast: {
+          addButtonToControlBar: true,
+        },
+      },
+    };
 
     // instantiate Video.js
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {

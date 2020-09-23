@@ -1403,6 +1403,15 @@
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.3.tgz#5405ee8e444ed212db44e79351f0c70a582aae25"
   integrity sha512-DetpxZw1fzPD5xUBrIAoplLChO2VB8DlL5Gg+I1IR9b2wPqYIca2WSUxL5g1vLeR4MsQq1NeWriXAVffV+U1Fw==
 
+"@silvermine/videojs-chromecast@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@silvermine/videojs-chromecast/-/videojs-chromecast-1.2.1.tgz#c492e249c15249b87aa6e841e9ba9ff57f3d80bf"
+  integrity sha512-j3OC6hl6CLJD7oJ4AEqLAVBveB9n5pxxYIuZkvWoEB+Jr7nJiVj6sTackGZ8ifQUpkmPV6tdfM7pJcGjyLkFSg==
+  dependencies:
+    class.extend "0.9.1"
+    underscore "1.8.3"
+    webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
+
 "@silvermine/videojs-quality-selector@^1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@silvermine/videojs-quality-selector/-/videojs-quality-selector-1.2.4.tgz#6aff612b692f59bb2c0eede76d49469918669cc9"
@@ -10578,6 +10587,11 @@ uncontrollable@^7.0.0:
     invariant "^2.2.4"
     react-lifecycles-compat "^3.0.4"
 
+underscore@1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
+  integrity sha1-Tz+1OxBuYJf8+ctBCfKl6b36UCI=
+
 underscore@1.9.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
@@ -10899,6 +10913,10 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   integrity sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   dependencies:
     minimalistic-assert "^1.0.0"
+
+"webcomponents.js@git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24":
+  version "0.7.24"
+  resolved "git+https://git@github.com/webcomponents/webcomponentsjs.git#8a2e40557b177e2cca0def2553f84c8269c8f93e"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"
