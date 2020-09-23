@@ -30,11 +30,11 @@ COPY --from=backend-builder /workspace/dist/linux/cmd /server
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
-COPY ./frontend/env.sh ./env.sh
-COPY ./frontend/.env .
-RUN chmod +x env.sh
-RUN chmod +w ./frontend
-RUN chown nobody:nogroup ./frontend
+COPY /frontend/env.sh ./env.sh
+COPY /frontend/.env .
+RUN chmod +x /frontend/env.sh
+RUN chmod -R +w /frontend
+RUN chown -R nobody:nogroup /frontend
 
 USER nobody
 
