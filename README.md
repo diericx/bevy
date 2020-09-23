@@ -74,7 +74,6 @@ iceetime/iceetime:latest
 ```
 
 Docker Compose
-*Note: Not currently working, getting fix ASAP*
 ```
 jackett:
     image: linuxserver/jackett
@@ -91,13 +90,18 @@ jackett:
     restart: unless-stopped
 
 iceetime:
-    image: iceetime/backend
-    container_name: iceetime-backend
+    container_name: iceetime
+    image: iceetime/iceetime:95.f1588fd
+    user: 1000:1000
+    restart: unless-stopped
+    ports:
+      - 8086:8080
     environment:
-        - CONFIG_FILE=/etc/config.yaml
+      - BACKEND_URL=http://my-server:8086
+      - CONFIG_FILE=/etc/iceetime/config.toml
     volumes:
-        - /mnt/iceetime/dbs:/dbs
-        - /mnt/downloads:/downloads
+      - /etc/iceetime/config.toml:/etc/iceetime/config.toml
+      - /mnt/media/iceetime/downloads:/downloads
 ```
 
 # Development

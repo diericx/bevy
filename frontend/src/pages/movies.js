@@ -1,18 +1,18 @@
-import React from "react";
-import { Redirect, Link } from "react-router-dom";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Card from "react-bootstrap/Card";
-import Form from "react-bootstrap/Form";
+import React from 'react';
+import { Redirect, Link } from 'react-router-dom';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
 
 const styles = {
   movieCard: {
-    width: "15rem",
-    boxShadow: "0px 0px 10px gray",
-    border: "none",
-    marginTop: "1em",
-    marginBottom: "1em",
+    width: '15rem',
+    boxShadow: '0px 0px 10px gray',
+    border: 'none',
+    marginTop: '1em',
+    marginBottom: '1em',
   },
 };
 
@@ -25,7 +25,7 @@ export default class MyComponent extends React.Component {
       error: null,
       isLoaded: false,
       resp: null,
-      searchQuery: "",
+      searchQuery: '',
       toSearch: false,
     };
   }
@@ -34,7 +34,7 @@ export default class MyComponent extends React.Component {
     event.preventDefault();
     const { searchQuery } = this.state;
 
-    if (searchQuery == "") {
+    if (searchQuery == '') {
       return;
     }
 
@@ -86,7 +86,7 @@ export default class MyComponent extends React.Component {
         <Redirect
           push
           to={{
-            pathname: "/search",
+            pathname: '/search',
             state: { query: searchQuery },
           }}
         />
@@ -125,7 +125,7 @@ export default class MyComponent extends React.Component {
               <Card style={styles.movieCard}>
                 <Link
                   to={{
-                    pathname: "/movie",
+                    pathname: '/movie',
                     state: { movie: item },
                   }}
                 >

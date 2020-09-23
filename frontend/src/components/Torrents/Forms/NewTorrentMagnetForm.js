@@ -1,13 +1,13 @@
-import React from "react";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
-import Alert from "react-bootstrap/Alert";
-import { TorrentsAPI } from "../../../lib/IceetimeAPI";
-import Spinner from "react-bootstrap/esm/Spinner";
+import React from 'react';
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
+import { TorrentsAPI } from '../../../lib/IceetimeAPI';
+import Spinner from 'react-bootstrap/esm/Spinner';
 
 export default class NewTorrentMagnetForm extends React.Component {
   state = {
-    magnet: "",
+    magnet: '',
     isLoaded: true,
   };
 
@@ -36,7 +36,7 @@ export default class NewTorrentMagnetForm extends React.Component {
     let { magnet, error, isLoaded } = this.state;
     return (
       <>
-        {error ? <Alert variant={"danger"}>{error.toString()}</Alert> : null}
+        {error ? <Alert variant={'danger'}>{error.toString()}</Alert> : null}
         <Form onSubmit={this.handleSubmit}>
           <Form.Group controlId="formBasicEmail">
             <Form.Label>Magnet Link</Form.Label>

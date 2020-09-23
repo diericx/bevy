@@ -1,16 +1,13 @@
-
-import React from "react";
-import { Redirect } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import VideoPlayer from "../VideoPlayer";
-import Row from "react-bootstrap/Row";
-import Alert from "react-bootstrap/Alert";
-import Spinner from "react-bootstrap/Spinner";
-import Col from "react-bootstrap/Col";
-import { TorrentsAPI, TranscoderAPI} from "../../lib/IceetimeAPI";
-import Torrents from "../../pages/torrents";
-
-let backendURL = window._env_.BACKEND_URL;
+import React from 'react';
+import { Redirect } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
+import VideoPlayer from '../VideoPlayer';
+import Row from 'react-bootstrap/Row';
+import Alert from 'react-bootstrap/Alert';
+import Spinner from 'react-bootstrap/Spinner';
+import Col from 'react-bootstrap/Col';
+import { TorrentsAPI, TranscoderAPI } from '../../lib/IceetimeAPI';
+import Torrents from '../../pages/torrents';
 
 export default class MyComponent extends React.Component {
   state = {
@@ -21,31 +18,33 @@ export default class MyComponent extends React.Component {
 
   async findTorrent(imdbID, title, year) {
     // TODO: try catch here to handle network errors
-    const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0)
-    console.log(resp)
+    const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0);
+    console.log(resp);
     this.setState({
       isLoading: false,
       ...resp,
-    })
+    });
   }
 
   render() {
     const { movie } = this.props;
     const { torrentLink, isLoading, error } = this.state;
 
-    let releaseDate = movie.release_date.split("-")[0];
+    let releaseDate = movie.release_date.split('-')[0];
 
     if (error) {
-      return <Alert variant={'danger'} style={{width: "80%"}}>
-        Error: {error.message}
-      </Alert>
+      return (
+        <Alert variant={'danger'} style={{ width: '80%' }}>
+          Error: {error.message}
+        </Alert>
+      );
     }
 
     if (isLoading) {
       return (
         <Row
-          style={{ textAlign: "center" }}
-          className={"justify-content-center align-items-center"}
+          style={{ textAlign: 'center' }}
+          className={'justify-content-center align-items-center'}
         >
           <Col sm={12}>
             <p>Searching indexers for movie...</p>
@@ -77,7 +76,6 @@ export default class MyComponent extends React.Component {
       );
     }
 
-
     const videoJsOptions = {
       infoHash: torrentLink.torrentInfoHash,
       fileIndex: torrentLink.fileIndex,
@@ -90,25 +88,45 @@ export default class MyComponent extends React.Component {
       },
       sources: [
         {
-          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "iw:ih", "1G"),
-          type: "video/mp4",
-          label: "Original",
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
+            torrentLink.torrentInfoHash,
+            torrentLink.fileIndex,
+            'iw:ih',
+            '1G'
+          ),
+          type: 'video/mp4',
+          label: 'Original',
           selected: true,
         },
         {
-          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:1080", "2M"),
-          type: "video/mp4",
-          label: "1080p",
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
+            torrentLink.torrentInfoHash,
+            torrentLink.fileIndex,
+            '-2:1080',
+            '2M'
+          ),
+          type: 'video/mp4',
+          label: '1080p',
         },
         {
-          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:720", "1M"),
-          type: "video/mp4",
-          label: "720p",
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
+            torrentLink.torrentInfoHash,
+            torrentLink.fileIndex,
+            '-2:720',
+            '1M'
+          ),
+          type: 'video/mp4',
+          label: '720p',
         },
         {
-          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(torrentLink.torrentInfoHash, torrentLink.fileIndex, "-2:480", "1M"),
-          type: "video/mp4",
-          label: "480p",
+          src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
+            torrentLink.torrentInfoHash,
+            torrentLink.fileIndex,
+            '-2:480',
+            '1M'
+          ),
+          type: 'video/mp4',
+          label: '480p',
         },
       ],
     };
@@ -119,5 +137,4 @@ export default class MyComponent extends React.Component {
       </div>
     );
   }
-
 }

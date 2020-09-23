@@ -28,10 +28,16 @@ RUN apt-get update && apt-get install -y ffmpeg
 COPY --from=backend-builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=backend-builder /workspace/dist/linux/cmd /server
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
-# TODO: remove this line below
-COPY --from=backend-builder /workspace/internal/app/http/templates /internal/app/http/templates
-
 COPY --from=frontend-builder /frontend/build /frontend/build
+
+COPY ./frontend/env.sh .
+COPY ./frontend/.env .
+RUN chmod +x /env.sh
+# This is probably not the best... but allows for env sh to run
+# TODO: have go generate this file!
+RUN chmod -R o+w /frontend
+RUN chown -R nobody:nogroup /frontend
+
 USER nobody
 
-ENTRYPOINT ["/server"]
+ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/build/env-config.js && /server"]
