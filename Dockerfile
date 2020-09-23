@@ -30,12 +30,12 @@ COPY --from=backend-builder /workspace/dist/linux/cmd /server
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
-COPY /frontend/env.sh ./env.sh
-COPY /frontend/.env .
+COPY ./frontend/env.sh /frontend/env.sh
+COPY ./frontend/.env /frontend
 RUN chmod +x /frontend/env.sh
 RUN chmod -R +w /frontend
 RUN chown -R nobody:nogroup /frontend
 
 USER nobody
 
-ENTRYPOINT ["/bin/bash", "-c", "/env.sh ./frontend/env-config.js && /server"]
+ENTRYPOINT ["/bin/bash", "-c", "/frontend/env.sh /frontend/env-config.js && /server"]
