@@ -103,12 +103,8 @@ func main() {
 	}
 
 	// TODO: Input from config file
-	transcoderConfig := app.TranscoderConfig{}
-	transcoderConfig.Video.Format = "ismv"
-	transcoderConfig.Video.CompressionAlgo = "libx264"
-	transcoderConfig.Audio.CompressionAlgo = "copy"
 	transcoder := services.Transcoder{
-		Config: transcoderConfig,
+		Config: conf.Transcoder,
 	}
 
 	httpHandler := http.HTTPHandler{

@@ -13,17 +13,6 @@ export default class VideoPlayer extends React.Component {
     videojs.registerPlugin('timeRangesSeeking', TimeRangesSeeking);
     videojs.registerPlugin('durationFromServer', DurationFromServer);
 
-    let options = {
-      ...this.props,
-      controls: true,
-      techOrder: ['chromecast', 'html5'], // You may have more Tech, such as Flash or HLS
-      plugins: {
-        chromecast: {
-          addButtonToControlBar: true,
-        },
-      },
-    };
-
     // instantiate Video.js
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
       this.currentTime = function (seconds) {

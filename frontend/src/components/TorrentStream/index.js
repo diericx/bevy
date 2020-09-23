@@ -81,10 +81,14 @@ export default class MyComponent extends React.Component {
       fileIndex: torrentLink.fileIndex,
       autoplay: true,
       controls: true,
+      techOrder: ['chromecast', 'html5'], // You may have more Tech, such as Flash or HLS
       width: 720,
       plugins: {
         timeRangesSeeking: {},
         durationFromServer: {},
+        chromecast: {
+          addButtonToControlBar: true,
+        },
       },
       sources: [
         {
