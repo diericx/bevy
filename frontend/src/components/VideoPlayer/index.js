@@ -3,6 +3,7 @@ import videojs from 'video.js';
 import TimeRangesSeeking from '../VideojsPlugins/TimeRangesSeeking';
 import DurationFromServer from '../VideojsPlugins/DurationFromServer';
 require('../VideojsPlugins/videojs-quality-selector/src/js')(videojs);
+require('@silvermine/videojs-chromecast')(videojs, { preloadWebComponents: true });
 
 export default class VideoPlayer extends React.Component {
   componentDidMount() {
@@ -10,8 +11,19 @@ export default class VideoPlayer extends React.Component {
     videojs.registerPlugin("timeRangesSeeking", TimeRangesSeeking);
     videojs.registerPlugin("durationFromServer", DurationFromServer);
 
+    let options = {
+      ...this.props,
+      controls: true,
+      techOrder: [ 'chromecast', 'html5' ], // You may have more Tech, such as Flash or HLS
+      plugins: {
+         chromecast: {
+          addButtonToControlBar: true
+         }
+      }
+   };
+
     // instantiate Video.js
-    this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
+    this.player = videojs(this.videoNode, options, function onPlayerReady() {
       this.currentTime = function(seconds) {
         var seekBar = this.controlBar.progressControl.seekBar;
         if (typeof seconds !== 'undefined') {
