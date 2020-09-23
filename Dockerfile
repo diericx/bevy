@@ -33,9 +33,9 @@ COPY --from=frontend-builder /frontend/build /frontend/build
 COPY ./frontend/env.sh .
 COPY ./frontend/.env .
 RUN chmod +x /env.sh
-RUN chmod -R +w /frontend
+RUN chmod -R o+w /frontend
 RUN chown -R nobody:nogroup /frontend
 
 USER nobody
 
-ENTRYPOINT ["/bin/bash", "-c", "env.sh /frontend/env-config.js && /server"]
+ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/env-config.js && /server"]
