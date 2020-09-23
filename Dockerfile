@@ -1,6 +1,10 @@
 # => frontend build environment
 FROM node:13.12.0-alpine as frontend-builder
 
+# install git
+RUN apk update
+RUN apk add git
+
 WORKDIR /frontend
 ENV PATH /frontend/node_modules/.bin:$PATH
 COPY frontend/package.json ./
