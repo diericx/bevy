@@ -40,4 +40,4 @@ RUN chown -R nobody:nogroup /frontend
 
 USER nobody
 
-ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/env-config.js && /server"]
+ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/build/env-config.js && /server"]
