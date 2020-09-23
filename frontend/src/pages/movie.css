@@ -1,20 +1,24 @@
 .movie-poster {
-    height: 28em;
-    margin-top: 5em;
-    margin-bottom: 5em;
+  height: 28em;
+  margin-top: 5em;
+  margin-bottom: 5em;
 }
 
 .movie-banner-row {
-    background-repeat: no-repeat;
-    background-size: cover;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .movie-banner-row-filler {
-    width: 100%;
-    height: 100%;
-    background-image: linear-gradient(to right, rgba(11.76%, 18.43%, 23.53%, 1.00) 150px, rgba(18.82%, 25.49%, 30.59%, 0.84) 100%)
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    to right,
+    rgba(11.76%, 18.43%, 23.53%, 1) 150px,
+    rgba(18.82%, 25.49%, 30.59%, 0.84) 100%
+  );
 }
 
 .movie-details {
-    color: white;
+  color: white;
 }

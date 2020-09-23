@@ -1,13 +1,13 @@
-import React from "react";
-import { Redirect } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import VideoPlayer from "../VideoPlayer";
-import Row from "react-bootstrap/Row";
-import Alert from "react-bootstrap/Alert";
-import Spinner from "react-bootstrap/Spinner";
-import Col from "react-bootstrap/Col";
-import { TorrentsAPI, TranscoderAPI } from "../../lib/IceetimeAPI";
-import Torrents from "../../pages/torrents";
+import React from 'react';
+import { Redirect } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
+import VideoPlayer from '../VideoPlayer';
+import Row from 'react-bootstrap/Row';
+import Alert from 'react-bootstrap/Alert';
+import Spinner from 'react-bootstrap/Spinner';
+import Col from 'react-bootstrap/Col';
+import { TorrentsAPI, TranscoderAPI } from '../../lib/IceetimeAPI';
+import Torrents from '../../pages/torrents';
 
 export default class MyComponent extends React.Component {
   state = {
@@ -30,11 +30,11 @@ export default class MyComponent extends React.Component {
     const { movie } = this.props;
     const { torrentLink, isLoading, error } = this.state;
 
-    let releaseDate = movie.release_date.split("-")[0];
+    let releaseDate = movie.release_date.split('-')[0];
 
     if (error) {
       return (
-        <Alert variant={"danger"} style={{ width: "80%" }}>
+        <Alert variant={'danger'} style={{ width: '80%' }}>
           Error: {error.message}
         </Alert>
       );
@@ -43,8 +43,8 @@ export default class MyComponent extends React.Component {
     if (isLoading) {
       return (
         <Row
-          style={{ textAlign: "center" }}
-          className={"justify-content-center align-items-center"}
+          style={{ textAlign: 'center' }}
+          className={'justify-content-center align-items-center'}
         >
           <Col sm={12}>
             <p>Searching indexers for movie...</p>
@@ -91,42 +91,42 @@ export default class MyComponent extends React.Component {
           src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
             torrentLink.torrentInfoHash,
             torrentLink.fileIndex,
-            "iw:ih",
-            "1G"
+            'iw:ih',
+            '1G'
           ),
-          type: "video/mp4",
-          label: "Original",
+          type: 'video/mp4',
+          label: 'Original',
           selected: true,
         },
         {
           src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
             torrentLink.torrentInfoHash,
             torrentLink.fileIndex,
-            "-2:1080",
-            "2M"
+            '-2:1080',
+            '2M'
           ),
-          type: "video/mp4",
-          label: "1080p",
+          type: 'video/mp4',
+          label: '1080p',
         },
         {
           src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
             torrentLink.torrentInfoHash,
             torrentLink.fileIndex,
-            "-2:720",
-            "1M"
+            '-2:720',
+            '1M'
           ),
-          type: "video/mp4",
-          label: "720p",
+          type: 'video/mp4',
+          label: '720p',
         },
         {
           src: TranscoderAPI.ComposeURLForTranscodedTorrentStream(
             torrentLink.torrentInfoHash,
             torrentLink.fileIndex,
-            "-2:480",
-            "1M"
+            '-2:480',
+            '1M'
           ),
-          type: "video/mp4",
-          label: "480p",
+          type: 'video/mp4',
+          label: '480p',
         },
       ],
     };

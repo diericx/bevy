@@ -1,10 +1,9 @@
-import React from "react";
-import Row from "react-bootstrap/Row";
-import Container from "react-bootstrap/Container";
-import Col from "react-bootstrap/Col";
-import "./movie.css";
-import TorrentStream from "../components/TorrentStream"
-
+import React from 'react';
+import Row from 'react-bootstrap/Row';
+import Container from 'react-bootstrap/Container';
+import Col from 'react-bootstrap/Col';
+import './movie.css';
+import TorrentStream from '../components/TorrentStream';
 
 let backendURL = window._env_.BACKEND_URL;
 
@@ -69,18 +68,18 @@ export default class MyComponent extends React.Component {
           style={{
             backgroundImage: `url("https://image.tmdb.org/t/p/original${movie.backdrop_path}")`,
           }}
-          className={"movie-banner-row"}
+          className={'movie-banner-row'}
         >
-          <div className={"movie-banner-row-filler"}>
+          <div className={'movie-banner-row-filler'}>
             <Col>
-              <Row className={"align-items-center"}>
+              <Row className={'align-items-center'}>
                 <Col sm={12} md={3}>
                   <img
-                    className={"movie-poster"}
+                    className={'movie-poster'}
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   ></img>
                 </Col>
-                <Col sm={12} md={6} className={"movie-details"}>
+                <Col sm={12} md={6} className={'movie-details'}>
                   <h1>{movie.title}</h1>
                   <p>{movie.vote_average}</p>
                   <h2>Overview</h2>
@@ -92,7 +91,7 @@ export default class MyComponent extends React.Component {
         </Row>
         <br />
         <br />
-        <Row className={"justify-content-center"}>
+        <Row className={'justify-content-center'}>
           <TorrentStream movie={movie} />
         </Row>
         <br />

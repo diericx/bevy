@@ -1,16 +1,16 @@
 .movie-card-img {
-    height: 100%;
-    max-width: 6em;
+  height: 100%;
+  max-width: 6em;
 }
 
 .movie-row {
-    padding-bottom: 1em;
+  padding-bottom: 1em;
 }
 .movie-card:hover {
-    background-color: rgb(244, 244, 244);
-    cursor: pointer;
+  background-color: rgb(244, 244, 244);
+  cursor: pointer;
 }
 
 .card-subtitle {
-    color: darkslategray;
+  color: darkslategray;
 }

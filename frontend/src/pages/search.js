@@ -1,12 +1,12 @@
-import React from "react";
-import { Redirect, Link } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import VideoPlayer from "../components/VideoPlayer";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Card from "react-bootstrap/Card";
-import "./search.css";
+import React from 'react';
+import { Redirect, Link } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
+import VideoPlayer from '../components/VideoPlayer';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import './search.css';
 
 export default class MyComponent extends React.Component {
   state = {
@@ -42,7 +42,7 @@ export default class MyComponent extends React.Component {
   }
 
   onMovieClick(movie) {
-    this.setState({ redirect: { to: "/movie", state: { movie } } });
+    this.setState({ redirect: { to: '/movie', state: { movie } } });
   }
 
   render() {
@@ -79,7 +79,7 @@ export default class MyComponent extends React.Component {
                   <Col xs={1} className="movie-card-poster-col">
                     <Link
                       to={{
-                        pathname: "/movie",
+                        pathname: '/movie',
                         state: { movie: item },
                       }}
                     >
@@ -94,13 +94,13 @@ export default class MyComponent extends React.Component {
                   <Col
                     xs={11}
                     className="align-items-center"
-                    style={{ textAlign: "left" }}
+                    style={{ textAlign: 'left' }}
                   >
                     <Card.Body>
                       <Card.Title>
                         <b>{item.title}</b> {item.vote_average}
                       </Card.Title>
-                      <Card.Subtitle className={"card-subtitle"}>
+                      <Card.Subtitle className={'card-subtitle'}>
                         {item.overview}
                       </Card.Subtitle>
                     </Card.Body>

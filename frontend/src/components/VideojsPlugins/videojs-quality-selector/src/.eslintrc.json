@@ -1,5 +1,3 @@
 {
-
-   "extends": "@silvermine/eslint-config/browser"
-
+  "extends": "@silvermine/eslint-config/browser"
 }

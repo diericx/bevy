@@ -6,9 +6,9 @@ export class TorrentsAPI {
 
   static async NewMagnet(magnet) {
     return asyncApiCall(`${this.backendURL}/v1/torrents/new/magnet`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         magnet_url: magnet,
