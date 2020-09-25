@@ -44,7 +44,7 @@ type BasicAuth struct {
 type TorrentMeta struct {
 	ID int `storm:"id,increment"`
 	// Would like storm to enforce this to be unique but it bugged out last time...
-	InfoHash         string
+	InfoHash         metainfo.Hash
 	RatioToStop      float32 `json:"ratioToStop"`
 	MinutesAlive     int     `json:"minutesAlive"`
 	HoursToStop      int     `json:"hourseToStop"`

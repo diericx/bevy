@@ -51,11 +51,11 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 		}
 
 		stats := t.Stats()
-		cachedStats, ok := s.torrentStatCache[t.InfoHash().HexString()]
+		cachedStats, ok := s.torrentStatCache[t.InfoHash()]
 
 		// Add cache and move on if doesn't exist yet
 		if !ok {
-			s.torrentStatCache[t.InfoHash().HexString()] = t.Stats()
+			s.torrentStatCache[t.InfoHash()] = t.Stats()
 			continue
 		}
 
@@ -64,7 +64,7 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 
 		// If there is a difference, update meta with diff
 		if bytesReadDataDiff > 0 || bytesWrittenDataDiff > 0 {
-			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			meta, err := s.TorrentMetaRepo.GetByInfoHash(t.InfoHash())
 			// if meta doesn't exist, torrent might just be still connecting. Just move on
 			if err != nil {
 				log.Println("ERROR: ", err)
@@ -75,7 +75,7 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 			meta.BytesWrittenData += bytesWrittenDataDiff
 			s.TorrentMetaRepo.Store(meta)
 
-			s.torrentStatCache[t.InfoHash().HexString()] = t.Stats()
+			s.torrentStatCache[t.InfoHash()] = t.Stats()
 		}
 	}
 	return nil
@@ -120,7 +120,7 @@ func (s *Torrent) StartTorrentsAccordingToMetadata() error {
 
 	for _, t := range torrents {
 		// Get meta
-		meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+		meta, err := s.TorrentMetaRepo.GetByInfoHash(t.InfoHash())
 		if err != nil {
 			return err
 		}
