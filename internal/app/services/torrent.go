@@ -22,13 +22,11 @@ import (
 type Torrent struct {
 	Client           app.TorrentClient
 	TorrentMetaRepo  app.TorrentMetaRepo
-	torrentStatCache torrent.StatCache
-	// ReleaseRepo          ReleaseRepo
-	// MovieTorrentLinkRepo MovieTorrentLinkRepo
-
 	GetInfoTimeout   time.Duration
 	MinSeeders       int
 	TorrentFilesPath string
+
+	torrentStatCache torrent.StatCache
 }
 
 // UpdateMetaForAllTorrents goes through the current torrents in the client, takes a diff between what
@@ -38,15 +36,14 @@ func (s *Torrent) UpdateMetaForAllTorrents() error {
 		s.torrentStatCache = make(torrent.StatCache)
 	}
 
-	// torrents := s.Client.Torrents()
 	torrentMetas, err := s.TorrentMetaRepo.Get()
 	if err != nil {
 		return err
 	}
 	for _, torrentMeta := range torrentMetas {
-		t, err := s.GetByInfoHashStr(torrentMeta.InfoHash)
-		if err != nil {
-			log.Println("ERROR: ", err)
+		t, ok := s.Client.Torrent(torrentMeta.InfoHash)
+		if !ok {
+			log.Println("Error updating meta: torrent does not exist in client")
 			continue
 		}
 
@@ -113,10 +110,7 @@ func (s *Torrent) AddTorrentsOnDisk() error {
 
 // StartTorrentsAccordingToMetadata goes through all the torrents, gets metadata and starts if they should be running
 func (s *Torrent) StartTorrentsAccordingToMetadata() error {
-	torrents, err := s.Get()
-	if err != nil {
-		return err
-	}
+	torrents := s.Get()
 
 	for _, t := range torrents {
 		// Get meta
@@ -132,6 +126,8 @@ func (s *Torrent) StartTorrentsAccordingToMetadata() error {
 	return nil
 }
 
+// AddFromMagnet adds a magnet, saves the torrent info to a file and saves metadata with
+// resulting torrent's info hash
 func (s *Torrent) AddFromMagnet(magnet string, meta app.TorrentMeta) (torrent.Torrent, error) {
 	t, err := s.Client.AddMagnet(magnet)
 	if err != nil {
@@ -145,7 +141,7 @@ func (s *Torrent) AddFromMagnet(magnet string, meta app.TorrentMeta) (torrent.To
 	}
 
 	// Save our custom meta
-	meta.InfoHash = t.InfoHash().HexString()
+	meta.InfoHash = t.InfoHash()
 	err = s.TorrentMetaRepo.Store(meta)
 	if err != nil {
 		t.Drop()
@@ -166,8 +162,8 @@ func (s *Torrent) AddFromMagnet(magnet string, meta app.TorrentMeta) (torrent.To
 	return t, nil
 }
 
-// AddFromFile adds a torrent from a file and creates it's own file in the files directory. It does not handle
-// the input file at all other than reading
+// AddFromFile adds a torrent from a file and creates it's own file in the files directory.
+// A TorrentMeta is saved with the resulting torrent info hash.
 func (s *Torrent) AddFromFile(file string, meta app.TorrentMeta) (torrent.Torrent, error) {
 	t, err := s.Client.AddFile(file)
 	if err != nil {
@@ -181,7 +177,7 @@ func (s *Torrent) AddFromFile(file string, meta app.TorrentMeta) (torrent.Torren
 	}
 
 	// Save our custom meta
-	meta.InfoHash = t.InfoHash().HexString()
+	meta.InfoHash = t.InfoHash()
 	err = s.TorrentMetaRepo.Store(meta)
 	if err != nil {
 		t.Drop()
@@ -195,16 +191,12 @@ func (s *Torrent) AddFromFile(file string, meta app.TorrentMeta) (torrent.Torren
 		return nil, err
 	}
 
-	if !meta.IsStopped {
-		t.DownloadAll()
-	}
-
 	return t, nil
 }
 
-// AddFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
+// addFromURLUknownScheme will add the torrent if it is a magnet url, will download a file if it's a
 // file or recursicely follow a redirect
-func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, meta app.TorrentMeta) (torrent.Torrent, error) {
+func (s *Torrent) addFromURLUknownScheme(rawURL string, auth *app.BasicAuth, meta app.TorrentMeta) (torrent.Torrent, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -233,7 +225,7 @@ func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, met
 			if err != nil {
 				return nil, err
 			}
-			return s.AddFromURLUknownScheme(url.String(), auth, meta)
+			return s.addFromURLUknownScheme(url.String(), auth, meta)
 		}
 		return nil, err
 	}
@@ -248,47 +240,16 @@ func (s *Torrent) AddFromURLUknownScheme(rawURL string, auth *app.BasicAuth, met
 	return s.AddFromFile(tempFilePath, meta)
 }
 
-func (s *Torrent) Get() ([]torrent.Torrent, error) {
-	torrentMetas, err := s.TorrentMetaRepo.Get()
-	if err != nil {
-		return nil, err
-	}
-	torrents := []torrent.Torrent{}
-	for _, meta := range torrentMetas {
-		var hash metainfo.Hash
-		err := hash.FromHexString(meta.InfoHash)
-		if err != nil {
-			return nil, err
-		}
-		torrent, ok := s.Client.Torrent(hash)
-		if ok {
-			torrents = append(torrents, torrent)
-		}
-	}
-	return torrents, nil
+func (s *Torrent) Get() []torrent.Torrent {
+	return s.Client.Torrents()
 }
 
-func (s *Torrent) GetByInfoHashStr(infoHashStr string) (torrent.Torrent, error) {
-	var hash metainfo.Hash
-	err := hash.FromHexString(infoHashStr)
-	if err != nil {
-		return nil, err
-	}
-	t, ok := s.Client.Torrent(hash)
+func (s *Torrent) GetByInfoHash(infoHash metainfo.Hash) (torrent.Torrent, error) {
+	t, ok := s.Client.Torrent(infoHash)
 	if !ok {
 		return nil, errors.New("torrent not found")
 	}
 	return t, nil
-}
-
-func (s *Torrent) GetReadSeekerForFileInTorrent(_t torrent.Torrent, fileIndex int) (io.ReadSeeker, error) {
-	t, ok := s.Client.Torrent(_t.InfoHash())
-	if !ok {
-		return nil, errors.New("not found")
-	}
-
-	files := t.Files()
-	return files[fileIndex].NewReader(), nil
 }
 
 func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quality) (torrent.Torrent, int, error) {
@@ -312,11 +273,10 @@ func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quali
 		}
 
 		// Add to client to get hash
-		t, err := s.AddFromURLUknownScheme(
+		t, err := s.addFromURLUknownScheme(
 			r.Link,
 			r.LinkAuth,
 			app.TorrentMeta{
-				InfoHash:    r.InfoHash,
 				RatioToStop: r.MinRatio,
 				HoursToStop: r.MinSeedTime,
 			},
@@ -328,6 +288,7 @@ func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quali
 			}
 			continue
 		}
+
 		r.InfoHash = t.InfoHash().HexString()
 
 		// Attempt to find a valid file
@@ -352,7 +313,7 @@ func (s *Torrent) RemoveByHash(hash metainfo.Hash) error {
 
 	t.Drop()
 
-	err := s.TorrentMetaRepo.RemoveByInfoHashStr(hash.HexString())
+	err := s.TorrentMetaRepo.RemoveByInfoHash(hash)
 	if err != nil {
 		return err
 	}

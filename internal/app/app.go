@@ -123,9 +123,9 @@ type MovieTorrentLink struct {
 
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
-	GetByInfoHashStr(string) (TorrentMeta, error)
+	GetByInfoHash(metainfo.Hash) (TorrentMeta, error)
 	Get() ([]TorrentMeta, error)
-	RemoveByInfoHashStr(hashStr string) error
+	RemoveByInfoHash(metainfo.Hash) error
 }
 
 type ReleaseRepo interface {
