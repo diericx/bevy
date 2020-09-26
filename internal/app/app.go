@@ -15,7 +15,6 @@ func GetDefaultTorrentMeta() TorrentMeta {
 		HoursToStop: 336,
 		IsStopped:   false,
 	}
-
 }
 
 // These functions act as const arrays because go doesn't allow const arrays... I know pretty fucked up
@@ -44,13 +43,15 @@ type BasicAuth struct {
 type TorrentMeta struct {
 	ID int `storm:"id,increment"`
 	// Would like storm to enforce this to be unique but it bugged out last time...
-	InfoHash         metainfo.Hash
-	RatioToStop      float32 `json:"ratioToStop"`
-	MinutesAlive     int     `json:"minutesAlive"`
-	HoursToStop      int     `json:"hourseToStop"`
-	IsStopped        bool    `json:"isStopped"`
-	BytesWrittenData int64   `json:"bytesWrittenData"`
-	BytesReadData    int64   `json:"bytesReadData"`
+	InfoHash                     metainfo.Hash
+	RatioToStop                  float32 `json:"ratioToStop"`
+	SecondsAlive                 int     `json:"secondsAlive"`
+	SecondsSeedingWhileCompleted int     `json:"secondsSeedingWhileCompleted"`
+	HoursToStop                  int     `json:"hourseToStop"`
+	IsStopped                    bool    `json:"isStopped"`
+	BytesWrittenData             int64   `json:"bytesWrittenData"`
+	BytesReadData                int64   `json:"bytesReadData"`
+	DownloadSpeed                float32 `json:"downloadSpeed"`
 }
 
 // TorrentFile represents a file in a torrent

@@ -68,13 +68,13 @@ func main() {
 	//
 	// Initialize services
 	//
-	torrentService := services.Torrent{
-		Client:           client,
-		TorrentMetaRepo:  &torrentMetaRepo,
-		GetInfoTimeout:   time.Second * 15,
-		MinSeeders:       conf.TorrentClient.MinSeeders,
-		TorrentFilesPath: conf.TorrentClient.TorrentFilePath,
-	}
+	torrentService := services.NewTorrentService(
+		client,
+		&torrentMetaRepo,
+		time.Second*15,
+		conf.TorrentClient.MinSeeders,
+		conf.TorrentClient.TorrentFilePath,
+	)
 
 	// Add and start (if running) torrents on disk
 	torrentService.AddTorrentsOnDisk()
@@ -83,15 +83,7 @@ func main() {
 		log.Fatalf("Error starting existing torrents on disk: %s", err)
 	}
 	// Start maintinence thread which keeps meta up to date
-	go func() {
-		for {
-			err := torrentService.UpdateMetaForAllTorrents()
-			if err != nil {
-				log.Fatalf("Error updating metadata for torrents: %s", err)
-			}
-			time.Sleep(time.Duration(conf.TorrentClient.MetaRefreshRate) * time.Second)
-		}
-	}()
+	go torrentService.StartMetaRefreshForAllTorrentsLoop(conf.TorrentClient.MetaRefreshRate)
 
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,
@@ -116,6 +108,7 @@ func main() {
 		ReleaseService:     releaseService,
 		TorrentLinkService: torrentLinkService,
 		Transcoder:         transcoder,
+		TorrentMetaRepo:    torrentMetaRepo,
 		Qualities:          conf.Qualities,
 		TorrentFilesPath:   conf.TorrentClient.TorrentFilePath,
 	}

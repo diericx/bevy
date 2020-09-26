@@ -65,6 +65,8 @@ export default class Torrents extends React.Component {
                   <th>Peers</th>
                   <th>Uploaded</th>
                   <th>Downloaded</th>
+                  <th>Download Speed</th>
+                  <th>Time Seeded While Complete</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,6 +88,8 @@ export default class Torrents extends React.Component {
                       </td>
                       <td>{prettyBytes(torrent.bytesWrittenData)}</td>
                       <td>{prettyBytes(torrent.bytesReadData)}</td>
+                      <td>{prettyBytes(torrent.downloadSpeed)}/s</td>
+                      <td>{torrent.secondsSeedingWhileCompleted}</td>
                     </tr>
                   );
                 })}

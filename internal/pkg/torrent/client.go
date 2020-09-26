@@ -7,6 +7,8 @@ import (
 
 type Torrent interface {
 	BytesCompleted() int64
+	BytesMissing() int64
+	Seeding() bool
 	GotInfo() <-chan struct{}
 	Drop()
 	DownloadAll()

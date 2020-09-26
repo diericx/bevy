@@ -4,6 +4,7 @@ import (
 	"html/template"
 
 	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/iceetime/internal/app/repos/storm"
 	"github.com/diericx/iceetime/internal/app/services"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 	"github.com/gin-contrib/cors"
@@ -25,6 +26,7 @@ type HTTPHandler struct {
 	ReleaseService     services.Release
 	TorrentLinkService services.TorrentLink
 	Transcoder         services.Transcoder
+	TorrentMetaRepo    storm.TorrentMeta
 	Qualities          []app.Quality
 	TorrentFilesPath   string
 }
