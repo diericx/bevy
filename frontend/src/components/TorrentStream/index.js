@@ -35,7 +35,7 @@ export default class MyComponent extends React.Component {
     if (error) {
       return (
         <Alert variant={'danger'} style={{ width: '80%' }}>
-          Error: {error.message}
+          Error: {error}
         </Alert>
       );
     }

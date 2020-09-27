@@ -18,11 +18,10 @@ import (
 )
 
 type tomlConfig struct {
-	Indexers      []app.Indexer           `toml:"indexers"`
-	Qualities     []app.Quality           `toml:"qualities"`
-	Transcoder    app.TranscoderConfig    `toml:"transcoder"`
-	TmdbAPIKey    string                  `toml:"tmdb_api_key"`
-	TorrentClient app.TorrentClientConfig `toml:"torrent_client"`
+	TmdbAPIKey     string                   `toml:"tmdb_api_key"`
+	Transcoder     app.TranscoderConfig     `toml:"transcoder"`
+	TorrentClient  app.TorrentClientConfig  `toml:"torrent_client"`
+	ReleaseService app.ReleaseServiceConfig `toml:"torrent_fetcher"`
 }
 
 func main() {
@@ -61,8 +60,7 @@ func main() {
 	}
 
 	releaseRepo := jackett.ReleaseRepo{
-		Qualities: conf.Qualities,
-		Indexers:  conf.Indexers,
+		Indexers: conf.ReleaseService.Indexers,
 	}
 
 	//
@@ -72,7 +70,6 @@ func main() {
 		client,
 		&torrentMetaRepo,
 		time.Second*15,
-		conf.TorrentClient.MinSeeders,
 		conf.TorrentClient.TorrentFilePath,
 	)
 
@@ -87,7 +84,7 @@ func main() {
 
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,
-		Qualities:   conf.Qualities,
+		Config:      conf.ReleaseService,
 	}
 
 	torrentLinkService := services.TorrentLink{
@@ -109,7 +106,7 @@ func main() {
 		TorrentLinkService: torrentLinkService,
 		Transcoder:         transcoder,
 		TorrentMetaRepo:    torrentMetaRepo,
-		Qualities:          conf.Qualities,
+		Qualities:          conf.ReleaseService.Qualities,
 		TorrentFilesPath:   conf.TorrentClient.TorrentFilePath,
 	}
 
