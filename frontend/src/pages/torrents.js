@@ -8,11 +8,13 @@ import ProgressBar from 'react-bootstrap/ProgressBar';
 import Spinner from 'react-bootstrap/Table';
 import './movie.css';
 import prettyBytes from 'pretty-bytes';
+
 import TorrentStream from '../components/TorrentStream';
 import { result } from 'underscore';
 import NewTorrent from '../components/Torrents/NewTorrent.js';
 import { TorrentsAPI } from '../lib/IceetimeAPI';
 
+var prettyTime = require('pretty-time');
 let backendURL = window._env_.BACKEND_URL;
 const REFRESH_RATE = 2000;
 
@@ -65,6 +67,8 @@ export default class Torrents extends React.Component {
                   <th>Peers</th>
                   <th>Uploaded</th>
                   <th>Downloaded</th>
+                  <th>Download Speed</th>
+                  <th>Time Seeded While Complete</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,6 +90,13 @@ export default class Torrents extends React.Component {
                       </td>
                       <td>{prettyBytes(torrent.bytesWrittenData)}</td>
                       <td>{prettyBytes(torrent.bytesReadData)}</td>
+                      <td>{prettyBytes(torrent.downloadSpeed)}/s</td>
+                      <td>
+                        {prettyTime(
+                          [torrent.secondsSeedingWhileCompleted, 0],
+                          's'
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

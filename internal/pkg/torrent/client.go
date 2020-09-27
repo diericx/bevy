@@ -7,6 +7,8 @@ import (
 
 type Torrent interface {
 	BytesCompleted() int64
+	BytesMissing() int64
+	Seeding() bool
 	GotInfo() <-chan struct{}
 	Drop()
 	DownloadAll()
@@ -18,7 +20,7 @@ type Torrent interface {
 	Stats() torrent.TorrentStats
 }
 
-type StatCache map[string]torrent.TorrentStats
+type StatCache map[metainfo.Hash]torrent.TorrentStats
 
 type Client struct {
 	*torrent.Client

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/anacrolix/torrent/metainfo"
+
 	"github.com/asdine/storm"
 	"github.com/diericx/iceetime/internal/app"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
@@ -108,11 +110,11 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 		})
 
 		group.GET("/torrents", func(c *gin.Context) {
-			torrents, err := s.Get()
+			torrents := s.Get()
 			torrentResponses := make([]Torrent, len(torrents))
 
 			for i, t := range torrents {
-				meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+				meta, err := h.TorrentMetaRepo.GetByInfoHash(t.InfoHash())
 				if err != nil {
 					torrentResponses[i] = newTorrentResponseFromInterfaceAndMetadata(t, app.TorrentMeta{})
 					continue
@@ -123,7 +125,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			c.JSON(http.StatusOK, gin.H{
 				"torrents": torrentResponses,
-				"error":    err,
+				"error":    false,
 			})
 		})
 
@@ -140,7 +142,15 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			t, err := s.GetByInfoHashStr(input.InfoHash)
+			var infoHash metainfo.Hash
+			err := infoHash.FromHexString(input.InfoHash)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+			}
+
+			t, err := s.GetByInfoHash(infoHash)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"error": err.Error(),
@@ -148,7 +158,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			meta, err := s.TorrentMetaRepo.GetByInfoHashStr(t.InfoHash().HexString())
+			meta, err := h.TorrentMetaRepo.GetByInfoHash(t.InfoHash())
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"error": err.Error(),
@@ -164,7 +174,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 		group.GET("/torrents/torrent/:infoHash/stream/:file", func(c *gin.Context) {
 			type Input struct {
 				InfoHash  string `uri:"infoHash" binding:"required"`
-				FileIndex int    `uri:"file"`
+				FileIndex uint   `uri:"file"`
 			}
 			var input Input
 
@@ -175,7 +185,15 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			t, err := s.GetByInfoHashStr(input.InfoHash)
+			var infoHash metainfo.Hash
+			err := infoHash.FromHexString(input.InfoHash)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"error": err.Error(),
+				})
+			}
+
+			t, err := s.GetByInfoHash(infoHash)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
@@ -183,14 +201,14 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			readseeker, err := s.GetReadSeekerForFileInTorrent(t, input.FileIndex)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
+			files := t.Files()
+			if int(input.FileIndex) > len(files) {
+				c.JSON(http.StatusOK, gin.H{
+					"error": "File index not in range of files.",
 				})
-				return
 			}
 
+			readseeker := files[input.FileIndex].NewReader()
 			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
 		})
 

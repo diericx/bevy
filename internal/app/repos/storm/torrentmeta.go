@@ -1,6 +1,7 @@
 package storm
 
 import (
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/asdine/storm"
 	"github.com/diericx/iceetime/internal/app"
 )
@@ -13,20 +14,26 @@ func (r *TorrentMeta) Store(meta app.TorrentMeta) error {
 	return r.DB.Save(&meta)
 }
 
-func (r *TorrentMeta) GetByInfoHashStr(infoHashStr string) (app.TorrentMeta, error) {
+// GetByInfoHash retrieves an app.TorrentMeta object from the db by info hash if exists, err if not
+func (r *TorrentMeta) GetByInfoHash(infoHash metainfo.Hash) (app.TorrentMeta, error) {
 	var meta app.TorrentMeta
-	meta.InfoHash = infoHashStr
-	err := r.DB.One("InfoHash", infoHashStr, &meta)
+	meta.InfoHash = infoHash
+	err := r.DB.One("InfoHash", infoHash, &meta)
 	return meta, err
 }
 
+// Get retrieves all TorrentMeta objects in db
 func (r *TorrentMeta) Get() ([]app.TorrentMeta, error) {
 	var metas []app.TorrentMeta
 	err := r.DB.All(&metas)
 	return metas, err
 }
 
-func (r *TorrentMeta) RemoveByInfoHashStr(hashStr string) error {
-	err := r.DB.DeleteStruct(app.TorrentMeta{InfoHash: hashStr})
+func (r *TorrentMeta) RemoveByInfoHash(infoHash metainfo.Hash) error {
+	meta, err := r.GetByInfoHash(infoHash)
+	if err != nil {
+		return err
+	}
+	err = r.DB.DeleteStruct(&meta)
 	return err
 }
