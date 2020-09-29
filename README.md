@@ -14,8 +14,6 @@ This means you can grab a single release at the highest quality/size you are wil
 
 If you are still confused about why this project was started, check out the motivation section at the bottom... but also, I just had some free time and wanted to see how far I could take it :)
 
-![Demo](demo-gif.gif)
-
 ## Dependencies
 - [Jackett](https://github.com/Jackett/Jackett)
 - [ffmpeg](https://ffmpeg.org/)
