@@ -36,10 +36,10 @@ type Movie struct {
 	ImdbId      string `json:"imdb_id"`
 }
 
-func (s *Tmdb) PoplarMovies(page int) (QueryResult, error) {
+func (s *Tmdb) PopularMovies(page int) (QueryResult, error) {
 	var result QueryResult
 
-	repoResult, err := s.TmdbRepo.PoplarMovies(page)
+	repoResult, err := s.TmdbRepo.PopularMovies(page)
 	if err != nil {
 		return result, err
 	}
@@ -98,11 +98,11 @@ func ConvertQueryResult(repoResult tmdb.QueryResult) (QueryResult, error) {
 		result.Results[i].Overview = s.Overview
 
 		// convert poster/backdrop paths to urls
-		result.Results[i].PosterUrl = PosterPathToPosterUrl(s.PosterPath)
-		result.Results[i].BackdropUrl = PosterPathToPosterUrl(s.BackdropPath)
+		result.Results[i].PosterUrl = posterPathToPosterUrl(s.PosterPath)
+		result.Results[i].BackdropUrl = posterPathToPosterUrl(s.BackdropPath)
 
 		// convert dates to years
-		year, err := ReleaseDateToReleaseYear(s.ReleaseDate)
+		year, err := releaseDateToReleaseYear(s.ReleaseDate)
 		if err != nil {
 			return result, err
 		}
@@ -121,11 +121,11 @@ func ConvertMovie(repoMovie tmdb.Movie) (Movie, error) {
 	movie.ImdbId = repoMovie.ImdbId
 
 	// convert poster/backdrop paths to urls
-	movie.PosterUrl = PosterPathToPosterUrl(repoMovie.PosterPath)
-	movie.BackdropUrl = PosterPathToPosterUrl(repoMovie.BackdropPath)
+	movie.PosterUrl = posterPathToPosterUrl(repoMovie.PosterPath)
+	movie.BackdropUrl = backdropPathToBackdropUrl(repoMovie.BackdropPath)
 
 	// convert dates to years
-	year, err := ReleaseDateToReleaseYear(repoMovie.ReleaseDate)
+	year, err := releaseDateToReleaseYear(repoMovie.ReleaseDate)
 	if err != nil {
 		return movie, err
 	}
@@ -134,7 +134,7 @@ func ConvertMovie(repoMovie tmdb.Movie) (Movie, error) {
 	return movie, nil
 }
 
-func ReleaseDateToReleaseYear(releaseDate string) (string, error) {
+func releaseDateToReleaseYear(releaseDate string) (string, error) {
 	if releaseDate == "" {
 		return "", nil
 	}
@@ -142,14 +142,14 @@ func ReleaseDateToReleaseYear(releaseDate string) (string, error) {
 	return dateSplit[0], nil
 }
 
-func PosterPathToPosterUrl(posterPath string) string {
+func posterPathToPosterUrl(posterPath string) string {
 	if posterPath != "" {
 		return "https://image.tmdb.org/t/p/w500" + posterPath
 	}
 	return ""
 }
 
-func BackdropPathToBackdropUrl(backdropPath string) string {
+func backdropPathToBackdropUrl(backdropPath string) string {
 	if backdropPath != "" {
 		return "https://image.tmdb.org/t/p/original" + backdropPath
 	}

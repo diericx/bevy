@@ -38,7 +38,7 @@ type Movie struct {
 	ImdbId       string `json:"imdb_id"`
 }
 
-func (s *TmdbRepo) PoplarMovies(page int) (QueryResult, error) {
+func (s *TmdbRepo) PopularMovies(page int) (QueryResult, error) {
 	var result QueryResult
 	url := fmt.Sprintf(
 		"https://api.themoviedb.org/3/movie/popular?api_key=%s&page=%d",

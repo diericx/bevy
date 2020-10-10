@@ -24,7 +24,7 @@ func (h *HTTPHandler) addTmdbGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			result, err := s.PoplarMovies(params.Page)
+			result, err := s.PopularMovies(params.Page)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err,
