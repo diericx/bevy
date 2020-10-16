@@ -60,7 +60,6 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 						"error":   true,
 						"message": "Transcoding failed",
 					})
-					log.Println(string(stderr.Bytes()))
 					return
 				}
 			} else {
