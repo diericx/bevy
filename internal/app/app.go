@@ -85,6 +85,10 @@ type TorrentClientConfig struct {
 	MetaRefreshRate                   int    `toml:"meta_refresh_rate"`
 }
 
+type TmdbConfig struct {
+	APIKey string `toml:"api_key"`
+}
+
 // Indexer is info we need to hit an indexer for a list of torrents
 type Indexer struct {
 	Name                 string     `toml:"name"`

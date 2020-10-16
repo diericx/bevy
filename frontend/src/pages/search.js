@@ -8,6 +8,8 @@ import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import './search.css';
 
+let backendURL = window._env_.BACKEND_URL;
+
 export default class MyComponent extends React.Component {
   state = {
     query: null,
@@ -22,7 +24,7 @@ export default class MyComponent extends React.Component {
     } = this.props;
     let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
     fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${tmdbAPIKey}&query=${query}`
+      `${backendURL}/v1/tmdb/search/movies?query=${query}`
     )
       .then((res) => res.json())
       .then(
@@ -83,11 +85,18 @@ export default class MyComponent extends React.Component {
                         state: { movie: item },
                       }}
                     >
-                      <Card.Img
-                        variant="top"
-                        className="movie-card-img"
-                        src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                      />
+                      {!item.poster_url ? (
+                        <Card.Img
+                          variant="top"
+                          className="movie-card-img"
+                        />
+                      ) : (
+                        <Card.Img
+                          variant="top"
+                          className="movie-card-img"
+                          src={`${item.poster_url}`}
+                        />
+                      )}
                     </Link>
                   </Col>
 

@@ -16,6 +16,7 @@ const styles = {
   },
 };
 
+let backendURL = window._env_.BACKEND_URL;
 let tmdbAPIKey = window._env_.REACT_APP_TMDB_API_KEY;
 
 export default class MyComponent extends React.Component {
@@ -48,7 +49,7 @@ export default class MyComponent extends React.Component {
   };
 
   componentDidMount() {
-    fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${tmdbAPIKey}`)
+    fetch(`${backendURL}/v1/tmdb/browse/movies/popular`)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -129,10 +130,16 @@ export default class MyComponent extends React.Component {
                     state: { movie: item },
                   }}
                 >
+                {!item.poster_url ? (
                   <Card.Img
                     variant="top"
-                    src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
                   />
+                ) : (
+                  <Card.Img
+                    variant="top"
+                    src={`${item.poster_url}`}
+                  />
+                )}
                 </Link>
                 <Card.Body>
                   <Card.Title>

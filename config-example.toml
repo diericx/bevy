@@ -1,4 +1,5 @@
-tmdb_apiKey = ""
+[tmdb]
+  api_key = ""
 
 [[indexers]]
   name = "My Indexer"

@@ -23,9 +23,8 @@ export default class MyComponent extends React.Component {
       },
     } = this.props;
     if (!movie.externalIDs) {
-      let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
       fetch(
-        `https://api.themoviedb.org/3/movie/${movie.id}/external_ids?api_key=${tmdbAPIKey}`
+        `${backendURL}/v1/tmdb/movies/${movie.id}`
       )
         .then((res) => res.json())
         .then(
@@ -34,7 +33,7 @@ export default class MyComponent extends React.Component {
               isLoaded: true,
               movie: {
                 ...movie,
-                externalIDs: result,
+                imdb_id: result.imdb_id,
               },
             });
           },
@@ -66,7 +65,7 @@ export default class MyComponent extends React.Component {
       <Container fluid>
         <Row
           style={{
-            backgroundImage: `url("https://image.tmdb.org/t/p/original${movie.backdrop_path}")`,
+            backgroundImage: `url("${movie.backdrop_url}")`,
           }}
           className={'movie-banner-row'}
         >
@@ -76,7 +75,7 @@ export default class MyComponent extends React.Component {
                 <Col sm={12} md={3}>
                   <img
                     className={'movie-poster'}
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    src={`${movie.poster_url}`}
                   ></img>
                 </Col>
                 <Col sm={12} md={6} className={'movie-details'}>
