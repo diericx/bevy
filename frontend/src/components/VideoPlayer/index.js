@@ -3,6 +3,9 @@ import videojs from 'video.js';
 import TimeRangesSeeking from '../VideojsPlugins/TimeRangesSeeking';
 import DurationFromServer from '../VideojsPlugins/DurationFromServer';
 require('../VideojsPlugins/videojs-quality-selector/src/js')(videojs);
+require('@silvermine/videojs-chromecast')(videojs, {
+  preloadWebComponents: true,
+});
 
 export default class VideoPlayer extends React.Component {
   componentDidMount() {

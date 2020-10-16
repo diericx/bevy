@@ -27,7 +27,7 @@ func (t Transcoder) NewTranscodeCommand(input string, time string, resolution st
 		"-tune", "zerolatency",
 		"-map", fmt.Sprintf("0:v:%v", videoStream),
 		"-map", fmt.Sprintf("0:a:%v", audioStream),
-		// "-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
+		"-movflags", "frag_keyframe+empty_moov", // This was to allow mp4 encoding.. not sure what it implies
 	}
 
 	log.Printf("%+v", ffmpegArgs)

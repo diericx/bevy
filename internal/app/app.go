@@ -110,12 +110,12 @@ type Quality struct {
 
 type TranscoderConfig struct {
 	Video struct {
-		Format          string `yaml:"format"`
-		CompressionAlgo string `yaml:"compression_algo"`
-	} `yaml:"video"`
+		Format          string `toml:"format"`
+		CompressionAlgo string `toml:"compression_algo"`
+	} `toml:"video"`
 	Audio struct {
-		CompressionAlgo string `yaml:"compression_algo"`
-	} `yaml:"audio"`
+		CompressionAlgo string `toml:"compression_algo"`
+	} `toml:"audio"`
 }
 
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent

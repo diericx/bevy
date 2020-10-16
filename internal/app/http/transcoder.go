@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -35,9 +36,12 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 			formattedTimeStr := formatTimeString(input.Time)
 
 			c.Writer.Header().Set("Transfer-Encoding", "chunked") // TODO: Is this necessary? not really sure what it does
+			c.Writer.Header().Set("Content-Type", "video/mp4")
 
 			cmdFF := h.Transcoder.NewTranscodeCommand(input.URL, formattedTimeStr, input.Resolution, input.MaxBitrate, 0, 0)
 			cmdFF.Stdout = c.Writer
+			var stderr bytes.Buffer
+			cmdFF.Stderr = &stderr
 			cmdFF.Start()
 
 			// Start a goroutine to listen for the request being dropped and end transcode if needed
