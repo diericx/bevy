@@ -48,7 +48,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: |
-            iceetime/iceetime:latest
-            iceetime/iceetime:$(VERSION)
+          tags: ${{ echo "iceetime/iceetime:latest,iceetime/iceetime:$(VERSION)" }}
           platforms: linux/amd64,linux/arm64
