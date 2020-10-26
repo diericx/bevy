@@ -47,7 +47,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: |
-          export VERSION=$(shell git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(shell git -C $GITHUB_WORKSPACE rev-parse --short HEAD)
+          export VERSION=$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)
           echo "::set-env name=VERSION::$VERSION"
 
       # Runs a set of commands using the runners shell
