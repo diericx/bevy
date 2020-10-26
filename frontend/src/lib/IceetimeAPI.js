@@ -70,6 +70,23 @@ export class TranscoderAPI {
   }
 }
 
+export class TmdbAPI {
+  static backendURL = window._env_.BACKEND_URL;
+
+  static PopularMovies() {
+    return asyncApiCall(`${this.backendURL}/v1/tmdb/browse/movies/popular`);
+  }
+
+  static SearchMovie(query) {
+    return asyncApiCall(
+      `${this.backendURL}/v1/tmdb/search/movies?query=${query}`
+    );
+  }
+
+  static GetMovie(id) {
+    return asyncApiCall(`${this.backendURL}/v1/tmdb/movies/${id}`);
+  }
+}
 async function asyncApiCall(url, options) {
   try {
     const resp = await fetch(url, options);

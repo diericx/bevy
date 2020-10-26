@@ -7,40 +7,26 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import './search.css';
-
-let backendURL = window._env_.BACKEND_URL;
+import { TmdbAPI } from '../lib/IceetimeAPI';
 
 export default class MyComponent extends React.Component {
   state = {
     query: null,
-    response: null,
+    resp: null,
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     let {
       location: {
         state: { query },
       },
     } = this.props;
-    let tmdbAPIKey = process.env.REACT_APP_TMDB_API_KEY;
-    fetch(
-      `${backendURL}/v1/tmdb/search/movies?query=${query}`
-    )
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            isLoaded: true,
-            resp: result,
-          });
-        },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error,
-          });
-        }
-      );
+    const resp = await TmdbAPI.SearchMovie(query);
+    console.log(resp);
+    this.setState({
+      isLoaded: true,
+      resp,
+    });
   }
 
   onMovieClick(movie) {
@@ -86,10 +72,7 @@ export default class MyComponent extends React.Component {
                       }}
                     >
                       {!item.poster_url ? (
-                        <Card.Img
-                          variant="top"
-                          className="movie-card-img"
-                        />
+                        <Card.Img variant="top" className="movie-card-img" />
                       ) : (
                         <Card.Img
                           variant="top"

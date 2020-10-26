@@ -15,7 +15,6 @@ import NewTorrent from '../components/Torrents/NewTorrent.js';
 import { TorrentsAPI } from '../lib/IceetimeAPI';
 
 var prettyTime = require('pretty-time');
-let backendURL = window._env_.BACKEND_URL;
 const REFRESH_RATE = 2000;
 
 export default class Torrents extends React.Component {

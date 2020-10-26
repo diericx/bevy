@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
+import { TmdbAPI } from '../lib/IceetimeAPI';
 
 const styles = {
   movieCard: {
@@ -15,9 +16,6 @@ const styles = {
     marginBottom: '1em',
   },
 };
-
-let backendURL = window._env_.BACKEND_URL;
-let tmdbAPIKey = window._env_.REACT_APP_TMDB_API_KEY;
 
 export default class MyComponent extends React.Component {
   constructor(props) {
@@ -48,23 +46,12 @@ export default class MyComponent extends React.Component {
     this.setState({ searchQuery: event.target.value });
   };
 
-  componentDidMount() {
-    fetch(`${backendURL}/v1/tmdb/browse/movies/popular`)
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            isLoaded: true,
-            resp: result,
-          });
-        },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error,
-          });
-        }
-      );
+  async componentDidMount() {
+    const resp = await TmdbAPI.PopularMovies();
+    this.setState({
+      isLoaded: true,
+      resp,
+    });
   }
 
   render() {
@@ -130,16 +117,11 @@ export default class MyComponent extends React.Component {
                     state: { movie: item },
                   }}
                 >
-                {!item.poster_url ? (
-                  <Card.Img
-                    variant="top"
-                  />
-                ) : (
-                  <Card.Img
-                    variant="top"
-                    src={`${item.poster_url}`}
-                  />
-                )}
+                  {!item.poster_url ? (
+                    <Card.Img variant="top" />
+                  ) : (
+                    <Card.Img variant="top" src={`${item.poster_url}`} />
+                  )}
                 </Link>
                 <Card.Body>
                   <Card.Title>
@@ -151,20 +133,6 @@ export default class MyComponent extends React.Component {
           ))}
         </Row>
       </Container>
-      // <ul>
-      //   {resp.results.map(item => (
-      //     <Link
-      //       to={{
-      //         pathname: "/movie",
-      //         state: { movie: item}
-      //       }}
-      //     >
-      //       <li key={item.name}>
-      //         {item.title} {item.vote_average}
-      //       </li>
-      //     </Link>
-      //   ))}
-      // </ul>
     );
   }
 }
