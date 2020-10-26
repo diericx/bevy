@@ -23,14 +23,16 @@ RUN go mod download
 
 COPY . .
 
-RUN make linux
+RUN make linux-amd64
+RUN make linux-arm64
 RUN echo 'nobody:x:65534:65534:Nobody:/:' > passwd.minimal
 
 # => Run container
 FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y ffmpeg
 COPY --from=backend-builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=backend-builder /workspace/dist/linux/cmd /server
+COPY --from=backend-builder /workspace/dist/linux/linux-amd64 /linux-amd64
+COPY --from=backend-builder /workspace/dist/linux/linux-arm64 /linux-arm64
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
@@ -43,4 +45,4 @@ RUN chown -R nobody:nogroup /frontend
 
 USER nobody
 
-ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/build/env-config.js && /server"]
+ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/build/env-config.js && /linux-amd64"]

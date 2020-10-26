@@ -7,23 +7,11 @@ touch $1
 # Add assignment
 echo "window._env_ = {" >> $1
 
-# Read each line in .env file
-# Each line represents key=value pairs
-while read -r line || [[ -n "$line" ]];
-do
-  # Split env variables by character `=`
-  if printf '%s\n' "$line" | grep -q -e '='; then
-    varname=$(printf '%s\n' "$line" | sed -e 's/=.*//')
-    varvalue=$(printf '%s\n' "$line" | sed -e 's/^[^=]*=//')
-  fi
-
-  # Read value of current variable if exists as Environment variable
-  value=$(printf '%s\n' "${!varname}")
-  # Otherwise use value from .env file
-  [[ -z $value ]] && value=${varvalue}
-
-  # Append configuration property to JS file
-  echo "  $varname: \"$value\"," >> $1
-done < .env
+if [ ! -z "${REACT_APP_TMDB_API_KEY}" ]; then
+  echo "  REACT_APP_TMDB_API_KEY: \"$REACT_APP_TMDB_API_KEY\"," >> $1
+fi
+if [ ! -z "${BACKEND_URL}" ]; then
+  echo "  BACKEND_URL: \"$BACKEND_URL\"," >> $1
+fi
 
 echo "}" >> $1
