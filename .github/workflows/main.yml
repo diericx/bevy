@@ -26,7 +26,6 @@ jobs:
         run: |
           echo "VERSION=$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # Runs a set of commands using the runners shell
       - name: Test echo version
         run: |
           echo Add other actions to $VERSION
