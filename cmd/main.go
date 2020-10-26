@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,24 +18,16 @@ import (
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
 
-type tomlConfig struct {
-	Indexers      []app.Indexer           `toml:"indexers"`
-	Qualities     []app.Quality           `toml:"qualities"`
-	Transcoder    app.TranscoderConfig    `toml:"transcoder"`
-	Tmdb          app.TmdbConfig          `toml:"tmdb"`
-	TorrentClient app.TorrentClientConfig `toml:"torrent_client"`
-}
-
 func main() {
-	var conf tomlConfig
+	var conf app.MainConfig
 	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
 		panic(err)
 	}
-	// TODO: real check function on configuration
-	if conf.TorrentClient.MetaRefreshRate < 1 {
-		panic(errors.New("Torrent client refresh rate cannot be less than 1"))
+	if conf.Validate() != nil {
+		fmt.Println("ERROR: Invalid config")
+		fmt.Println(conf.Validate())
+		os.Exit(1)
 	}
-	log.Printf("%+v", conf)
 
 	stormDBFilePath := filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db")
 	stormDB, err := storm.OpenDB(stormDBFilePath)
