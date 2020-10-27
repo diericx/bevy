@@ -34,8 +34,6 @@ COPY --from=backend-builder /workspace/dist/linux/cmd /server
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
-COPY ./frontend/env.sh .
-
 USER nobody
 
 ENTRYPOINT ["/server"]
