@@ -14,12 +14,6 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
 require('dotenv').config();
 
-// Validate env vars
-let tmdbApiKey = process.env.REACT_APP_TMDB_API_KEY;
-if (!tmdbApiKey) {
-  throw new Error('Missing required env var: REACT_APP_TMDB_API_KEY');
-}
-
 export default function App() {
   return (
     <Router>

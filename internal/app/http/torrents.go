@@ -48,7 +48,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			// Source
 			file, err := c.FormFile("file")
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -56,7 +56,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			filename := filepath.Join(h.TorrentFilesPath, file.Filename)
 			if err := c.SaveUploadedFile(file, filename); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -65,7 +65,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			meta := app.GetDefaultTorrentMeta()
 			t, err := s.AddFromFile(filename, meta)
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -88,7 +88,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			var input Input
 			// in this case proper binding will be automatically selected
 			if err := c.ShouldBindJSON(&input); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -97,7 +97,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			meta := app.GetDefaultTorrentMeta()
 			t, err := s.AddFromMagnet(input.MagnetURL, meta)
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -136,7 +136,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			var input Input
 
 			if err := c.ShouldBindUri(&input); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -145,14 +145,14 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			var infoHash metainfo.Hash
 			err := infoHash.FromHexString(input.InfoHash)
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 			}
 
 			t, err := s.GetByInfoHash(infoHash)
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -160,7 +160,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			meta, err := h.TorrentMetaRepo.GetByInfoHash(t.InfoHash())
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 			}
@@ -179,7 +179,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			var input Input
 
 			if err := c.ShouldBindUri(&input); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -188,7 +188,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			var infoHash metainfo.Hash
 			err := infoHash.FromHexString(input.InfoHash)
 			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 			}
@@ -203,7 +203,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			files := t.Files()
 			if int(input.FileIndex) > len(files) {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": "File index not in range of files.",
 				})
 			}
@@ -223,7 +223,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			if err := c.ShouldBind(&input); err != nil {
 				log.Println("Error binding json: ", err)
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
