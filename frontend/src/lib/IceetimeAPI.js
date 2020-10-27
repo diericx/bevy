@@ -87,14 +87,21 @@ export class TmdbAPI {
     return asyncApiCall(`${this.backendURL}/v1/tmdb/movies/${id}`);
   }
 }
+
+// Handles responses from our API. Expects an error field in body when there is an issue.
+// returns: { ok: boolean, ...json }
 async function asyncApiCall(url, options) {
   try {
     const resp = await fetch(url, options);
     const json = await resp.json();
-    return json;
+    return {
+      ok: resp.ok,
+      ...json,
+    };
   } catch (error) {
     return {
-      error,
+      ok: false,
+      error: error.message,
     };
   }
 }

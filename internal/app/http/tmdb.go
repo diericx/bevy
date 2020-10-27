@@ -27,7 +27,7 @@ func (h *HTTPHandler) addTmdbGroup(group *gin.RouterGroup) {
 			result, err := s.PopularMovies(params.Page)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err,
+					"error": err.Error(),
 				})
 				return
 			}
@@ -51,7 +51,7 @@ func (h *HTTPHandler) addTmdbGroup(group *gin.RouterGroup) {
 			result, err := s.MovieSearch(params.Query, params.Page)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err,
+					"error": err.Error(),
 				})
 				return
 			}
@@ -59,11 +59,11 @@ func (h *HTTPHandler) addTmdbGroup(group *gin.RouterGroup) {
 		})
 
 		group.GET("/tmdb/movies/:movieID", func(c *gin.Context) {
-			movieIdStr := c.Params.ByName("movieID")
-			movieID, err := strconv.Atoi(movieIdStr)
+			movieIDStr := c.Params.ByName("movieID")
+			movieID, err := strconv.Atoi(movieIDStr)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "'movieID' is not a number. Found '" + movieIdStr + "'.",
+					"error": "'movieID' is not a number. Found '" + movieIDStr + "'.",
 				})
 				return
 			}
@@ -71,7 +71,7 @@ func (h *HTTPHandler) addTmdbGroup(group *gin.RouterGroup) {
 			movie, err := s.GetMovie(movieID)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err,
+					"error": err.Error(),
 				})
 				return
 			}

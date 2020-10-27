@@ -23,7 +23,6 @@ export default class MyComponent extends React.Component {
     this.state = {
       error: null,
       isLoaded: false,
-      resp: null,
       searchQuery: '',
       toSearch: false,
     };
@@ -50,7 +49,7 @@ export default class MyComponent extends React.Component {
     const resp = await TmdbAPI.PopularMovies();
     this.setState({
       isLoaded: true,
-      resp,
+      ...resp,
     });
   }
 
@@ -58,13 +57,13 @@ export default class MyComponent extends React.Component {
     const {
       error,
       isLoaded,
-      resp,
       toSearch,
       searchQuery,
       selectedMovie,
+      results,
     } = this.state;
     if (error) {
-      return <div>Error: {error.message}</div>;
+      return <div class="alert alert-danger">Error: {error}</div>;
     } else if (!isLoaded) {
       return <div>Loading...</div>;
     }
@@ -108,7 +107,7 @@ export default class MyComponent extends React.Component {
             <hr></hr>
           </Col>
 
-          {resp.results.map((item) => (
+          {results.map((item) => (
             <Col>
               <Card style={styles.movieCard}>
                 <Link

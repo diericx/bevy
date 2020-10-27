@@ -12,7 +12,6 @@ import { TmdbAPI } from '../lib/IceetimeAPI';
 export default class MyComponent extends React.Component {
   state = {
     query: null,
-    resp: null,
   };
 
   async componentDidMount() {
@@ -22,10 +21,9 @@ export default class MyComponent extends React.Component {
       },
     } = this.props;
     const resp = await TmdbAPI.SearchMovie(query);
-    console.log(resp);
     this.setState({
       isLoaded: true,
-      resp,
+      ...resp,
     });
   }
 
@@ -34,7 +32,7 @@ export default class MyComponent extends React.Component {
   }
 
   render() {
-    const { error, isLoaded, resp, redirect } = this.state;
+    const { error, isLoaded, resp, redirect, results } = this.state;
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -56,7 +54,7 @@ export default class MyComponent extends React.Component {
     return (
       <Container>
         <br />
-        {resp.results.map((item) => (
+        {results.map((item) => (
           <Row className="movie-row">
             <Col>
               <Card

@@ -33,8 +33,14 @@ export default class Torrents extends React.Component {
   }
 
   async fetchData() {
-    // TODO: try catch here to handle network errors
     const resp = await TorrentsAPI.Get();
+    if (!resp.ok) {
+      this.setState({
+        isLoaded: true,
+        error: resp.body.error || 'Unknown error',
+      });
+      return;
+    }
     this.setState({
       isLoaded: true,
       ...resp,
