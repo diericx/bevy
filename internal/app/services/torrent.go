@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -23,18 +22,16 @@ type Torrent struct {
 	client           app.TorrentClient
 	torrentMetaRepo  app.TorrentMetaRepo
 	getInfoTimeout   time.Duration
-	minSeeders       int
 	torrentFilesPath string
 
 	torrentStatCache torrent.StatCache
 }
 
-func NewTorrentService(client app.TorrentClient, tmr app.TorrentMetaRepo, getInfoTimeout time.Duration, minSeeders int, torrentFilesPath string) Torrent {
+func NewTorrentService(client app.TorrentClient, tmr app.TorrentMetaRepo, getInfoTimeout time.Duration, torrentFilesPath string) Torrent {
 	return Torrent{
 		client,
 		tmr,
 		getInfoTimeout,
-		minSeeders,
 		torrentFilesPath,
 		make(torrent.StatCache),
 	}
@@ -236,25 +233,7 @@ func (s *Torrent) GetByInfoHash(infoHash metainfo.Hash) (torrent.Torrent, error)
 }
 
 func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quality) (torrent.Torrent, int, error) {
-	// sort torrents by seeders (to get most available torrents first)
-	sort.Slice(releases, func(i, j int) bool {
-		return releases[i].Seeders > releases[j].Seeders
-	})
-
 	for _, r := range releases {
-		if float64(r.Size) < q.MinSize || float64(r.Size) > q.MaxSize {
-			log.Printf("INFO: Passing on release %s because size %v is not correct.", r.Title, r.Size)
-			continue
-		}
-		if r.Seeders < s.minSeeders {
-			log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", r.Title, r.Seeders, s.minSeeders)
-			continue
-		}
-		if stringContainsAnyOf(strings.ToLower(r.Title), app.GetBlacklistedTorrentNameContents()) {
-			log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", r.Title, app.GetBlacklistedTorrentNameContents())
-			continue
-		}
-
 		// Add to client to get hash
 		t, err := s.addFromURLUknownScheme(
 			r.Link,

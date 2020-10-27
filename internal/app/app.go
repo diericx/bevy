@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
@@ -88,6 +89,7 @@ type Quality struct {
 	Regex      string  `toml:"regex"`
 	MinSize    float64 `toml:"min_size"`
 	MaxSize    float64 `toml:"max_size"`
+	MinSeeders int     `toml:"min_seeders"`
 	Resolution string  `toml:"resolution"`
 }
 
@@ -145,6 +147,9 @@ func (q Quality) Validate() error {
 	}
 	if q.Resolution == "" {
 		return errors.New("Resolution cannot be empty")
+	}
+	if q.MinSeeders <= 0 {
+		return errors.New("MinSeeders cannot be less than or equal to 0")
 	}
 	return nil
 }

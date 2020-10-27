@@ -6,15 +6,13 @@ import (
 )
 
 type MainConfig struct {
-	Indexers      []Indexer           `toml:"indexers"`
-	Qualities     []Quality           `toml:"qualities"`
-	Transcoder    TranscoderConfig    `toml:"transcoder"`
-	Tmdb          TmdbConfig          `toml:"tmdb"`
-	TorrentClient TorrentClientConfig `toml:"torrent_client"`
+	Transcoder     TranscoderConfig     `toml:"transcoder"`
+	Tmdb           TmdbConfig           `toml:"tmdb"`
+	ReleaseService ReleaseServiceConfig `toml:"torrent_fetcher"`
+	TorrentClient  TorrentClientConfig  `toml:"torrent_client"`
 }
 
 type TorrentClientConfig struct {
-	MinSeeders                        int    `toml:"min_seeders"`
 	TorrentInfoTimeout                int    `toml:"info_timeout"`
 	TorrentFilePath                   string `toml:"file_path"`
 	TorrentDataPath                   string `toml:"data_path"`
@@ -37,31 +35,55 @@ type TranscoderConfig struct {
 	} `toml:"audio"`
 }
 
-func (c MainConfig) Validate() error {
+type ReleaseServiceConfig struct {
+	SeederScoreFunc  string    `toml:"seeder_score_func"`
+	SizeScoreFunc    string    `toml:"size_score_func"`
+	QualityScoreFunc string    `toml:"quality_score_func"`
+	Indexers         []Indexer `toml:"indexers"`
+	Qualities        []Quality `toml:"qualities"`
+}
+
+func (c ReleaseServiceConfig) Validate() error {
+	if c.SeederScoreFunc == "" {
+		return errors.New("Seeder score function cannot be empty")
+	}
+	if c.SizeScoreFunc == "" {
+		return errors.New("Size score function cannot be empty")
+	}
+	if c.QualityScoreFunc == "" {
+		return errors.New("Size score function cannot be empty")
+	}
 	if len(c.Indexers) == 0 {
 		return errors.New("Indexers array must have length of at least 1")
 	}
 	for i, indexer := range c.Indexers {
-		if indexer.Validate() != nil {
-			return fmt.Errorf("Indexer %v is invalid: %s", i, indexer.Validate())
+		if err := indexer.Validate(); err != nil {
+			return fmt.Errorf("Indexer %v is invalid:\n%+v\n %s", i, indexer, err)
 		}
 	}
 	if len(c.Qualities) == 0 {
 		return errors.New("Indexers array must have length of at least 1")
 	}
 	for i, quality := range c.Qualities {
-		if quality.Validate() != nil {
-			return fmt.Errorf("Quality %v is invalid: %s", i, quality.Validate())
+		if err := quality.Validate(); err != nil {
+			return fmt.Errorf("Quality %v is invalid:\n%+v\n %s", i, quality, err)
 		}
 	}
-	if c.Transcoder.Validate() != nil {
-		return fmt.Errorf("Transcoder is invalid: %s", c.Transcoder.Validate())
+	return nil
+}
+
+func (c MainConfig) Validate() error {
+	if err := c.Transcoder.Validate(); err != nil {
+		return fmt.Errorf("Transcoder is invalid: %s", err)
 	}
-	if c.Tmdb.Validate() != nil {
-		return fmt.Errorf("Tmdb is invalid: %s", c.Tmdb.Validate())
+	if err := c.Tmdb.Validate(); err != nil {
+		return fmt.Errorf("Tmdb is invalid: %s", err)
 	}
-	if c.TorrentClient.Validate() != nil {
-		return fmt.Errorf("TorrentClient is invalid: %s", c.TorrentClient.Validate())
+	if err := c.TorrentClient.Validate(); err != nil {
+		return fmt.Errorf("TorrentClient is invalid: %s", err)
+	}
+	if err := c.ReleaseService.Validate(); err != nil {
+		return fmt.Errorf("Release Service is invalid: %s", err)
 	}
 	return nil
 }
