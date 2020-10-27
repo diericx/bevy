@@ -17,9 +17,7 @@ export default class MyComponent extends React.Component {
   };
 
   async findTorrent(imdbID, title, year) {
-    // TODO: try catch here to handle network errors
     const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0);
-    console.log(resp);
     this.setState({
       isLoading: false,
       ...resp,
@@ -61,11 +59,7 @@ export default class MyComponent extends React.Component {
         <Button
           variant="primary"
           onClick={async () => {
-            this.findTorrent(
-              movie.imdb_id,
-              movie.title,
-              movie.release_year
-            );
+            this.findTorrent(movie.imdb_id, movie.title, movie.release_year);
             this.setState({ isLoading: true });
           }}
         >

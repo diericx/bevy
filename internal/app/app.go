@@ -1,13 +1,10 @@
 package app
 
 import (
+	"errors"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
-
-// TODO: input from config file
-const DefaultResolution = "iw:ih"
-const DefaultMaxBitrate = "50M"
 
 func GetDefaultTorrentMeta() TorrentMeta {
 	return TorrentMeta{
@@ -75,20 +72,6 @@ type Release struct {
 	MinSeedTime int
 }
 
-type TorrentClientConfig struct {
-	MinSeeders                        int    `toml:"min_seeders"`
-	TorrentInfoTimeout                int    `toml:"info_timeout"`
-	TorrentFilePath                   string `toml:"file_path"`
-	TorrentDataPath                   string `toml:"data_path"`
-	TorrentHalfOpenConnsPerTorrent    int    `toml:"half_open_conns_per_torrent"`
-	TorrentEstablishedConnsPerTorrent int    `toml:"established_conns_per_torrent"`
-	MetaRefreshRate                   int    `toml:"meta_refresh_rate"`
-}
-
-type TmdbConfig struct {
-	APIKey string `toml:"api_key"`
-}
-
 // Indexer is info we need to hit an indexer for a list of torrents
 type Indexer struct {
 	Name                 string     `toml:"name"`
@@ -106,16 +89,6 @@ type Quality struct {
 	MinSize    float64 `toml:"min_size"`
 	MaxSize    float64 `toml:"max_size"`
 	Resolution string  `toml:"resolution"`
-}
-
-type TranscoderConfig struct {
-	Video struct {
-		Format          string `toml:"format"`
-		CompressionAlgo string `toml:"compression_algo"`
-	} `toml:"video"`
-	Audio struct {
-		CompressionAlgo string `toml:"compression_algo"`
-	} `toml:"audio"`
 }
 
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
@@ -148,4 +121,30 @@ type TorrentClient interface {
 	AddFile(string) (torrent.Torrent, error)
 	Torrents() []torrent.Torrent
 	Torrent(metainfo.Hash) (torrent.Torrent, bool)
+}
+
+func (i Indexer) Validate() error {
+	if i.Name == "" {
+		return errors.New("Name cannot be empty")
+	}
+	if i.URL == "" {
+		return errors.New("URL cannot be empty")
+	}
+	if i.APIKey == "" {
+		return errors.New("API key cannot be empty")
+	}
+	return nil
+}
+
+func (q Quality) Validate() error {
+	if q.Name == "" {
+		return errors.New("Name cannot be empty")
+	}
+	if q.Regex == "" {
+		return errors.New("Regex cannot be empty")
+	}
+	if q.Resolution == "" {
+		return errors.New("Resolution cannot be empty")
+	}
+	return nil
 }

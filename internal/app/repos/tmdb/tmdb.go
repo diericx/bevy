@@ -2,6 +2,7 @@ package tmdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -26,6 +27,12 @@ type QueryResult struct {
 	TotalResults int               `json:"total_results"`
 	Page         int               `json:"page"`
 	TotalPages   int               `json:"total_pages"`
+}
+
+type ErrorResult struct {
+	StatusCode   int    `json:"status_code"`
+	SatusMessage string `json:"status_message"`
+	Success      bool   `json:"success"`
 }
 
 type Movie struct {
@@ -55,6 +62,16 @@ func (s *TmdbRepo) PopularMovies(page int) (QueryResult, error) {
 	if err != nil {
 		return result, err
 	}
+
+	if resp.StatusCode != 200 {
+		var errorResult ErrorResult
+		err = json.Unmarshal(body, &errorResult)
+		if err != nil {
+			return result, err
+		}
+		return result, errors.New(errorResult.SatusMessage)
+	}
+
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return result, err
@@ -81,6 +98,16 @@ func (s *TmdbRepo) MovieSearch(query string, page int) (QueryResult, error) {
 	if err != nil {
 		return result, err
 	}
+
+	if resp.StatusCode != 200 {
+		var errorResult ErrorResult
+		err = json.Unmarshal(body, &errorResult)
+		if err != nil {
+			return result, err
+		}
+		return result, errors.New(errorResult.SatusMessage)
+	}
+
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return result, err
@@ -106,6 +133,16 @@ func (s *TmdbRepo) GetMovie(id int) (Movie, error) {
 	if err != nil {
 		return result, err
 	}
+
+	if resp.StatusCode != 200 {
+		var errorResult ErrorResult
+		err = json.Unmarshal(body, &errorResult)
+		if err != nil {
+			return result, err
+		}
+		return result, errors.New(errorResult.SatusMessage)
+	}
+
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return result, err

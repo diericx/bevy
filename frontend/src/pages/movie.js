@@ -4,8 +4,7 @@ import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import './movie.css';
 import TorrentStream from '../components/TorrentStream';
-
-let backendURL = window._env_.BACKEND_URL;
+import { TmdbAPI } from '../lib/IceetimeAPI';
 
 export default class MyComponent extends React.Component {
   constructor(props) {
@@ -16,34 +15,21 @@ export default class MyComponent extends React.Component {
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     let {
       location: {
         state: { movie },
       },
     } = this.props;
     if (!movie.externalIDs) {
-      fetch(
-        `${backendURL}/v1/tmdb/movies/${movie.id}`
-      )
-        .then((res) => res.json())
-        .then(
-          (result) => {
-            this.setState({
-              isLoaded: true,
-              movie: {
-                ...movie,
-                imdb_id: result.imdb_id,
-              },
-            });
-          },
-          (error) => {
-            this.setState({
-              isLoaded: true,
-              error,
-            });
-          }
-        );
+      const resp = await TmdbAPI.GetMovie(movie.id);
+      this.setState({
+        isLoaded: true,
+        movie: {
+          ...resp,
+          imdb_id: resp.imdb_id,
+        },
+      });
     } else {
       this.setState({
         isLoaded: true,

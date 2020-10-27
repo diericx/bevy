@@ -36,13 +36,6 @@ COPY --from=backend-builder /workspace/dist/linux/linux-arm64 /linux-arm64
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
-COPY ./frontend/env.sh .
-RUN chmod +x /env.sh
-# This is probably not the best... but allows for env sh to run
-# TODO: have go generate this file!
-RUN chmod -R o+w /frontend
-RUN chown -R nobody:nogroup /frontend
-
 USER nobody
 
-ENTRYPOINT ["/bin/bash", "-c", "/env.sh /frontend/build/env-config.js && /linux-amd64"]
+ENTRYPOINT ["/linux-amd64"]

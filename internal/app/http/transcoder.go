@@ -26,7 +26,7 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 			var input Input
 
 			if err := c.ShouldBind(&input); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
@@ -74,7 +74,7 @@ func (h *HTTPHandler) addTranscoderGroup(rg *gin.RouterGroup) {
 			var input Input
 
 			if err := c.ShouldBind(&input); err != nil {
-				c.JSON(http.StatusOK, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return

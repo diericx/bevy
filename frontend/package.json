@@ -21,7 +21,7 @@
     "video.js": "^7.0.3"
   },
   "scripts": {
-    "start": "chmod +x ./env.sh && ./env.sh ./public/env-config.js && react-scripts start",
+    "start": "REACT_APP_BACKEND_URL=http://localhost:8080 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
