@@ -88,7 +88,6 @@ export class TmdbAPI {
 async function asyncApiCall(url, options) {
   var resp;
   try {
-    console.log(url);
     resp = await fetch(url, options);
     const json = await resp.json();
     return {
@@ -96,8 +95,6 @@ async function asyncApiCall(url, options) {
       ...json,
     };
   } catch (error) {
-    console.log('ERROR: ', error);
-    console.log('RESPONSE: ', resp);
     return {
       ok: false,
       error: error.message,
