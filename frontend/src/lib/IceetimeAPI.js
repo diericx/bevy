@@ -1,11 +1,12 @@
+const backendURL = process.env.REACT_APP_BACKEND_URL || '';
+
 export class TorrentsAPI {
-  static backendURL = window._env_.BACKEND_URL;
   // ~=~=~=~=~=~=~=~=~=~=~=
   // API Endpoints
   // ~=~=~=~=~=~=~=~=~=~=~=
 
   static async NewMagnet(magnet) {
-    return asyncApiCall(`${this.backendURL}/v1/torrents/new/magnet`, {
+    return asyncApiCall(`${backendURL}/v1/torrents/new/magnet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -17,20 +18,20 @@ export class TorrentsAPI {
   }
 
   static async Get() {
-    return asyncApiCall(`${this.backendURL}/v1/torrents`);
+    return asyncApiCall(`${backendURL}/v1/torrents`);
   }
 
   static async GetTorrentByInfoHash(infoHash) {
-    return asyncApiCall(`${this.backendURL}/v1/torrents/torrent/${infoHash}`);
+    return asyncApiCall(`${backendURL}/v1/torrents/torrent/${infoHash}`);
   }
 
   static async GetTorrentByInfoHash(infoHash) {
-    return asyncApiCall(`${this.backendURL}/v1/torrents/torrent/${infoHash}`);
+    return asyncApiCall(`${backendURL}/v1/torrents/torrent/${infoHash}`);
   }
 
   static async FindTorrentForMovie(imdbID, title, year, minQualityIndex) {
     return asyncApiCall(
-      `${this.backendURL}/v1/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
+      `${backendURL}/v1/torrents/find_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
     );
   }
 
@@ -39,20 +40,18 @@ export class TorrentsAPI {
   // ~=~=~=~=~=~=~=~=~=~=~=
 
   static ComposeURLForDirectTorrentStream(infoHash, file) {
-    return `${this.backendURL}/v1/torrents/torrent/${infoHash}/stream/${file}`;
+    return `${backendURL}/v1/torrents/torrent/${infoHash}/stream/${file}`;
   }
 }
 
 export class TranscoderAPI {
-  static backendURL = window._env_.BACKEND_URL;
-
   static GetMetadataForFile(infoHash, file) {
     const fileURL = TorrentsAPI.ComposeURLForDirectTorrentStream(
       infoHash,
       file
     );
     return asyncApiCall(
-      `${this.backendURL}/v1/transcoder/from_url/metadata?url=${fileURL}`
+      `${backendURL}/v1/transcoder/from_url/metadata?url=${fileURL}`
     );
   }
 
@@ -66,39 +65,39 @@ export class TranscoderAPI {
       infoHash,
       file
     );
-    return `${this.backendURL}/v1/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
+    return `${backendURL}/v1/transcoder/from_url?url=${fileURL}&res=${resolution}&max_bitrate=${maxBitrate}`;
   }
 }
 
 export class TmdbAPI {
-  static backendURL = window._env_.BACKEND_URL;
-
   static PopularMovies() {
-    return asyncApiCall(`${this.backendURL}/v1/tmdb/browse/movies/popular`);
+    return asyncApiCall(`${backendURL}/v1/tmdb/browse/movies/popular`);
   }
 
   static SearchMovie(query) {
-    return asyncApiCall(
-      `${this.backendURL}/v1/tmdb/search/movies?query=${query}`
-    );
+    return asyncApiCall(`${backendURL}/v1/tmdb/search/movies?query=${query}`);
   }
 
   static GetMovie(id) {
-    return asyncApiCall(`${this.backendURL}/v1/tmdb/movies/${id}`);
+    return asyncApiCall(`${backendURL}/v1/tmdb/movies/${id}`);
   }
 }
 
 // Handles responses from our API. Expects an error field in body when there is an issue.
 // returns: { ok: boolean, ...json }
 async function asyncApiCall(url, options) {
+  var resp;
   try {
-    const resp = await fetch(url, options);
+    console.log(url);
+    resp = await fetch(url, options);
     const json = await resp.json();
     return {
       ok: resp.ok,
       ...json,
     };
   } catch (error) {
+    console.log('ERROR: ', error);
+    console.log('RESPONSE: ', resp);
     return {
       ok: false,
       error: error.message,
