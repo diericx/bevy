@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
+import { Link } from 'react-router-dom';
 
 export default function App() {
   return (
@@ -9,7 +10,14 @@ export default function App() {
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
-          <Nav.Link href="/movies">Movies</Nav.Link>
+          <Link
+            to={{
+              pathname: '/movies',
+            }}
+            className="nav-link"
+          >
+            Movies
+          </Link>
         </Nav>
       </Navbar.Collapse>
     </Navbar>
