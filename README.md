@@ -33,11 +33,11 @@ Features:
 - [x] Add torrents via magnet url
 - [x] Add torrents via file on disk
 - [x] Find Movie files/torrents via Torznab queries
-- [ ] Endpoint to check if a movie exists on disk already
+- [x] Endpoint to check if a movie exists on disk already
 - [ ] Find TV Shows/Episode files/torrents via Torznab queries
 - [ ] Endpoint to check if a tv show or episode exists on disk already
 - [ ] Download all pieces of a torrent when no one is streaming
-- [ ] Web interface for managing torrents
+- [x] Web interface for managing torrents
 
 ## Media Player (realtime transcoder)
 
@@ -47,7 +47,7 @@ Features:
 
 - [x] Transcode to different resolutions and bitrates
 - [ ] Provide detailed metadata about files including all video/audio/subtitle tracks
-- [ ] Transcode to different file formats
+- [x] Transcode to different file formats
 - [ ] Add subtitles during transcode
 - [ ] Serve subtitle track so the client can decide if it wants to render them
 
@@ -60,7 +60,7 @@ Features:
 - [x] Use TMDB api to get info on media
 - [x] Request movies to be fetched
 - [x] Stream movies
-- [ ] Option to select transcode quality
+- [x] Option to select transcode quality
 - [ ] Page for movies with status about files on disk
 
 # Deployment
@@ -71,15 +71,26 @@ Building (optional)
 make docker
 ```
 
-Running
+Running on x86
 
 ```
 docker run -it \
 -v $(pwd)/downloads:/downloads \
--v $(pwd)/internal/app/http/templates:/internal/app/http/templates \
 -v $(pwd)/config.toml:/config.toml \
 -e CONFIG_FILE=/config.toml \
 -p 8080:8080 \
+iceetime/iceetime:latest
+```
+
+Running on ARM64 (tested on Pi 4 Model B)
+
+```
+docker run -it \
+-v $(pwd)/downloads:/downloads \
+-v $(pwd)/config.toml:/config.toml \
+-e CONFIG_FILE=/config.toml \
+-p 8080:8080 \
+--entrypoint "/linux-arm64" \
 iceetime/iceetime:latest
 ```
 
@@ -102,13 +113,12 @@ jackett:
 
 iceetime:
     container_name: iceetime
-    image: iceetime/iceetime:95.f1588fd
+    image: iceetime/iceetime:latest
     user: 1000:1000
     restart: unless-stopped
     ports:
       - 8086:8080
     environment:
-      - BACKEND_URL=http://my-server:8086
       - CONFIG_FILE=/etc/iceetime/config.toml
     volumes:
       - /etc/iceetime/config.toml:/etc/iceetime/config.toml
