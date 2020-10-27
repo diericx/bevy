@@ -36,6 +36,4 @@ COPY --from=backend-builder /workspace/dist/linux/linux-arm64 /linux-arm64
 COPY --from=backend-builder /workspace/passwd.minimal /etc/passwd
 COPY --from=frontend-builder /frontend/build /frontend/build
 
-USER nobody
-
 ENTRYPOINT ["/linux-amd64"]
