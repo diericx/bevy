@@ -2,6 +2,8 @@ package app
 
 import (
 	"errors"
+	"log"
+	"strings"
 
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
@@ -71,6 +73,8 @@ type Release struct {
 	Seeders     int
 	MinRatio    float32
 	MinSeedTime int
+	// TODO: Make this an actual reference and give qualities a score?
+	Quality int
 }
 
 // Indexer is info we need to hit an indexer for a list of torrents
@@ -152,4 +156,40 @@ func (q Quality) Validate() error {
 		return errors.New("MinSeeders cannot be less than or equal to 0")
 	}
 	return nil
+}
+
+// ValidateSizeSeedersAndName will trim the given release slice and return only those that are valid given
+// size min maxes, seeder min maxes and name blacklists.
+func (release Release) ValidateSizeSeedersAndName(quality Quality) error {
+	if float64(release.Size) < quality.MinSize || float64(release.Size) > quality.MaxSize {
+		log.Printf("INFO: Passing on release %s because size %v is not correct.", release.Title, release.Size)
+		return errors.New("Invalid size")
+	}
+	if release.Seeders < int(quality.MinSeeders) {
+		log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", release.Title, release.Seeders, quality.MinSeeders)
+		return errors.New("Invalid seeders count")
+	}
+	if StringContainsAnyOf(strings.ToLower(release.Title), GetBlacklistedTorrentNameContents()) {
+		log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", release.Title, GetBlacklistedTorrentNameContents())
+		return errors.New("Invalid title")
+	}
+	return nil
+}
+
+func StringContainsAnyOf(s string, substrings []string) bool {
+	for _, substring := range substrings {
+		if strings.Contains(s, substring) {
+			return true
+		}
+	}
+	return false
+}
+
+func StringEndsInAny(s string, suffixes []string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
 }

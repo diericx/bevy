@@ -334,7 +334,7 @@ func (s *Torrent) getValidFileInTorrent(t torrent.Torrent) (int, error) {
 	files := t.Files()
 
 	for i, file := range files {
-		if stringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !stringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
+		if app.StringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !app.StringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
 			return i, nil
 		}
 	}
