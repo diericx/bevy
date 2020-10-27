@@ -1,4 +1,4 @@
-const backendURL = process.env.REACT_APP_BACKEND_URL || '';
+const backendURL = process.env.REACT_APP_BACKEND_URL || location.origin;
 
 export class TorrentsAPI {
   // ~=~=~=~=~=~=~=~=~=~=~=
