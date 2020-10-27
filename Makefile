@@ -19,10 +19,15 @@ build: macos linux docker
 docker:
 	@docker build -t iceetime/iceetime:$(VERSION) .
 
-.PHONY: linux
-linux:
+.PHONY: linux-amd64
+linux-amd64:
 	@mkdir -p dist/linux
-	@cd dist/linux; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' ../../cmd/...
+	@cd dist/linux; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' -o linux-amd64 ../../cmd/...
+
+.PHONY: linux-arm64
+linux-arm64:
+	@mkdir -p dist/linux
+	@cd dist/linux; CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' -o linux-arm64 ../../cmd/...
 
 .PHONY: macos
 macos:
