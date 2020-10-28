@@ -22,10 +22,10 @@
   resolution = "1920x1080"
 
 [transcoder]
-  [video]
+  [transcoder.video]
     compression_algo = "libx264"
     format = "ismv"
-  [audio]
+  [transcoder.audio]
     compression_algo = "copy"
 
 
