@@ -183,8 +183,12 @@ export default class MyComponent extends React.Component {
           className={'justify-content-center'}
           style={{ textAlign: 'center' }}
         >
-          <this.ManualSearchButton />
-          <Releases releases={releases} />
+          <Col xs={12}>
+            <this.ManualSearchButton />
+          </Col>
+          <Col xs={12} sm={10}>
+            <Releases releases={releases} />
+          </Col>
         </Row>
         <br />
         <br />
