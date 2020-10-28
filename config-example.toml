@@ -41,7 +41,6 @@
   [transcoder.audio]
     compression_algo = "libmp3lame"
 
-
 [torrent_client]
   info_timeout = 30
   file_path = "./downloads"

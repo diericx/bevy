@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -335,7 +336,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			}
 			if t == nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
+					"error": errors.New("no torrent was found"),
 				})
 				return
 			}
