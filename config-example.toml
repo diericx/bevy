@@ -24,9 +24,11 @@
 [transcoder]
   [video]
     compression_algo = "libx264"
+    # effectively an mp4
     format = "ismv"
   [audio]
-    compression_algo = "copy"
+    # convert to mp3 for wide range support
+    compression_algo = "libmp3lame"
 
 
 [torrent_client]

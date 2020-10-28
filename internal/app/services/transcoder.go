@@ -20,6 +20,7 @@ func (t Transcoder) NewTranscodeCommand(input string, time string, resolution st
 		"-i", input,
 		"-f", t.Config.Video.Format,
 		"-c:v", t.Config.Video.CompressionAlgo,
+		"-c:a", t.Config.Audio.CompressionAlgo,
 		"-maxrate", maxBitrate,
 		"-vf", fmt.Sprintf("scale=%s", resolution),
 		"-threads", "0",

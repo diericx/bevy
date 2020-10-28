@@ -8,7 +8,6 @@ import './movie.css';
 import TorrentStream from '../components/TorrentStream';
 import { TmdbAPI } from '../lib/IceetimeAPI';
 import { TorrentsAPI, TranscoderAPI } from '../lib/IceetimeAPI';
-import Torrents from './torrents';
 import Spinner from 'react-bootstrap/esm/Spinner';
 
 export default class MyComponent extends React.Component {
@@ -187,9 +186,9 @@ export default class MyComponent extends React.Component {
           style={{ textAlign: 'center' }}
         >
           <this.FindTorrentButton />
-          <TorrentStream movie={movie} />
+          <TorrentStream movie={movie} torrentLink={torrentLink} />
         </Row>
-
+        <br />
         <Row
           className={'justify-content-center'}
           style={{ textAlign: 'center' }}

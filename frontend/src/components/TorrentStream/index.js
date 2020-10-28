@@ -1,13 +1,7 @@
 import React from 'react';
-import { Redirect } from 'react-router-dom';
-import Button from 'react-bootstrap/Button';
 import VideoPlayer from '../VideoPlayer';
-import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert';
-import Spinner from 'react-bootstrap/Spinner';
-import Col from 'react-bootstrap/Col';
-import { TorrentsAPI, TranscoderAPI } from '../../lib/IceetimeAPI';
-import Torrents from '../../pages/torrents';
+import { TranscoderAPI } from '../../lib/IceetimeAPI';
 
 export default class MyComponent extends React.Component {
   state = {
@@ -25,24 +19,6 @@ export default class MyComponent extends React.Component {
         <Alert variant={'danger'} style={{ width: '80%' }}>
           Error: {error.message}
         </Alert>
-      );
-    }
-
-    if (isLoading) {
-      return (
-        <Row
-          style={{ textAlign: 'center' }}
-          className={'justify-content-center align-items-center'}
-        >
-          <Col sm={12}>
-            <p>Searching indexers for movie...</p>
-          </Col>
-          <Col sm={12}>
-            <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
-            </Spinner>
-          </Col>
-        </Row>
       );
     }
 
