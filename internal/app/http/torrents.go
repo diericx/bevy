@@ -14,6 +14,8 @@ import (
 
 	"os"
 
+	"github.com/jinzhu/copier"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,6 +28,21 @@ type Torrent struct {
 	Name           string `json:"name"`
 	TotalPeers     int    `json:"totalPeers"`
 	ActivePeers    int    `json:"activePeers"`
+}
+
+type Release struct {
+	ImdbID       string  `json:"imdbId"`
+	Title        string  `json:"title"`
+	Size         int64   `json:"size"`
+	InfoHash     string  `json:"infoHash"`
+	Grabs        int     `json:"grabs"`
+	Seeders      int     `json:"seeders"`
+	MinRatio     float32 `json:"minRatio"`
+	MinSeedTime  int     `json:"minSeedTime"`
+	SeederScore  float64 `json:"seederScore"`
+	SizeScore    float64 `json:"sizeScore"`
+	QualityScore float64 `json:"qualityScore"`
+	AlreadyAdded bool    `json:"alreadyAdded"`
 }
 
 func newTorrentResponseFromInterfaceAndMetadata(tIn torrent.Torrent, meta app.TorrentMeta) Torrent {
@@ -212,7 +229,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
 		})
 
-		group.GET("/torrents/scored_releases_for_movie", func(c *gin.Context) {
+		group.GET("/torrents/releases_for_movie", func(c *gin.Context) {
 			type Input struct {
 				ImdbID     string `form:"imdb_id" binding:"required"`
 				Title      string `form:"title" binding:"required"`
@@ -229,25 +246,6 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			// TODO: Rename links, confusing
-			links, err := h.TorrentLinkService.GetLinksForMovie(input.ImdbID)
-			if err != nil {
-				if err != storm.ErrNotFound {
-					c.JSON(http.StatusInternalServerError, gin.H{
-						"error": err.Error(),
-					})
-					return
-				}
-			}
-			// Return the torrent if one is already linked to this movie
-			if len(links) > 0 {
-				c.JSON(http.StatusOK, gin.H{
-					"error":       nil,
-					"torrentLink": links[0],
-				})
-				return
-			}
-
 			scoredReleases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -256,9 +254,25 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
+			// convert releases to release response
+			releaseResponses := make([]Release, len(scoredReleases))
+			for i, scoredRelease := range scoredReleases {
+				releaseResponse := Release{}
+				copier.Copy(&releaseResponse, &scoredRelease)
+
+				_, err := s.GetByTitle(scoredRelease.Title)
+				if err != nil {
+					releaseResponse.AlreadyAdded = false
+				} else {
+					releaseResponse.AlreadyAdded = true
+				}
+
+				releaseResponses[i] = releaseResponse
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"error":          nil,
-				"scoredReleases": scoredReleases,
+				"error":    nil,
+				"releases": releaseResponses,
 			})
 		})
 

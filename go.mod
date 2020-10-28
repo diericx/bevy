@@ -13,6 +13,7 @@ require (
 	github.com/gin-contrib/static v0.0.0-20200916080430-d45d9a37d28e
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/mock v1.4.4
+	github.com/jinzhu/copier v0.0.0-20201025035756-632e723a6687
 	github.com/pkg/profile v1.5.0
 	gopkg.in/yaml.v2 v2.2.8
 	gorm.io/driver/sqlite v1.1.1

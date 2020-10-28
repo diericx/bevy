@@ -167,7 +167,13 @@ func (s *Torrent) AddFromMagnet(magnet string, meta app.TorrentMeta) (torrent.To
 	}
 
 	// Save our custom meta
-	meta.InfoHash = t.InfoHash()
+	var emptyHash metainfo.Hash
+	if meta.InfoHash == emptyHash {
+		meta.InfoHash = t.InfoHash()
+	}
+	if meta.Title == "" {
+		meta.Title = t.Name()
+	}
 	err = s.torrentMetaRepo.Store(meta)
 	if err != nil {
 		t.Drop()
@@ -232,6 +238,18 @@ func (s *Torrent) GetByInfoHash(infoHash metainfo.Hash) (torrent.Torrent, error)
 	return t, nil
 }
 
+func (s *Torrent) GetByTitle(title string) (torrent.Torrent, error) {
+	torrentMeta, err := s.torrentMetaRepo.GetByTitle(title)
+	if err != nil {
+		return nil, errors.New("torrent meta not found")
+	}
+	t, ok := s.client.Torrent(torrentMeta.InfoHash)
+	if !ok {
+		return nil, errors.New("torrent not found")
+	}
+	return t, nil
+}
+
 func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quality) (torrent.Torrent, int, error) {
 	for _, r := range releases {
 		// Add to client to get hash
@@ -239,6 +257,7 @@ func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quali
 			r.Link,
 			r.LinkAuth,
 			app.TorrentMeta{
+				Title:       r.Title,
 				RatioToStop: r.MinRatio,
 				HoursToStop: r.MinSeedTime,
 			},

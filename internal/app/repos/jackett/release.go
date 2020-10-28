@@ -47,6 +47,7 @@ func NewReleaseRepo(indexers []app.Indexer) (*ReleaseRepo, error) {
 	}, nil
 }
 
+// Note: we cannot expect this release return to have infoHash field populated
 func (s *ReleaseRepo) QueryAllIndexers(imdbID string, queryString string) ([]app.Release, error) {
 	torznabResponses, err := s.torznabQuery(imdbID, queryString)
 	if err != nil {

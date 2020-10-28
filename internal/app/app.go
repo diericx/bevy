@@ -44,6 +44,7 @@ type TorrentMeta struct {
 	ID int `storm:"id,increment"`
 	// Would like storm to enforce this to be unique but it bugged out last time...
 	InfoHash                     metainfo.Hash
+	Title                        string  `json:"title"`
 	RatioToStop                  float32 `json:"ratioToStop"`
 	SecondsAlive                 int     `json:"secondsAlive"`
 	SecondsSeedingWhileCompleted int     `json:"secondsSeedingWhileCompleted"`
@@ -73,8 +74,6 @@ type Release struct {
 	Seeders     int
 	MinRatio    float32
 	MinSeedTime int
-	// TODO: Make this an actual reference and give qualities a score?
-	Quality int
 }
 
 // Indexer is info we need to hit an indexer for a list of torrents
@@ -111,6 +110,7 @@ type MovieTorrentLink struct {
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
 	GetByInfoHash(metainfo.Hash) (TorrentMeta, error)
+	GetByTitle(string) (TorrentMeta, error)
 	Get() ([]TorrentMeta, error)
 	RemoveByInfoHash(metainfo.Hash) error
 }

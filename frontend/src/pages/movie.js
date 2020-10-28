@@ -27,16 +27,10 @@ export default class MyComponent extends React.Component {
     });
   }
 
-  async scoredReleasesForMovie(imdbID, title, year) {
-    const resp = await TorrentsAPI.ScoredReleasesForMovie(
-      imdbID,
-      title,
-      year,
-      0
-    );
-    console.log(resp);
+  async releasesForMovie(imdbID, title, year) {
+    const resp = await TorrentsAPI.ReleasesForMovie(imdbID, title, year, 0);
     this.setState({
-      isScoredReleasesCallLoading: false,
+      isReleasesCallLoading: false,
       ...resp,
     });
   }
@@ -100,8 +94,8 @@ export default class MyComponent extends React.Component {
   };
 
   ManualSearchButton = () => {
-    const { isScoredReleasesCallLoading, movie } = this.state;
-    if (isScoredReleasesCallLoading) {
+    const { isReleasesCallLoading, movie } = this.state;
+    if (isReleasesCallLoading) {
       return (
         <Row
           style={{ textAlign: 'center' }}
@@ -122,12 +116,8 @@ export default class MyComponent extends React.Component {
       <Button
         variant="primary"
         onClick={async () => {
-          this.scoredReleasesForMovie(
-            movie.imdb_id,
-            movie.title,
-            movie.release_year
-          );
-          this.setState({ isScoredReleasesCallLoading: true });
+          this.releasesForMovie(movie.imdb_id, movie.title, movie.release_year);
+          this.setState({ isReleasesCallLoading: true });
         }}
       >
         Manually Search for Movie
@@ -142,7 +132,7 @@ export default class MyComponent extends React.Component {
       isFindLoading,
       movie,
       torrentLink,
-      scoredReleases,
+      releases,
     } = this.state;
 
     if (error) {
@@ -194,7 +184,7 @@ export default class MyComponent extends React.Component {
           style={{ textAlign: 'center' }}
         >
           <this.ManualSearchButton />
-          <ScoredReleases scoredReleases={scoredReleases} />
+          <Releases releases={releases} />
         </Row>
         <br />
         <br />
@@ -203,10 +193,10 @@ export default class MyComponent extends React.Component {
   }
 }
 
-class ScoredReleases extends React.Component {
+class Releases extends React.Component {
   render() {
-    const { scoredReleases } = this.props;
-    if (!scoredReleases) {
+    const { releases } = this.props;
+    if (!releases) {
       return null;
     }
 
@@ -221,24 +211,26 @@ class ScoredReleases extends React.Component {
             <th>Seeder Score</th>
             <th>Quality Score</th>
             <th>Total Score</th>
+            <th>Already Added</th>
           </tr>
         </thead>
         <tbody>
-          {scoredReleases.map((scoredRelease) => (
-            <tr>
-              <td>{scoredRelease.Title}</td>
-              <td>{scoredRelease.Size}</td>
-              <td>{scoredRelease.Seeders}</td>
-              <td>{scoredRelease.SizeScore.toFixed(2)}</td>
-              <td>{scoredRelease.SeederScore.toFixed(2)}</td>
-              <td>{scoredRelease.QualityScore.toFixed(2)}</td>
+          {releases.map((release) => (
+            <tr class={`${release.alreadyAdded ? 'added' : ''}`}>
+              <td>{release.title}</td>
+              <td>{release.size}</td>
+              <td>{release.seeders}</td>
+              <td>{release.sizeScore.toFixed(2)}</td>
+              <td>{release.seederScore.toFixed(2)}</td>
+              <td>{release.qualityScore.toFixed(2)}</td>
               <td>
                 {(
-                  scoredRelease.SeederScore +
-                  scoredRelease.SizeScore +
-                  scoredRelease.QualityScore
+                  release.seederScore +
+                  release.sizeScore +
+                  release.qualityScore
                 ).toFixed(2)}
               </td>
+              <td>{`${release.alreadyAdded}`}</td>
             </tr>
           ))}
         </tbody>

@@ -22,6 +22,14 @@ func (r *TorrentMeta) GetByInfoHash(infoHash metainfo.Hash) (app.TorrentMeta, er
 	return meta, err
 }
 
+// GetByTitle retrieves an app.TorrentMeta object from the db by title if exists, err if not
+func (r *TorrentMeta) GetByTitle(title string) (app.TorrentMeta, error) {
+	var meta app.TorrentMeta
+	meta.Title = title
+	err := r.DB.One("Title", title, &meta)
+	return meta, err
+}
+
 // Get retrieves all TorrentMeta objects in db
 func (r *TorrentMeta) Get() ([]app.TorrentMeta, error) {
 	var metas []app.TorrentMeta
