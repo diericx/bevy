@@ -16,17 +16,9 @@ export default class MyComponent extends React.Component {
     error: null,
   };
 
-  async findTorrent(imdbID, title, year) {
-    const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0);
-    this.setState({
-      isLoading: false,
-      ...resp,
-    });
-  }
-
   render() {
-    const { movie } = this.props;
-    const { torrentLink, isLoading, error } = this.state;
+    const { movie, torrentLink } = this.props;
+    const { isLoading, error } = this.state;
 
     if (error) {
       return (
@@ -55,17 +47,7 @@ export default class MyComponent extends React.Component {
     }
 
     if (!torrentLink) {
-      return (
-        <Button
-          variant="primary"
-          onClick={async () => {
-            this.findTorrent(movie.imdb_id, movie.title, movie.release_year);
-            this.setState({ isLoading: true });
-          }}
-        >
-          Watch Movie
-        </Button>
-      );
+      return null;
     }
 
     const videoJsOptions = {
