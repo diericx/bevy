@@ -2,6 +2,9 @@ package app
 
 import (
 	"errors"
+	"log"
+	"strings"
+
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/diericx/iceetime/internal/pkg/torrent"
 )
@@ -41,6 +44,7 @@ type TorrentMeta struct {
 	ID int `storm:"id,increment"`
 	// Would like storm to enforce this to be unique but it bugged out last time...
 	InfoHash                     metainfo.Hash
+	Title                        string  `json:"title"`
 	RatioToStop                  float32 `json:"ratioToStop"`
 	SecondsAlive                 int     `json:"secondsAlive"`
 	SecondsSeedingWhileCompleted int     `json:"secondsSeedingWhileCompleted"`
@@ -84,11 +88,15 @@ type Indexer struct {
 
 // Quality contains specifications for a specific quality of torrent and how to infer that quality from a name
 type Quality struct {
-	Name       string  `toml:"name"`
-	Regex      string  `toml:"regex"`
-	MinSize    float64 `toml:"min_size"`
-	MaxSize    float64 `toml:"max_size"`
-	Resolution string  `toml:"resolution"`
+	Name             string  `toml:"name"`
+	Regex            string  `toml:"regex"`
+	MinSize          float64 `toml:"min_size"`
+	MaxSize          float64 `toml:"max_size"`
+	MinSeeders       int     `toml:"min_seeders"`
+	Resolution       string  `toml:"resolution"`
+	SeederScoreFunc  string  `toml:"seeder_score_func"`
+	SizeScoreFunc    string  `toml:"size_score_func"`
+	QualityScoreFunc string  `toml:"quality_score_func"`
 }
 
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
@@ -102,6 +110,7 @@ type MovieTorrentLink struct {
 type TorrentMetaRepo interface {
 	Store(TorrentMeta) error
 	GetByInfoHash(metainfo.Hash) (TorrentMeta, error)
+	GetByTitle(string) (TorrentMeta, error)
 	Get() ([]TorrentMeta, error)
 	RemoveByInfoHash(metainfo.Hash) error
 }
@@ -137,6 +146,15 @@ func (i Indexer) Validate() error {
 }
 
 func (q Quality) Validate() error {
+	if q.SeederScoreFunc == "" {
+		return errors.New("Seeder score function cannot be empty")
+	}
+	if q.SizeScoreFunc == "" {
+		return errors.New("Size score function cannot be empty")
+	}
+	if q.QualityScoreFunc == "" {
+		return errors.New("Size score function cannot be empty")
+	}
 	if q.Name == "" {
 		return errors.New("Name cannot be empty")
 	}
@@ -146,5 +164,44 @@ func (q Quality) Validate() error {
 	if q.Resolution == "" {
 		return errors.New("Resolution cannot be empty")
 	}
+	if q.MinSeeders <= 0 {
+		return errors.New("MinSeeders cannot be less than or equal to 0")
+	}
 	return nil
+}
+
+// ValidateSizeSeedersAndName will trim the given release slice and return only those that are valid given
+// size min maxes, seeder min maxes and name blacklists.
+func (release Release) ValidateSizeSeedersAndName(quality Quality) error {
+	if float64(release.Size) < quality.MinSize || float64(release.Size) > quality.MaxSize {
+		log.Printf("INFO: Passing on release %s because size %v is not correct.", release.Title, release.Size)
+		return errors.New("Invalid size")
+	}
+	if release.Seeders < int(quality.MinSeeders) {
+		log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", release.Title, release.Seeders, quality.MinSeeders)
+		return errors.New("Invalid seeders count")
+	}
+	if StringContainsAnyOf(strings.ToLower(release.Title), GetBlacklistedTorrentNameContents()) {
+		log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", release.Title, GetBlacklistedTorrentNameContents())
+		return errors.New("Invalid title")
+	}
+	return nil
+}
+
+func StringContainsAnyOf(s string, substrings []string) bool {
+	for _, substring := range substrings {
+		if strings.Contains(s, substring) {
+			return true
+		}
+	}
+	return false
+}
+
+func StringEndsInAny(s string, suffixes []string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
 }

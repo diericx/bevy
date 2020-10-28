@@ -15,6 +15,8 @@ import (
 
 	"os"
 
+	"github.com/jinzhu/copier"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +29,21 @@ type Torrent struct {
 	Name           string `json:"name"`
 	TotalPeers     int    `json:"totalPeers"`
 	ActivePeers    int    `json:"activePeers"`
+}
+
+type Release struct {
+	ImdbID       string  `json:"imdbId"`
+	Title        string  `json:"title"`
+	Size         int64   `json:"size"`
+	InfoHash     string  `json:"infoHash"`
+	Grabs        int     `json:"grabs"`
+	Seeders      int     `json:"seeders"`
+	MinRatio     float32 `json:"minRatio"`
+	MinSeedTime  int     `json:"minSeedTime"`
+	SeederScore  float64 `json:"seederScore"`
+	SizeScore    float64 `json:"sizeScore"`
+	QualityScore float64 `json:"qualityScore"`
+	AlreadyAdded bool    `json:"alreadyAdded"`
 }
 
 func newTorrentResponseFromInterfaceAndMetadata(tIn torrent.Torrent, meta app.TorrentMeta) Torrent {
@@ -213,6 +230,53 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 			http.ServeContent(c.Writer, c.Request, t.Name(), time.Time{}, readseeker)
 		})
 
+		group.GET("/torrents/releases_for_movie", func(c *gin.Context) {
+			type Input struct {
+				ImdbID     string `form:"imdb_id" binding:"required"`
+				Title      string `form:"title" binding:"required"`
+				Year       string `form:"year" binding:"required"`
+				MinQuality int    `form:"min_quality"`
+			}
+			var input Input
+
+			if err := c.ShouldBind(&input); err != nil {
+				log.Println("Error binding json: ", err)
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			scoredReleases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			// convert releases to release response
+			releaseResponses := make([]Release, len(scoredReleases))
+			for i, scoredRelease := range scoredReleases {
+				releaseResponse := Release{}
+				copier.Copy(&releaseResponse, &scoredRelease)
+
+				_, err := s.GetByTitle(scoredRelease.Title)
+				if err != nil {
+					releaseResponse.AlreadyAdded = false
+				} else {
+					releaseResponse.AlreadyAdded = true
+				}
+
+				releaseResponses[i] = releaseResponse
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"error":    nil,
+				"releases": releaseResponses,
+			})
+		})
+
 		group.GET("/torrents/find_for_movie", func(c *gin.Context) {
 			type Input struct {
 				ImdbID     string `form:"imdb_id" binding:"required"`
@@ -249,12 +313,18 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 				return
 			}
 
-			releases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year, input.MinQuality)
+			scoredReleases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
 				return
+			}
+
+			// Convert scored releases back to regular releases
+			releases := make([]app.Release, len(scoredReleases))
+			for i, scoredRelease := range scoredReleases {
+				releases[i] = scoredRelease.Release
 			}
 
 			t, fileIndex, err := h.TorrentService.AddBestTorrentFromReleases(releases, h.Qualities[input.MinQuality])

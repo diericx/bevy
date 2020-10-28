@@ -37,18 +37,17 @@ type Item struct {
 }
 
 type ReleaseRepo struct {
-	Qualities []app.Quality
-	Indexers  []app.Indexer
+	Indexers []app.Indexer
 }
 
 // NewReleaseRepo instantiates a new ReleaseRepo object that implements torznab queries/indexers
-func NewReleaseRepo(indexers []app.Indexer, qualities []app.Quality) (*ReleaseRepo, error) {
+func NewReleaseRepo(indexers []app.Indexer) (*ReleaseRepo, error) {
 	return &ReleaseRepo{
-		Indexers:  indexers,
-		Qualities: qualities,
+		Indexers: indexers,
 	}, nil
 }
 
+// Note: we cannot expect this release return to have infoHash field populated
 func (s *ReleaseRepo) QueryAllIndexers(imdbID string, queryString string) ([]app.Release, error) {
 	torznabResponses, err := s.torznabQuery(imdbID, queryString)
 	if err != nil {

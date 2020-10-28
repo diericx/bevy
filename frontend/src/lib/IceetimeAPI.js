@@ -36,6 +36,12 @@ export class TorrentsAPI {
     );
   }
 
+  static async ReleasesForMovie(imdbID, title, year, minQualityIndex) {
+    return asyncApiCall(
+      `${backendURL}/v1/torrents/releases_for_movie?imdb_id=${imdbID}&title=${title}&year=${year}&min_quality=${minQualityIndex}`
+    );
+  }
+
   // ~=~=~=~=~=~=~=~=~=~=~=
   // URL Composition
   // ~=~=~=~=~=~=~=~=~=~=~=

@@ -20,12 +20,13 @@ import (
 
 func main() {
 	var conf app.MainConfig
-	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
-		panic(err)
+	configFileLocation := os.Getenv("CONFIG_FILE")
+	if _, err := toml.DecodeFile(configFileLocation, &conf); err != nil {
+		fmt.Printf("ERROR: %s\n Could not find or access config file at %s.\n Make sure it exists and this user has access to it.\n", err, configFileLocation)
+		os.Exit(1)
 	}
-	if conf.Validate() != nil {
-		fmt.Println("ERROR: Invalid config")
-		fmt.Println(conf.Validate())
+	if err := conf.Validate(); err != nil {
+		fmt.Printf("ERROR: Invalid config\n%s", err)
 		os.Exit(1)
 	}
 
@@ -58,8 +59,7 @@ func main() {
 	}
 
 	releaseRepo := jackett.ReleaseRepo{
-		Qualities: conf.Qualities,
-		Indexers:  conf.Indexers,
+		Indexers: conf.ReleaseService.Indexers,
 	}
 
 	//
@@ -73,7 +73,6 @@ func main() {
 		client,
 		&torrentMetaRepo,
 		time.Second*15,
-		conf.TorrentClient.MinSeeders,
 		conf.TorrentClient.TorrentFilePath,
 	)
 
@@ -88,7 +87,7 @@ func main() {
 
 	releaseService := services.Release{
 		ReleaseRepo: releaseRepo,
-		Qualities:   conf.Qualities,
+		Config:      conf.ReleaseService,
 	}
 
 	torrentLinkService := services.TorrentLink{
@@ -107,7 +106,7 @@ func main() {
 		TorrentLinkService: torrentLinkService,
 		Transcoder:         transcoder,
 		TorrentMetaRepo:    torrentMetaRepo,
-		Qualities:          conf.Qualities,
+		Qualities:          conf.ReleaseService.Qualities,
 		TorrentFilesPath:   conf.TorrentClient.TorrentFilePath,
 	}
 

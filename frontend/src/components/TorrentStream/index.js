@@ -1,13 +1,7 @@
 import React from 'react';
-import { Redirect } from 'react-router-dom';
-import Button from 'react-bootstrap/Button';
 import VideoPlayer from '../VideoPlayer';
-import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert';
-import Spinner from 'react-bootstrap/Spinner';
-import Col from 'react-bootstrap/Col';
-import { TorrentsAPI, TranscoderAPI } from '../../lib/IceetimeAPI';
-import Torrents from '../../pages/torrents';
+import { TranscoderAPI } from '../../lib/IceetimeAPI';
 
 export default class MyComponent extends React.Component {
   state = {
@@ -16,17 +10,9 @@ export default class MyComponent extends React.Component {
     error: null,
   };
 
-  async findTorrent(imdbID, title, year) {
-    const resp = await TorrentsAPI.FindTorrentForMovie(imdbID, title, year, 0);
-    this.setState({
-      isLoading: false,
-      ...resp,
-    });
-  }
-
   render() {
-    const { movie } = this.props;
-    const { torrentLink, isLoading, error } = this.state;
+    const { movie, torrentLink } = this.props;
+    const { isLoading, error } = this.state;
 
     if (error) {
       return (
@@ -36,36 +22,8 @@ export default class MyComponent extends React.Component {
       );
     }
 
-    if (isLoading) {
-      return (
-        <Row
-          style={{ textAlign: 'center' }}
-          className={'justify-content-center align-items-center'}
-        >
-          <Col sm={12}>
-            <p>Searching indexers for movie...</p>
-          </Col>
-          <Col sm={12}>
-            <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
-            </Spinner>
-          </Col>
-        </Row>
-      );
-    }
-
     if (!torrentLink) {
-      return (
-        <Button
-          variant="primary"
-          onClick={async () => {
-            this.findTorrent(movie.imdb_id, movie.title, movie.release_year);
-            this.setState({ isLoading: true });
-          }}
-        >
-          Watch Movie
-        </Button>
-      );
+      return null;
     }
 
     const videoJsOptions = {

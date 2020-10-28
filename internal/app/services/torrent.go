@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -23,18 +22,16 @@ type Torrent struct {
 	client           app.TorrentClient
 	torrentMetaRepo  app.TorrentMetaRepo
 	getInfoTimeout   time.Duration
-	minSeeders       int
 	torrentFilesPath string
 
 	torrentStatCache torrent.StatCache
 }
 
-func NewTorrentService(client app.TorrentClient, tmr app.TorrentMetaRepo, getInfoTimeout time.Duration, minSeeders int, torrentFilesPath string) Torrent {
+func NewTorrentService(client app.TorrentClient, tmr app.TorrentMetaRepo, getInfoTimeout time.Duration, torrentFilesPath string) Torrent {
 	return Torrent{
 		client,
 		tmr,
 		getInfoTimeout,
-		minSeeders,
 		torrentFilesPath,
 		make(torrent.StatCache),
 	}
@@ -170,7 +167,13 @@ func (s *Torrent) AddFromMagnet(magnet string, meta app.TorrentMeta) (torrent.To
 	}
 
 	// Save our custom meta
-	meta.InfoHash = t.InfoHash()
+	var emptyHash metainfo.Hash
+	if meta.InfoHash == emptyHash {
+		meta.InfoHash = t.InfoHash()
+	}
+	if meta.Title == "" {
+		meta.Title = t.Name()
+	}
 	err = s.torrentMetaRepo.Store(meta)
 	if err != nil {
 		t.Drop()
@@ -235,31 +238,26 @@ func (s *Torrent) GetByInfoHash(infoHash metainfo.Hash) (torrent.Torrent, error)
 	return t, nil
 }
 
+func (s *Torrent) GetByTitle(title string) (torrent.Torrent, error) {
+	torrentMeta, err := s.torrentMetaRepo.GetByTitle(title)
+	if err != nil {
+		return nil, errors.New("torrent meta not found")
+	}
+	t, ok := s.client.Torrent(torrentMeta.InfoHash)
+	if !ok {
+		return nil, errors.New("torrent not found")
+	}
+	return t, nil
+}
+
 func (s *Torrent) AddBestTorrentFromReleases(releases []app.Release, q app.Quality) (torrent.Torrent, int, error) {
-	// sort torrents by seeders (to get most available torrents first)
-	sort.Slice(releases, func(i, j int) bool {
-		return releases[i].Seeders > releases[j].Seeders
-	})
-
 	for _, r := range releases {
-		if float64(r.Size) < q.MinSize || float64(r.Size) > q.MaxSize {
-			log.Printf("INFO: Passing on release %s because size %v is not correct.", r.Title, r.Size)
-			continue
-		}
-		if r.Seeders < s.minSeeders {
-			log.Printf("INFO: Passing on release %s because seeders: %v is less than minimum: %v", r.Title, r.Seeders, s.minSeeders)
-			continue
-		}
-		if stringContainsAnyOf(strings.ToLower(r.Title), app.GetBlacklistedTorrentNameContents()) {
-			log.Printf("INFO: Passing on release %s because title contains one of these blacklisted words: %+v", r.Title, app.GetBlacklistedTorrentNameContents())
-			continue
-		}
-
 		// Add to client to get hash
 		t, err := s.addFromURLUknownScheme(
 			r.Link,
 			r.LinkAuth,
 			app.TorrentMeta{
+				Title:       r.Title,
 				RatioToStop: r.MinRatio,
 				HoursToStop: r.MinSeedTime,
 			},
@@ -355,7 +353,7 @@ func (s *Torrent) getValidFileInTorrent(t torrent.Torrent) (int, error) {
 	files := t.Files()
 
 	for i, file := range files {
-		if stringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !stringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
+		if app.StringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !app.StringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
 			return i, nil
 		}
 	}
