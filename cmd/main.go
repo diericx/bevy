@@ -20,8 +20,10 @@ import (
 
 func main() {
 	var conf app.MainConfig
-	if _, err := toml.DecodeFile(os.Getenv("CONFIG_FILE"), &conf); err != nil {
-		panic(err)
+	configFileLocation := os.Getenv("CONFIG_FILE")
+	if _, err := toml.DecodeFile(configFileLocation, &conf); err != nil {
+		fmt.Printf("ERROR: %s\n Could not find or access config file at %s.\n Make sure it exists and this user has access to it.\n", err, configFileLocation)
+		os.Exit(1)
 	}
 	if err := conf.Validate(); err != nil {
 		fmt.Printf("ERROR: Invalid config\n%s", err)

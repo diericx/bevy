@@ -18,6 +18,14 @@ export default function App() {
           >
             Movies
           </Link>
+          <Link
+            to={{
+              pathname: '/torrents',
+            }}
+            className="nav-link"
+          >
+            Torrents
+          </Link>
         </Nav>
       </Navbar.Collapse>
     </Navbar>
