@@ -36,23 +36,11 @@ type TranscoderConfig struct {
 }
 
 type ReleaseServiceConfig struct {
-	SeederScoreFunc  string    `toml:"seeder_score_func"`
-	SizeScoreFunc    string    `toml:"size_score_func"`
-	QualityScoreFunc string    `toml:"quality_score_func"`
-	Indexers         []Indexer `toml:"indexers"`
-	Qualities        []Quality `toml:"qualities"`
+	Indexers  []Indexer `toml:"indexers"`
+	Qualities []Quality `toml:"qualities"`
 }
 
 func (c ReleaseServiceConfig) Validate() error {
-	if c.SeederScoreFunc == "" {
-		return errors.New("Seeder score function cannot be empty")
-	}
-	if c.SizeScoreFunc == "" {
-		return errors.New("Size score function cannot be empty")
-	}
-	if c.QualityScoreFunc == "" {
-		return errors.New("Size score function cannot be empty")
-	}
 	if len(c.Indexers) == 0 {
 		return errors.New("Indexers array must have length of at least 1")
 	}
