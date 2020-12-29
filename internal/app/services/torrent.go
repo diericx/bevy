@@ -71,6 +71,12 @@ func (s *Torrent) StartMetaRefreshForAllTorrentsLoop(refreshRateInSeconds int) e
 			bytesReadDataDiff := stats.BytesReadData.Int64() - cachedStats.BytesReadData.Int64()
 
 			meta, err := s.torrentMetaRepo.GetByInfoHash(t.InfoHash())
+			meta.SecondsAlive += refreshRateInSeconds
+
+			// if it's completed downloading and seeding, start incrementing seed time
+			if t.BytesMissing() == 0 && t.Seeding() {
+				meta.SecondsSeedingWhileCompleted += refreshRateInSeconds
+			}
 
 			// If there is a difference, update meta with diff
 			if bytesReadDataDiff > 0 || bytesWrittenDataDiff > 0 {
@@ -82,24 +88,18 @@ func (s *Torrent) StartMetaRefreshForAllTorrentsLoop(refreshRateInSeconds int) e
 
 				meta.BytesReadData += bytesReadDataDiff
 				meta.BytesWrittenData += bytesWrittenDataDiff
-				meta.SecondsAlive += refreshRateInSeconds
 				meta.DownloadSpeed = float32(bytesReadDataDiff) / float32(refreshRateInSeconds)
-				// if it's completed downloading and seeding, start incrementing seed time
-				if t.BytesMissing() == 0 && t.Seeding() {
-					meta.SecondsSeedingWhileCompleted += refreshRateInSeconds
-				}
-
-				s.torrentMetaRepo.Store(meta)
 
 				s.torrentStatCache[t.InfoHash()] = t.Stats()
 			} else {
 				// Nothing downloaded so make sure download speed is set to 0
 				if meta.DownloadSpeed != 0 {
 					meta.DownloadSpeed = 0
-					s.torrentMetaRepo.Store(meta)
 					s.torrentStatCache[t.InfoHash()] = t.Stats()
 				}
 			}
+
+			s.torrentMetaRepo.Store(meta)
 		}
 	}
 }
