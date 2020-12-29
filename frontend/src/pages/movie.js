@@ -8,6 +8,7 @@ import './movie.css';
 import TorrentStream from '../components/TorrentStream';
 import { TmdbAPI } from '../lib/IceetimeAPI';
 import { TorrentsAPI, TranscoderAPI } from '../lib/IceetimeAPI';
+import prettyBytes from 'pretty-bytes';
 import Spinner from 'react-bootstrap/esm/Spinner';
 
 export default class MyComponent extends React.Component {
@@ -222,7 +223,7 @@ class Releases extends React.Component {
           {releases.map((release) => (
             <tr class={`${release.alreadyAdded ? 'added' : ''}`}>
               <td>{release.title}</td>
-              <td>{release.size}</td>
+              <td>{prettyBytes(release.size)}</td>
               <td>{release.seeders}</td>
               <td>{release.sizeScore.toFixed(2)}</td>
               <td>{release.seederScore.toFixed(2)}</td>

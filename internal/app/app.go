@@ -21,7 +21,7 @@ func GetDefaultTorrentMeta() TorrentMeta {
 
 // GetSupportedVideoFileFormats returns an array of strings that are the supported video formats
 func GetSupportedVideoFileFormats() []string {
-	return []string{".mkv", ".mp4"}
+	return []string{".mkv", ".mp4", ".mov", ".avi"}
 }
 
 // GetBlacklistedFileNameContents returns an array of strings that are blacklisted from torrent names

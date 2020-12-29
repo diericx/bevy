@@ -352,12 +352,24 @@ func (s *Torrent) getValidFileInTorrent(t torrent.Torrent) (int, error) {
 	// Get correct file
 	files := t.Files()
 
+	var bestMatchIndex int
+	var bestMatchSize int64
+	var foundMatch bool
 	for i, file := range files {
 		if app.StringEndsInAny(strings.ToLower(file.Path()), app.GetSupportedVideoFileFormats()) && !app.StringContainsAnyOf(strings.ToLower(file.Path()), app.GetBlacklistedFileNameContents()) {
-			return i, nil
+			// Grab largest match
+			if file.Length() > bestMatchSize {
+				foundMatch = true
+				bestMatchIndex = i
+				bestMatchSize = file.Length()
+			}
 		}
 	}
-	return 0, nil
+	if !foundMatch {
+		return 0, errors.New("No valid video file found")
+	}
+
+	return bestMatchIndex, nil
 }
 
 func downloadFileFromResponse(resp *http.Response, filePath string) error {
