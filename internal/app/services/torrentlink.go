@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/app/repos/storm"
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/app/repos/storm"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 )
 
 type TorrentLink struct {

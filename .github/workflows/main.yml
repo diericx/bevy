@@ -6,9 +6,9 @@ name: CI
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -16,7 +16,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
@@ -25,23 +25,19 @@ jobs:
       - name: Create version variable
         id: prep
         run: |
-          TAGS="iceetime/iceetime:latest,iceetime/iceetime:$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
+          TAGS="bevy/bevy:latest,bevy/bevy:$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
           echo ::set-output name=tags::${TAGS}
 
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1 
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+      - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:

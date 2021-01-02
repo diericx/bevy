@@ -2,7 +2,7 @@ package storm
 
 import (
 	"github.com/asdine/storm"
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/bevy/internal/app"
 )
 
 type MovieTorrentLink struct {

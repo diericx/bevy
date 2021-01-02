@@ -5,7 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
-import { TmdbAPI } from '../lib/IceetimeAPI';
+import { TmdbAPI } from '../lib/BevyAPI';
 
 const styles = {
   movieCard: {

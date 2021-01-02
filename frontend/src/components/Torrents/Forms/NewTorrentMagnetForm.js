@@ -2,7 +2,7 @@ import React from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
-import { TorrentsAPI } from '../../../lib/IceetimeAPI';
+import { TorrentsAPI } from '../../../lib/BevyAPI';
 import Spinner from 'react-bootstrap/esm/Spinner';
 
 export default class NewTorrentMagnetForm extends React.Component {

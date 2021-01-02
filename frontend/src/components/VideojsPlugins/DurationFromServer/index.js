@@ -1,5 +1,5 @@
 import videojs from 'video.js';
-import { TorrentsAPI, TranscoderAPI } from '../../../lib/IceetimeAPI';
+import { TorrentsAPI, TranscoderAPI } from '../../../lib/BevyAPI';
 const Plugin = videojs.getPlugin('plugin');
 
 export default class DurationFromServer extends Plugin {

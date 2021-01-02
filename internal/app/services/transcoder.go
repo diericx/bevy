@@ -5,7 +5,7 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/bevy/internal/app"
 )
 
 type Transcoder struct {

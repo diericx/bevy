@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/Knetic/govaluate"
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/app/repos/jackett"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/app/repos/jackett"
 )
 
 // Release service uses the jackett repo along with configurable sorting functions in order to provide a

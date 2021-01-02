@@ -6,8 +6,8 @@ import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import './movie.css';
 import TorrentStream from '../components/TorrentStream';
-import { TmdbAPI } from '../lib/IceetimeAPI';
-import { TorrentsAPI, TranscoderAPI } from '../lib/IceetimeAPI';
+import { TmdbAPI } from '../lib/BevyAPI';
+import { TorrentsAPI, TranscoderAPI } from '../lib/BevyAPI';
 import prettyBytes from 'pretty-bytes';
 import Spinner from 'react-bootstrap/esm/Spinner';
 

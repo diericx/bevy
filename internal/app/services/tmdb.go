@@ -3,7 +3,7 @@ package services
 import (
 	"strings"
 
-	"github.com/diericx/iceetime/internal/app/repos/tmdb"
+	"github.com/diericx/bevy/internal/app/repos/tmdb"
 )
 
 type Tmdb struct {

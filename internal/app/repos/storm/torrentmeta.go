@@ -3,7 +3,7 @@ package storm
 import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/asdine/storm"
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/bevy/internal/app"
 )
 
 type TorrentMeta struct {

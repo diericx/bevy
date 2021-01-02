@@ -14,7 +14,7 @@ all: deps build
 
 .PHONY: docker
 docker:
-	@docker build -t iceetime/frontend:$(VERSION) -f Dockerfile .
+	@docker build -t bevy/frontend:$(VERSION) -f Dockerfile .
 
 .PHONY: clean
 clean:

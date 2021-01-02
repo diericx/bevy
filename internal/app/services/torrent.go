@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 )
 
 type Torrent struct {
