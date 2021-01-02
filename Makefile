@@ -17,7 +17,7 @@ build: macos linux docker
 
 .PHONY: docker
 docker:
-	@docker build -t bevy/bevy:$(VERSION) .
+	@docker build -t zolland/bevy:$(VERSION) .
 
 .PHONY: linux-amd64
 linux-amd64:
