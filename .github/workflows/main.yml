@@ -25,7 +25,7 @@ jobs:
       - name: Create version variable
         id: prep
         run: |
-          TAGS="bevy/bevy:latest,bevy/bevy:$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
+          TAGS="zolland/bevy:latest,zolland/bevy:$(git -C $GITHUB_WORKSPACE rev-list --count HEAD).$(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
           echo ::set-output name=tags::${TAGS}
 
       - name: Set up QEMU
