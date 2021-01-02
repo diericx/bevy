@@ -79,7 +79,7 @@ docker run -it \
 -v $(pwd)/config.toml:/config.toml \
 -e CONFIG_FILE=/config.toml \
 -p 8080:8080 \
-bevy/bevy:latest
+zolland/bevy:latest
 ```
 
 Running on ARM64 (tested on Pi 4 Model B)
@@ -91,7 +91,7 @@ docker run -it \
 -e CONFIG_FILE=/config.toml \
 -p 8080:8080 \
 --entrypoint "/linux-arm64" \
-bevy/bevy:latest
+zolland/bevy:latest
 ```
 
 Docker Compose
@@ -113,7 +113,7 @@ jackett:
 
 bevy:
     container_name: bevy
-    image: bevy/bevy:latest
+    image: zolland/bevy:latest
     user: 1000:1000
     restart: unless-stopped
     ports:
