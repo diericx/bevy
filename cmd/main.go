@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/app/http"
-	"github.com/diericx/iceetime/internal/app/repos/jackett"
-	"github.com/diericx/iceetime/internal/app/repos/storm"
-	"github.com/diericx/iceetime/internal/app/repos/tmdb"
-	"github.com/diericx/iceetime/internal/app/services"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/app/http"
+	"github.com/diericx/bevy/internal/app/repos/jackett"
+	"github.com/diericx/bevy/internal/app/repos/storm"
+	"github.com/diericx/bevy/internal/app/repos/tmdb"
+	"github.com/diericx/bevy/internal/app/services"
 
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	stormDBFilePath := filepath.Join(conf.TorrentClient.TorrentFilePath, ".iceetime.storm.db")
+	stormDBFilePath := filepath.Join(conf.TorrentClient.TorrentFilePath, ".bevy.storm.db")
 	stormDB, err := storm.OpenDB(stormDBFilePath)
 	if err != nil {
 		log.Fatalf("Couldn't open torrent file at %s. The file will be created if it doesn't exist, make sure the directory exists and user has proper permissions.", stormDBFilePath)

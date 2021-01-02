@@ -10,8 +10,8 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 
 	"github.com/asdine/storm"
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 
 	"os"
 

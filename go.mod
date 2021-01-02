@@ -1,4 +1,4 @@
-module github.com/diericx/iceetime
+module github.com/diericx/bevy
 
 go 1.14
 

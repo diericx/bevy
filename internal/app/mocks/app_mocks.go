@@ -6,8 +6,8 @@ package mocks
 
 import (
 	metainfo "github.com/anacrolix/torrent/metainfo"
-	app "github.com/diericx/iceetime/internal/app"
-	torrent "github.com/diericx/iceetime/internal/pkg/torrent"
+	app "github.com/diericx/bevy/internal/app"
+	torrent "github.com/diericx/bevy/internal/pkg/torrent"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

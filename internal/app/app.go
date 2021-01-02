@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 )
 
 func GetDefaultTorrentMeta() TorrentMeta {

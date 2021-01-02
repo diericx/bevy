@@ -3,10 +3,10 @@ package http
 import (
 	"html/template"
 
-	"github.com/diericx/iceetime/internal/app"
-	"github.com/diericx/iceetime/internal/app/repos/storm"
-	"github.com/diericx/iceetime/internal/app/services"
-	"github.com/diericx/iceetime/internal/pkg/torrent"
+	"github.com/diericx/bevy/internal/app"
+	"github.com/diericx/bevy/internal/app/repos/storm"
+	"github.com/diericx/bevy/internal/app/services"
+	"github.com/diericx/bevy/internal/pkg/torrent"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"

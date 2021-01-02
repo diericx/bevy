@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/bevy/internal/app"
 )
 
 type Rss struct {

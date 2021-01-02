@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/diericx/iceetime/internal/app"
+	"github.com/diericx/bevy/internal/app"
 
 	"github.com/asdine/storm"
 )

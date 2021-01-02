@@ -1,6 +1,6 @@
-# Iceetime
+# Bevy
 
-Iceetime is a self hosted alternative to Popcorntime that aims to improve file availability and increase control over the files being downloaded. With this added control we can:
+Bevy is a self hosted alternative to Popcorntime that aims to improve file availability and increase control over the files being downloaded. With this added control we can:
 
 - Grab one file, and transcode to lower qualities (instead of grabbing a different file for each desired quality)
 - Keep and seed files for x amount of time depending on the tracker (so we aren't just leeching)
@@ -24,7 +24,7 @@ If you are still confused about why this project was started, check out the moti
 
 ## Torrent client
 
-Iceetime includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (which helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
+Bevy includes a fully featured torrent client so you can decide how you want the files to be downloaded and seeded (which helps solve issue 1 I mentioned above). We don't use existing clients because we specifically need the ability to serve files via HTTP and prioritize those streams over downloading the entire torrent.
 
 Features:
 
@@ -41,7 +41,7 @@ Features:
 
 ## Media Player (realtime transcoder)
 
-Iceetime also includes a layer on top of the raw files that aims to make your files as available as possible.
+Bevy also includes a layer on top of the raw files that aims to make your files as available as possible.
 
 Features:
 
@@ -79,7 +79,7 @@ docker run -it \
 -v $(pwd)/config.toml:/config.toml \
 -e CONFIG_FILE=/config.toml \
 -p 8080:8080 \
-iceetime/iceetime:latest
+zolland/bevy:latest
 ```
 
 Running on ARM64 (tested on Pi 4 Model B)
@@ -91,7 +91,7 @@ docker run -it \
 -e CONFIG_FILE=/config.toml \
 -p 8080:8080 \
 --entrypoint "/linux-arm64" \
-iceetime/iceetime:latest
+zolland/bevy:latest
 ```
 
 Docker Compose
@@ -111,18 +111,18 @@ jackett:
       - 9117:9117
     restart: unless-stopped
 
-iceetime:
-    container_name: iceetime
-    image: iceetime/iceetime:latest
+bevy:
+    container_name: bevy
+    image: zolland/bevy:latest
     user: 1000:1000
     restart: unless-stopped
     ports:
       - 8086:8080
     environment:
-      - CONFIG_FILE=/etc/iceetime/config.toml
+      - CONFIG_FILE=/etc/bevy/config.toml
     volumes:
-      - /etc/iceetime/config.toml:/etc/iceetime/config.toml
-      - /mnt/media/iceetime/downloads:/downloads
+      - /etc/bevy/config.toml:/etc/bevy/config.toml
+      - /mnt/media/bevy/downloads:/downloads
 ```
 
 # Development

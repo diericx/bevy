@@ -12,7 +12,7 @@ import prettyBytes from 'pretty-bytes';
 import TorrentStream from '../components/TorrentStream';
 import { result } from 'underscore';
 import NewTorrent from '../components/Torrents/NewTorrent.js';
-import { TorrentsAPI } from '../lib/IceetimeAPI';
+import { TorrentsAPI } from '../lib/BevyAPI';
 
 var prettyTime = require('pretty-time');
 const REFRESH_RATE = 2000;

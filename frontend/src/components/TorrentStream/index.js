@@ -1,7 +1,7 @@
 import React from 'react';
 import VideoPlayer from '../VideoPlayer';
 import Alert from 'react-bootstrap/Alert';
-import { TranscoderAPI } from '../../lib/IceetimeAPI';
+import { TranscoderAPI } from '../../lib/BevyAPI';
 
 export default class MyComponent extends React.Component {
   state = {

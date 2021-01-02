@@ -7,7 +7,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import './search.css';
-import { TmdbAPI } from '../lib/IceetimeAPI';
+import { TmdbAPI } from '../lib/BevyAPI';
 
 export default class MyComponent extends React.Component {
   state = {

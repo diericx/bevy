@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 export default function App() {
   return (
     <Navbar bg="light" expand="lg">
-      <Navbar.Brand href="/">Iceetime</Navbar.Brand>
+      <Navbar.Brand href="/">Bevy</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
