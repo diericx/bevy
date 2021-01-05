@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log"
+	"math"
 	"sort"
 
 	"github.com/Knetic/govaluate"
@@ -27,16 +28,17 @@ type ScoredRelease struct {
 func (s *Release) QueryMovie(imdbID string, title string, year string) ([]ScoredRelease, error) {
 	scoredReleases := make([]ScoredRelease, 0)
 
+	qualityScoreExpression, err := govaluate.NewEvaluableExpression(s.Config.QualityScoreExpr)
+	if err != nil {
+		return nil, fmt.Errorf("Error evaluating seeder score function: %v", err)
+	}
+
 	for qualityIndex, quality := range s.Config.Qualities {
-		sizeScoreExpression, err := govaluate.NewEvaluableExpression(quality.SizeScoreFunc)
+		sizeScoreExpression, err := govaluate.NewEvaluableExpression(quality.SizeScoreExpr)
 		if err != nil {
 			return nil, fmt.Errorf("Error evaluating size score function: %v", err)
 		}
-		seederScoreExpression, err := govaluate.NewEvaluableExpression(quality.SeederScoreFunc)
-		if err != nil {
-			return nil, fmt.Errorf("Error evaluating seeder score function: %v", err)
-		}
-		qualityScoreExpression, err := govaluate.NewEvaluableExpression(quality.QualityScoreFunc)
+		seederScoreExpression, err := govaluate.NewEvaluableExpression(quality.SeederScoreExpr)
 		if err != nil {
 			return nil, fmt.Errorf("Error evaluating seeder score function: %v", err)
 		}
@@ -59,20 +61,21 @@ func (s *Release) QueryMovie(imdbID string, title string, year string) ([]Scored
 				"quality": qualityIndex,
 				"sizeMB":  release.Size / 1024 / 1024,
 				"sizeGB":  release.Size / 1024 / 1024 / 1024,
+				"e":       math.E,
 			}
 			seederScore, err := seederScoreExpression.Evaluate(params)
 			if err != nil {
-				log.Fatalf("Error evaluating seeder sorting function %s \n %v", quality.SeederScoreFunc, err)
+				log.Fatalf("Error evaluating seeder sorting function %s \n %v", quality.SeederScoreExpr, err)
 				return nil, err
 			}
 			sizeScore, err := sizeScoreExpression.Evaluate(params)
 			if err != nil {
-				log.Fatalf("Error evaluating size sorting function %s \n %v", quality.SizeScoreFunc, err)
+				log.Fatalf("Error evaluating size sorting function %s \n %v", quality.SizeScoreExpr, err)
 				return nil, err
 			}
 			qualityScore, err := qualityScoreExpression.Evaluate(params)
 			if err != nil {
-				log.Fatalf("Error evaluating size sorting function %s \n %v", quality.SizeScoreFunc, err)
+				log.Fatalf("Error evaluating size sorting function %s \n %v", quality.SizeScoreExpr, err)
 				return nil, err
 			}
 

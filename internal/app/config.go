@@ -36,8 +36,9 @@ type TranscoderConfig struct {
 }
 
 type ReleaseServiceConfig struct {
-	Indexers  []Indexer `toml:"indexers"`
-	Qualities []Quality `toml:"qualities"`
+	Indexers         []Indexer `toml:"indexers"`
+	Qualities        []Quality `toml:"qualities"`
+	QualityScoreExpr string    `toml:"quality_score_expr"`
 }
 
 func (c ReleaseServiceConfig) Validate() error {
@@ -56,6 +57,9 @@ func (c ReleaseServiceConfig) Validate() error {
 		if err := quality.Validate(); err != nil {
 			return fmt.Errorf("Quality %v is invalid:\n%+v\n %s", i, quality, err)
 		}
+	}
+	if c.QualityScoreExpr == "" {
+		return errors.New("Size score function cannot be empty")
 	}
 	return nil
 }
