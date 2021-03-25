@@ -88,15 +88,14 @@ type Indexer struct {
 
 // Quality contains specifications for a specific quality of torrent and how to infer that quality from a name
 type Quality struct {
-	Name             string  `toml:"name"`
-	Regex            string  `toml:"regex"`
-	MinSize          float64 `toml:"min_size"`
-	MaxSize          float64 `toml:"max_size"`
-	MinSeeders       int     `toml:"min_seeders"`
-	Resolution       string  `toml:"resolution"`
-	SeederScoreFunc  string  `toml:"seeder_score_func"`
-	SizeScoreFunc    string  `toml:"size_score_func"`
-	QualityScoreFunc string  `toml:"quality_score_func"`
+	Name            string  `toml:"name"`
+	Regex           string  `toml:"regex"`
+	MinSize         float64 `toml:"min_size"`
+	MaxSize         float64 `toml:"max_size"`
+	MinSeeders      int     `toml:"min_seeders"`
+	Resolution      string  `toml:"resolution"`
+	SeederScoreExpr string  `toml:"seeder_score_expr"`
+	SizeScoreExpr   string  `toml:"size_score_expr"`
 }
 
 // MovieTorrentLink handles linking a Movie to a specific file in a torrent
@@ -146,13 +145,10 @@ func (i Indexer) Validate() error {
 }
 
 func (q Quality) Validate() error {
-	if q.SeederScoreFunc == "" {
+	if q.SeederScoreExpr == "" {
 		return errors.New("Seeder score function cannot be empty")
 	}
-	if q.SizeScoreFunc == "" {
-		return errors.New("Size score function cannot be empty")
-	}
-	if q.QualityScoreFunc == "" {
+	if q.SizeScoreExpr == "" {
 		return errors.New("Size score function cannot be empty")
 	}
 	if q.Name == "" {

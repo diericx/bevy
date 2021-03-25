@@ -251,6 +251,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			scoredReleases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year)
 			if err != nil {
+				log.Println(err)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
@@ -317,6 +318,7 @@ func (h *HTTPHandler) addTorrentsGroup(group *gin.RouterGroup) {
 
 			scoredReleases, err := h.ReleaseService.QueryMovie(input.ImdbID, input.Title, input.Year)
 			if err != nil {
+				log.Println(err)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
