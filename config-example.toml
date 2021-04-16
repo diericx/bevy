@@ -1,38 +1,33 @@
 [tmdb]
-  api_key= ""
+  api_key= "8aa5bee9448a33d049f8ab49da08c30e"
 
 [torrent_fetcher]
+  quality_score_expr = "quality*0.1"
 
   [[torrent_fetcher.indexers]]
     name = "1337x"
-    url = "http://localhost:9117/api/v2.0/indexers/1337x/results/torznab/"
-    api_key = "<api-key>"
+    url = "http://0.0.0.0:9117/api/v2.0/indexers/1337x/results/torznab/"
+    api_key = "<insert-api-key>"
     categories = "2000,100002,100004,100001,100054,100042,100070,100055,100003,100076,2010,2020,2030,2040,2045,2050,2060,2070,2080"
 
   [[torrent_fetcher.qualities]]
     name = "720p"
     regex = "720"
-    min_size = 5e8
-    max_size = 1e10
+    min_size = 1e9
+    max_size = 40e9
     min_seeders = 2
     resolution = "1280x720"
-    # Function that approaches 1 as seed count goes up
-    seeder_score_func = "(-3 * 1/(seeders+3)) + 1"
-    # Function that starts around 0, peaks at 8000 and then tapers off back to 0 saying the ideal is 8000
-    size_score_func = "10**7 * 1/((sizeMB - 8000)**2 + 10**7)"
-    quality_score_func = "quality * 0.35"
+    seeder_score_expr = "1 / (1 + e**(-0.2*seeders+5))"
+    size_score_expr = "1 / ( 10**(-16) * (sizeMB-15000)**4 + 1)"
   [[torrent_fetcher.qualities]]
     name = "1080p"
     regex = "1080"
     min_size = 5e8
-    max_size = 1e10
+    max_size = 40e9
     min_seeders = 2
     resolution = "1920x1080"
-    # Function that approaches 1 as seed count goes up
-    seeder_score_func = "(-3 * 1/(seeders+3)) + 1"
-    # Function that starts around 0, peaks at 12000 and then tapers off back to 0 saying the ideal is 12000
-    size_score_func = "10**7 * 1/((sizeMB - 12000)**2 + 10**7)"
-    quality_score_func = "quality * 0.35"
+    seeder_score_expr = "1 / (1 + e**(-0.2*seeders+5))"
+    size_score_expr = "1 / ( 10.5**(-16) * (sizeMB-20000)**4 + 1)"
 
 [transcoder]
   [transcoder.video]
@@ -40,6 +35,7 @@
     format = "ismv"
   [transcoder.audio]
     compression_algo = "libmp3lame"
+
 
 [torrent_client]
   info_timeout = 30
