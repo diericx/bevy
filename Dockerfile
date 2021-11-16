@@ -1,5 +1,5 @@
 # => frontend build environment
-FROM node:13.12.0-alpine as frontend-builder
+FROM node:16-alpine as frontend-builder
 
 # install git
 RUN apk update
