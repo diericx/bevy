@@ -29,6 +29,11 @@ linux-arm64:
 	@mkdir -p dist/linux
 	@cd dist/linux; CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' -o linux-arm64 ../../cmd/...
 
+.PHONY: linux-arm
+linux-arm:
+	@mkdir -p dist/linux
+	@cd dist/linux; CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -a -installsuffix cgo -ldflags '-s -w -extldflags "-static" -X=main.version=$(VERSION)' -o linux-arm ../../cmd/...
+
 .PHONY: macos
 macos:
 	@mkdir -p dist/macos
